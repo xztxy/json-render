@@ -86,6 +86,11 @@ export type {
   CatalogConfig,
   Catalog,
   InferCatalogComponentProps,
+  SystemPromptOptions,
 } from "./catalog";
 
-export { createCatalog, generateCatalogPrompt } from "./catalog";
+export {
+  createCatalog,
+  generateCatalogPrompt,
+  generateSystemPrompt,
+} from "./catalog";
