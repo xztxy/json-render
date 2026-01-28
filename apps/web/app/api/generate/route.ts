@@ -8,16 +8,10 @@ export const maxDuration = 30;
 
 const SYSTEM_PROMPT = generateSystemPrompt(playgroundCatalog, {
   customRules: [
-    "Use className for custom Tailwind styling when needed",
-    "MOBILE-FIRST: Design mobile-first, single column on mobile, expand on larger screens",
-    'Grid: Use columns:1 prop, add className:["sm:grid-cols-2"] for larger screens',
-    "DO NOT put page headers/titles inside Card - use Stack with Heading directly",
-    "For forms (login, signup, contact): Card should be the root element, NOT wrapped in a centering Stack",
-    "NEVER use min-h-screen, h-screen, or viewport height classes - they break the render container",
-    "NEVER use bg-gray-50 or page background colors - container already has background",
+    "For forms: Card should be the root element, not wrapped in a centering Stack",
+    "NEVER use viewport height classes (min-h-screen, h-screen) - breaks the container",
+    "NEVER use page background colors (bg-gray-50) - container has its own background",
   ],
-  includeVisibility: false,
-  includeValidation: false,
 });
 
 const MAX_PROMPT_LENGTH = 500;

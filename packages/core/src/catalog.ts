@@ -440,10 +440,6 @@ function formatPropsCompact(
 export interface SystemPromptOptions {
   /** System message intro (replaces default) */
   system?: string;
-  /** Include visibility condition documentation (default: true) */
-  includeVisibility?: boolean;
-  /** Include validation documentation (default: true) */
-  includeValidation?: boolean;
   /** Additional rules to append to the rules section */
   customRules?: string[];
 }
@@ -462,8 +458,6 @@ export function generateSystemPrompt<
 ): string {
   const {
     system = "You are a UI generator that outputs JSONL (JSON Lines) patches.",
-    includeVisibility = true,
-    includeValidation = true,
     customRules = [],
   } = options;
 
@@ -525,21 +519,8 @@ export function generateSystemPrompt<
   });
   lines.push("");
 
-  // Visibility conditions
-  if (includeVisibility) {
-    lines.push("VISIBILITY CONDITIONS:");
-    lines.push("Components can have a `visible` property:");
-    lines.push("- true/false - Always visible/hidden");
-    lines.push('- { "path": "/data/path" } - Visible when path is truthy');
-    lines.push('- { "auth": "signedIn" } - Visible when user is signed in');
-    lines.push('- { "and": [...] } - All conditions must be true');
-    lines.push('- { "or": [...] } - Any condition must be true');
-    lines.push('- { "not": {...} } - Negates a condition');
-    lines.push("");
-  }
-
-  // Validation
-  if (includeValidation && catalog.functionNames.length > 0) {
+  // Custom validation functions (only if catalog has them)
+  if (catalog.functionNames.length > 0) {
     lines.push("CUSTOM VALIDATION FUNCTIONS:");
     lines.push(catalog.functionNames.map(String).join(", "));
     lines.push("");

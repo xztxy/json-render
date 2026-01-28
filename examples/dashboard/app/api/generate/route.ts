@@ -4,16 +4,7 @@ import { dashboardCatalog } from "@/lib/catalog";
 
 export const maxDuration = 30;
 
-const SYSTEM_PROMPT = generateSystemPrompt(dashboardCatalog, {
-  system:
-    "You are a dashboard widget generator that outputs JSONL (JSON Lines) patches.",
-  customRules: [
-    "Children array contains STRING KEYS, not nested objects",
-    'DATA BINDING: Use valuePath for single values (e.g., "/analytics/revenue"), dataPath for arrays',
-  ],
-  includeVisibility: false,
-  includeValidation: false,
-});
+const SYSTEM_PROMPT = generateSystemPrompt(dashboardCatalog);
 
 const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
 
