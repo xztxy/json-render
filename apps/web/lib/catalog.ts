@@ -1,39 +1,39 @@
-import { createCatalog } from "@json-render/core";
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react";
 import { z } from "zod";
 
 /**
  * Web playground component catalog
  *
  * This defines the components available for AI generation in the playground.
+ * Components map to implementations in lib/catalog/components.tsx
+ * Actions map to handlers in lib/catalog/actions.ts
  */
-export const playgroundCatalog = createCatalog({
-  name: "playground",
+export const playgroundCatalog = defineCatalog(schema, {
   components: {
     // Layout Components
     Card: {
       props: z.object({
-        title: z.string().optional(),
-        description: z.string().optional(),
-        maxWidth: z.enum(["sm", "md", "lg", "full"]).optional(),
-        centered: z.boolean().optional(),
-        className: z.array(z.string()).optional(),
+        title: z.string().nullable(),
+        description: z.string().nullable(),
+        maxWidth: z.enum(["sm", "md", "lg", "full"]).nullable(),
+        centered: z.boolean().nullable(),
       }),
-      hasChildren: true,
+      slots: ["default"],
       description:
         "Container card for content sections. Use for forms/content boxes, NOT for page headers.",
     },
 
     Stack: {
       props: z.object({
-        direction: z.enum(["horizontal", "vertical"]).optional(),
-        gap: z.enum(["none", "sm", "md", "lg"]).optional(),
-        align: z.enum(["start", "center", "end", "stretch"]).optional(),
+        direction: z.enum(["horizontal", "vertical"]).nullable(),
+        gap: z.enum(["none", "sm", "md", "lg"]).nullable(),
+        align: z.enum(["start", "center", "end", "stretch"]).nullable(),
         justify: z
           .enum(["start", "center", "end", "between", "around"])
-          .optional(),
-        className: z.array(z.string()).optional(),
+          .nullable(),
       }),
-      hasChildren: true,
+      slots: ["default"],
       description: "Flex container for layouts",
     },
 
@@ -48,18 +48,15 @@ export const playgroundCatalog = createCatalog({
             z.literal(5),
             z.literal(6),
           ])
-          .optional(),
-        gap: z.enum(["sm", "md", "lg"]).optional(),
-        className: z.array(z.string()).optional(),
+          .nullable(),
+        gap: z.enum(["sm", "md", "lg"]).nullable(),
       }),
-      hasChildren: true,
+      slots: ["default"],
       description: "Grid layout (1-6 columns)",
     },
 
     Divider: {
-      props: z.object({
-        className: z.array(z.string()).optional(),
-      }),
+      props: z.object({}),
       description: "Horizontal separator line",
     },
 
@@ -68,9 +65,8 @@ export const playgroundCatalog = createCatalog({
       props: z.object({
         label: z.string(),
         name: z.string(),
-        type: z.enum(["text", "email", "password", "number"]).optional(),
-        placeholder: z.string().optional(),
-        className: z.array(z.string()).optional(),
+        type: z.enum(["text", "email", "password", "number"]).nullable(),
+        placeholder: z.string().nullable(),
       }),
       description: "Text input field",
     },
@@ -79,9 +75,8 @@ export const playgroundCatalog = createCatalog({
       props: z.object({
         label: z.string(),
         name: z.string(),
-        placeholder: z.string().optional(),
-        rows: z.number().optional(),
-        className: z.array(z.string()).optional(),
+        placeholder: z.string().nullable(),
+        rows: z.number().nullable(),
       }),
       description: "Multi-line text input",
     },
@@ -91,8 +86,7 @@ export const playgroundCatalog = createCatalog({
         label: z.string(),
         name: z.string(),
         options: z.array(z.string()),
-        placeholder: z.string().optional(),
-        className: z.array(z.string()).optional(),
+        placeholder: z.string().nullable(),
       }),
       description: "Dropdown select input",
     },
@@ -101,8 +95,7 @@ export const playgroundCatalog = createCatalog({
       props: z.object({
         label: z.string(),
         name: z.string(),
-        checked: z.boolean().optional(),
-        className: z.array(z.string()).optional(),
+        checked: z.boolean().nullable(),
       }),
       description: "Checkbox input",
     },
@@ -112,7 +105,6 @@ export const playgroundCatalog = createCatalog({
         label: z.string(),
         name: z.string(),
         options: z.array(z.string()),
-        className: z.array(z.string()).optional(),
       }),
       description: "Radio button group",
     },
@@ -121,8 +113,7 @@ export const playgroundCatalog = createCatalog({
       props: z.object({
         label: z.string(),
         name: z.string(),
-        checked: z.boolean().optional(),
-        className: z.array(z.string()).optional(),
+        checked: z.boolean().nullable(),
       }),
       description: "Toggle switch input",
     },
@@ -131,19 +122,18 @@ export const playgroundCatalog = createCatalog({
     Button: {
       props: z.object({
         label: z.string(),
-        variant: z.enum(["primary", "secondary", "danger"]).optional(),
-        actionText: z.string().optional(),
-        className: z.array(z.string()).optional(),
+        variant: z.enum(["primary", "secondary", "danger"]).nullable(),
+        action: z.string().nullable(),
+        actionParams: z.record(z.string(), z.unknown()).nullable(),
       }),
       description:
-        "Clickable button. actionText is shown in toast on click (defaults to label)",
+        "Clickable button. Use action to specify the action name and actionParams for parameters.",
     },
 
     Link: {
       props: z.object({
         label: z.string(),
         href: z.string(),
-        className: z.array(z.string()).optional(),
       }),
       description: "Anchor link",
     },
@@ -152,10 +142,7 @@ export const playgroundCatalog = createCatalog({
     Heading: {
       props: z.object({
         text: z.string(),
-        level: z
-          .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
-          .optional(),
-        className: z.array(z.string()).optional(),
+        level: z.enum(["h1", "h2", "h3", "h4"]).nullable(),
       }),
       description: "Heading text (h1-h4)",
     },
@@ -163,8 +150,7 @@ export const playgroundCatalog = createCatalog({
     Text: {
       props: z.object({
         text: z.string(),
-        variant: z.enum(["body", "caption", "muted"]).optional(),
-        className: z.array(z.string()).optional(),
+        variant: z.enum(["body", "caption", "muted"]).nullable(),
       }),
       description: "Paragraph text",
     },
@@ -173,19 +159,17 @@ export const playgroundCatalog = createCatalog({
     Image: {
       props: z.object({
         alt: z.string(),
-        width: z.number().optional(),
-        height: z.number().optional(),
-        className: z.array(z.string()).optional(),
+        width: z.number().nullable(),
+        height: z.number().nullable(),
       }),
       description: "Placeholder image (displays alt text in a styled box)",
     },
 
     Avatar: {
       props: z.object({
-        src: z.string().optional(),
+        src: z.string().nullable(),
         name: z.string(),
-        size: z.enum(["sm", "md", "lg"]).optional(),
-        className: z.array(z.string()).optional(),
+        size: z.enum(["sm", "md", "lg"]).nullable(),
       }),
       description: "User avatar with fallback initials",
     },
@@ -193,8 +177,7 @@ export const playgroundCatalog = createCatalog({
     Badge: {
       props: z.object({
         text: z.string(),
-        variant: z.enum(["default", "success", "warning", "danger"]).optional(),
-        className: z.array(z.string()).optional(),
+        variant: z.enum(["default", "success", "warning", "danger"]).nullable(),
       }),
       description: "Status badge",
     },
@@ -202,9 +185,8 @@ export const playgroundCatalog = createCatalog({
     Alert: {
       props: z.object({
         title: z.string(),
-        message: z.string().optional(),
-        type: z.enum(["info", "success", "warning", "error"]).optional(),
-        className: z.array(z.string()).optional(),
+        message: z.string().nullable(),
+        type: z.enum(["info", "success", "warning", "error"]).nullable(),
       }),
       description: "Alert banner",
     },
@@ -212,9 +194,8 @@ export const playgroundCatalog = createCatalog({
     Progress: {
       props: z.object({
         value: z.number(),
-        max: z.number().optional(),
-        label: z.string().optional(),
-        className: z.array(z.string()).optional(),
+        max: z.number().nullable(),
+        label: z.string().nullable(),
       }),
       description: "Progress bar (value 0-100)",
     },
@@ -222,9 +203,8 @@ export const playgroundCatalog = createCatalog({
     Rating: {
       props: z.object({
         value: z.number(),
-        max: z.number().optional(),
-        label: z.string().optional(),
-        className: z.array(z.string()).optional(),
+        max: z.number().nullable(),
+        label: z.string().nullable(),
       }),
       description: "Star rating display",
     },
@@ -232,31 +212,55 @@ export const playgroundCatalog = createCatalog({
     // Charts
     BarGraph: {
       props: z.object({
-        title: z.string().optional(),
+        title: z.string().nullable(),
         data: z.array(
           z.object({
             label: z.string(),
             value: z.number(),
           }),
         ),
-        className: z.array(z.string()).optional(),
       }),
       description: "Vertical bar chart",
     },
 
     LineGraph: {
       props: z.object({
-        title: z.string().optional(),
+        title: z.string().nullable(),
         data: z.array(
           z.object({
             label: z.string(),
             value: z.number(),
           }),
         ),
-        className: z.array(z.string()).optional(),
       }),
       description: "Line chart with points",
     },
   },
-  validation: "strict",
+
+  actions: {
+    // Demo actions for the playground
+    buttonClick: {
+      params: z.object({
+        message: z.string().nullable(),
+      }),
+      description:
+        "Triggered when a button is clicked. Shows a toast with the message.",
+    },
+
+    formSubmit: {
+      params: z.object({
+        formName: z.string().nullable(),
+      }),
+      description:
+        "Triggered when a form is submitted. Shows a toast confirming submission.",
+    },
+
+    linkClick: {
+      params: z.object({
+        href: z.string(),
+      }),
+      description:
+        "Triggered when a link is clicked. Shows a toast with the destination.",
+    },
+  },
 });

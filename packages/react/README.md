@@ -66,7 +66,7 @@ function App() {
         placeholder="Describe the UI..."
         onKeyDown={(e) => e.key === 'Enter' && send(e.target.value)}
       />
-      <Renderer tree={tree} registry={registry} loading={isStreaming} />
+      <Renderer spec={spec} registry={registry} loading={isStreaming} />
     </JSONUIProvider>
   );
 }
@@ -166,7 +166,7 @@ function StreamingDemo() {
         Generate
       </button>
       {isStreaming && <span>Generating...</span>}
-      {tree && <Renderer tree={tree} registry={registry} />}
+      {spec && <Renderer spec={spec} registry={registry} />}
     </div>
   );
 }

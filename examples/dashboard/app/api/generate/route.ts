@@ -1,10 +1,10 @@
 import { streamText } from "ai";
-import { generateSystemPrompt } from "@json-render/core";
-import { dashboardCatalog } from "@/lib/catalog";
+import { dashboardCatalog } from "@/lib/render/catalog";
 
 export const maxDuration = 30;
 
-const SYSTEM_PROMPT = generateSystemPrompt(dashboardCatalog);
+// Use the new catalog.prompt() API
+const SYSTEM_PROMPT = dashboardCatalog.prompt();
 
 const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
 

@@ -3,7 +3,7 @@ import type {
   ComponentSchema,
   ValidationMode,
   UIElement,
-  UITree,
+  Spec,
   VisibilityCondition,
 } from "./types";
 import { VisibilityConditionSchema } from "./visibility";
@@ -88,8 +88,8 @@ export interface Catalog<
   readonly functions: TFunctions;
   /** Full element schema for AI generation */
   readonly elementSchema: z.ZodType<UIElement>;
-  /** Full UI tree schema */
-  readonly treeSchema: z.ZodType<UITree>;
+  /** Full UI spec schema */
+  readonly specSchema: z.ZodType<Spec>;
   /** Check if component exists */
   hasComponent(type: string): boolean;
   /** Check if action exists */
@@ -102,10 +102,10 @@ export interface Catalog<
     data?: UIElement;
     error?: z.ZodError;
   };
-  /** Validate a UI tree */
-  validateTree(tree: unknown): {
+  /** Validate a UI spec */
+  validateSpec(spec: unknown): {
     success: boolean;
-    data?: UITree;
+    data?: Spec;
     error?: z.ZodError;
   };
 }
@@ -174,11 +174,11 @@ export function createCatalog<
     ]) as unknown as z.ZodType<UIElement>;
   }
 
-  // Create tree schema
-  const treeSchema = z.object({
+  // Create spec schema
+  const specSchema = z.object({
     root: z.string(),
     elements: z.record(z.string(), elementSchema),
-  }) as unknown as z.ZodType<UITree>;
+  }) as unknown as z.ZodType<Spec>;
 
   return {
     name,
@@ -190,7 +190,7 @@ export function createCatalog<
     actions,
     functions,
     elementSchema,
-    treeSchema,
+    specSchema,
 
     hasComponent(type: string) {
       return type in components;
@@ -212,8 +212,8 @@ export function createCatalog<
       return { success: false, error: result.error };
     },
 
-    validateTree(tree: unknown) {
-      const result = treeSchema.safeParse(tree);
+    validateSpec(spec: unknown) {
+      const result = specSchema.safeParse(spec);
       if (result.success) {
         return { success: true, data: result.data };
       }

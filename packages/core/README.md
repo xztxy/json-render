@@ -177,7 +177,7 @@ const result = runValidation(config, {
 See `src/types.ts` for full type definitions:
 
 - `UIElement` - Base element structure
-- `UITree` - Flat tree structure
+- `Spec` - Flat tree structure
 - `VisibilityCondition` - Visibility condition types
 - `LogicExpression` - Logic expression types
 - `Action` - Rich action definition

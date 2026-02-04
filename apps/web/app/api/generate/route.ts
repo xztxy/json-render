@@ -1,12 +1,11 @@
 import { streamText } from "ai";
 import { headers } from "next/headers";
-import { generateSystemPrompt } from "@json-render/core";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
 import { playgroundCatalog } from "@/lib/catalog";
 
 export const maxDuration = 30;
 
-const SYSTEM_PROMPT = generateSystemPrompt(playgroundCatalog, {
+const SYSTEM_PROMPT = playgroundCatalog.prompt({
   customRules: [
     "For forms: Card should be the root element, not wrapped in a centering Stack",
     "NEVER use viewport height classes (min-h-screen, h-screen) - breaks the container",

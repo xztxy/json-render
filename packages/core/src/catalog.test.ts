@@ -81,21 +81,21 @@ describe("createCatalog", () => {
     expect(catalog.validateElement(invalidElement).success).toBe(false);
   });
 
-  it("validates UI trees", () => {
+  it("validates UI specs", () => {
     const catalog = createCatalog({
       components: {
         text: { props: z.object({ content: z.string() }) },
       },
     });
 
-    const validTree = {
+    const validSpec = {
       root: "1",
       elements: {
         "1": { key: "1", type: "text", props: { content: "Hello" } },
       },
     };
 
-    expect(catalog.validateTree(validTree).success).toBe(true);
+    expect(catalog.validateSpec(validSpec).success).toBe(true);
   });
 
   it("uses default name when not provided", () => {
