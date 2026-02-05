@@ -39,6 +39,33 @@ const mySchema = defineSchema((s) => ({
   promptTemplate: myPromptTemplate,
 });`}</Code>
 
+      <h3 className="text-lg font-semibold mt-8 mb-4">
+        New: AI Prompt Generation
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Catalogs now generate AI system prompts automatically with{" "}
+        <code>catalog.prompt()</code>. The prompt includes all component
+        definitions, props schemas, and action descriptions - ensuring the AI
+        only generates valid specs.
+      </p>
+      <Code lang="typescript">{`import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+
+const catalog = defineCatalog(schema, {
+  components: { /* ... */ },
+  actions: { /* ... */ },
+});
+
+// Generate system prompt for AI
+const systemPrompt = catalog.prompt();
+
+// Use with any AI SDK
+const result = await streamText({
+  model: "claude-haiku-4.5",
+  system: systemPrompt,
+  prompt: userMessage,
+});`}</Code>
+
       <h3 className="text-lg font-semibold mt-8 mb-4">New: SpecStream</h3>
       <p className="text-sm text-muted-foreground mb-4">
         SpecStream is json-render&apos;s streaming format for progressively
