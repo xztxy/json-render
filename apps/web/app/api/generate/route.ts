@@ -44,19 +44,19 @@ export async function POST(req: Request) {
   }
 
   const { prompt, context } = await req.json();
-  const previousTree = context?.previousTree;
+  const previousSpec = context?.previousSpec;
 
   const sanitizedPrompt = String(prompt || "").slice(0, MAX_PROMPT_LENGTH);
 
   // Build the user prompt, including previous tree for iteration
   let userPrompt = sanitizedPrompt;
   if (
-    previousTree &&
-    previousTree.root &&
-    Object.keys(previousTree.elements || {}).length > 0
+    previousSpec &&
+    previousSpec.root &&
+    Object.keys(previousSpec.elements || {}).length > 0
   ) {
     userPrompt = `CURRENT UI STATE (already loaded, DO NOT recreate existing elements):
-${JSON.stringify(previousTree, null, 2)}
+${JSON.stringify(previousSpec, null, 2)}
 
 USER REQUEST: ${sanitizedPrompt}
 

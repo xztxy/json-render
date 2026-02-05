@@ -50,7 +50,7 @@ export function Playground() {
   // Track the currently generating version ID
   const generatingVersionIdRef = useRef<string | null>(null);
 
-  // Track the current tree for use as previousTree in next generation
+  // Track the current tree for use as previousSpec in next generation
   const currentTreeRef = useRef<Spec | null>(null);
 
   const {
@@ -163,7 +163,7 @@ export function Playground() {
     setStreamLines([]); // Reset stream lines for new generation
 
     // Pass the current tree as context so the API can iterate on it
-    await send(inputValue.trim(), { previousTree: currentTreeRef.current });
+    await send(inputValue.trim(), { previousSpec: currentTreeRef.current });
   }, [inputValue, isStreaming, send]);
 
   const handleKeyDown = useCallback(
