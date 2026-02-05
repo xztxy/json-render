@@ -4,7 +4,7 @@ import {
   standardComponentDefinitions,
   standardTransitionDefinitions,
   standardEffectDefinitions,
-} from "@json-render/remotion";
+} from "@json-render/remotion/server";
 
 /**
  * Remotion video catalog
