@@ -5,11 +5,12 @@ import type {
   UIElement,
   Spec,
   Action,
-  Catalog as NewCatalog,
+  Catalog,
   SchemaDefinition,
   LegacyCatalog,
   ComponentDefinition,
 } from "@json-render/core";
+import type { Components } from "./catalog-types";
 import { useIsVisible } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
 import { useData } from "./contexts/data";
@@ -233,6 +234,66 @@ export function createRendererFromCatalog<
 }
 
 // ============================================================================
+// defineRegistry
+// ============================================================================
+
+/**
+ * Create a component registry from a catalog and component map.
+ *
+ * Components receive `{ props, children, onAction, loading }` with
+ * catalog-inferred prop types, and the returned registry can be passed
+ * directly to `<Renderer registry={...} />`.
+ *
+ * @example
+ * ```tsx
+ * const registry = defineRegistry(catalog, {
+ *   Card: ({ props, children }) => (
+ *     <div className="card">{props.title}{children}</div>
+ *   ),
+ *   Button: ({ props, onAction }) => (
+ *     <button onClick={() => onAction?.({ name: props.action })}>
+ *       {props.label}
+ *     </button>
+ *   ),
+ * });
+ *
+ * <Renderer spec={spec} registry={registry} />
+ * ```
+ */
+export function defineRegistry<C extends Catalog>(
+  _catalog: C,
+  components: Components<C>,
+): ComponentRegistry {
+  const registry: ComponentRegistry = {};
+
+  for (const [name, componentFn] of Object.entries(components)) {
+    registry[name] = ({
+      element,
+      children,
+      onAction,
+      loading,
+    }: ComponentRenderProps) => {
+      return (componentFn as DefineRegistryAdapterFn)({
+        props: element.props,
+        children,
+        onAction,
+        loading,
+      });
+    };
+  }
+
+  return registry;
+}
+
+/** @internal Loose function type used inside defineRegistry to bridge ComponentContext and ComponentRenderProps */
+type DefineRegistryAdapterFn = (ctx: {
+  props: unknown;
+  children?: React.ReactNode;
+  onAction?: (action: Action) => void;
+  loading?: boolean;
+}) => React.ReactNode;
+
+// ============================================================================
 // NEW API
 // ============================================================================
 
@@ -289,7 +350,7 @@ export function createRenderer<
   TDef extends SchemaDefinition,
   TCatalog extends { components: Record<string, { props: unknown }> },
 >(
-  catalog: NewCatalog<TDef, TCatalog>,
+  catalog: Catalog<TDef, TCatalog>,
   components: ComponentMap<TCatalog["components"]>,
 ): ComponentType<CreateRendererProps> {
   // Convert component map to registry

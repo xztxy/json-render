@@ -56,12 +56,12 @@ const catalog = defineCatalog(schema, {
 });
 ```
 
-### 2. Register Component Implementations
+### 2. Define Your Components
 
 ```tsx
-import { defineComponents } from "@json-render/react";
+import { defineRegistry, Renderer } from "@json-render/react";
 
-const components = defineComponents(catalog, {
+const registry = defineRegistry(catalog, {
   Card: ({ props, children }) => (
     <div className="card">
       <h3>{props.title}</h3>
@@ -75,7 +75,7 @@ const components = defineComponents(catalog, {
     </div>
   ),
   Button: ({ props, onAction }) => (
-    <button onClick={() => onAction?.(props.action)}>
+    <button onClick={() => onAction?.({ name: props.action })}>
       {props.label}
     </button>
   ),
@@ -85,16 +85,8 @@ const components = defineComponents(catalog, {
 ### 3. Render AI-Generated Specs
 
 ```tsx
-import { Renderer } from "@json-render/react";
-
 function Dashboard({ spec }) {
-  return (
-    <Renderer
-      spec={spec}
-      catalog={catalog}
-      components={components}
-    />
-  );
+  return <Renderer spec={spec} registry={registry} />;
 }
 ```
 
@@ -115,7 +107,7 @@ function Dashboard({ spec }) {
 ### React (UI)
 
 ```tsx
-import { Renderer } from "@json-render/react";
+import { defineRegistry, Renderer } from "@json-render/react";
 import { schema } from "@json-render/react";
 
 // Element tree spec format
@@ -129,7 +121,9 @@ const spec = {
   }
 };
 
-<Renderer spec={spec} catalog={catalog} components={components} />
+// defineRegistry creates a type-safe component registry
+const registry = defineRegistry(catalog, components);
+<Renderer spec={spec} registry={registry} />
 ```
 
 ### Remotion (Video)

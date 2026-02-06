@@ -64,11 +64,13 @@ export type {
 
 // Renderer
 export {
-  // New API
+  // Registry
+  defineRegistry,
+  // createRenderer (higher-level, includes providers)
   createRenderer,
   type CreateRendererProps,
   type ComponentMap,
-  // Legacy API
+  // Low-level
   Renderer,
   JSONUIProvider,
   createRendererFromCatalog,

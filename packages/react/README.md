@@ -51,9 +51,10 @@ export const catalog = defineCatalog(schema, {
 ### 2. Define Component Implementations
 
 ```tsx
-import { defineComponents, useData } from "@json-render/react";
+import { defineRegistry, useData } from "@json-render/react";
+import { catalog } from "./catalog";
 
-export const components = defineComponents(catalog, {
+export const registry = defineRegistry(catalog, {
   Card: ({ props, children }) => (
     <div className="card">
       <h3>{props.title}</h3>
@@ -62,7 +63,7 @@ export const components = defineComponents(catalog, {
     </div>
   ),
   Button: ({ props, onAction }) => (
-    <button onClick={() => onAction?.(props.action)}>
+    <button onClick={() => onAction?.({ name: props.action })}>
       {props.label}
     </button>
   ),
@@ -86,20 +87,15 @@ export const components = defineComponents(catalog, {
 
 ```tsx
 import { Renderer, DataProvider, ActionProvider } from "@json-render/react";
+import { registry } from "./registry";
 
 function App({ spec }) {
-  const handleAction = (action: string) => {
-    console.log("Action triggered:", action);
-  };
-
   return (
     <DataProvider initialData={{ form: { value: "" } }}>
-      <ActionProvider onAction={handleAction}>
-        <Renderer
-          spec={spec}
-          catalog={catalog}
-          components={components}
-        />
+      <ActionProvider handlers={{
+        submit: () => console.log("Submit"),
+      }}>
+        <Renderer spec={spec} registry={registry} />
       </ActionProvider>
     </DataProvider>
   );
@@ -253,13 +249,14 @@ const { errors, validate } = useFieldValidation("/form/email", {
 
 ## Component Props
 
-Components receive these props:
+When using `defineRegistry`, components receive these props:
 
 ```typescript
-interface ComponentProps<P> {
-  props: P;                    // Props from spec
+interface ComponentContext<P> {
+  props: P;                    // Typed props from the catalog
   children?: React.ReactNode;  // Rendered children
-  onAction?: (action: string) => void;
+  onAction?: (action: { name: string; params?: Record<string, unknown> }) => void;
+  loading?: boolean;           // Whether the parent is loading
 }
 ```
 
@@ -274,13 +271,7 @@ const systemPrompt = catalog.prompt();
 
 ```tsx
 import { defineCatalog } from "@json-render/core";
-import {
-  schema,
-  defineComponents,
-  Renderer,
-  DataProvider,
-  ActionProvider,
-} from "@json-render/react";
+import { schema, defineRegistry, Renderer } from "@json-render/react";
 import { z } from "zod";
 
 const catalog = defineCatalog(schema, {
@@ -293,7 +284,7 @@ const catalog = defineCatalog(schema, {
   actions: {},
 });
 
-const components = defineComponents(catalog, {
+const registry = defineRegistry(catalog, {
   Greeting: ({ props }) => <h1>Hello, {props.name}!</h1>,
 });
 
@@ -305,12 +296,6 @@ const spec = {
 };
 
 function App() {
-  return (
-    <DataProvider initialData={{}}>
-      <ActionProvider onAction={() => {}}>
-        <Renderer spec={spec} catalog={catalog} components={components} />
-      </ActionProvider>
-    </DataProvider>
-  );
+  return <Renderer spec={spec} registry={registry} />;
 }
 ```
