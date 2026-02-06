@@ -43,36 +43,51 @@ interface AuthState {
 
 type ValidatorFn = (value: unknown, args?: object) => boolean | Promise<boolean>;`}</Code>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">createRenderer</h2>
+      <h2 className="text-xl font-semibold mt-12 mb-4">defineRegistry</h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Factory function to create a pre-configured renderer component.
+        Create a type-safe component registry from a catalog. Components receive{" "}
+        <code className="text-foreground">props</code>,{" "}
+        <code className="text-foreground">children</code>,{" "}
+        <code className="text-foreground">onAction</code>, and{" "}
+        <code className="text-foreground">loading</code> with catalog-inferred
+        types.
       </p>
-      <Code lang="tsx">{`import { createRenderer } from '@json-render/react';
+      <Code lang="tsx">{`import { defineRegistry } from '@json-render/react';
 
-const MyRenderer = createRenderer({
-  registry: componentRegistry,
-  data?: initialData,
-  actionHandlers?: actionHandlerMap,
-  auth?: authState,
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) => <div>{props.title}{children}</div>,
+    Button: ({ props, onAction }) => (
+      <button onClick={() => onAction?.({ name: props.action })}>
+        {props.label}
+      </button>
+    ),
+  },
 });
 
-// Usage
-<MyRenderer spec={spec} loading={isStreaming} />`}</Code>
+// Pass to <Renderer>
+<Renderer spec={spec} registry={registry} />`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Components</h2>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">Renderer</h3>
       <Code lang="tsx">{`<Renderer
   spec={Spec}           // The UI spec to render
-  registry={Registry}   // Component registry
+  registry={Registry}   // Component registry (from defineRegistry)
   loading={boolean}     // Optional loading state
+  fallback={Component}  // Optional fallback for unknown types
 />
 
-type Registry = Record<string, React.ComponentType<ComponentProps>>;
+type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;`}</Code>
 
-interface ComponentProps<T = Record<string, unknown>> {
-  props: T;                    // Component props from spec
+      <h3 className="text-lg font-semibold mt-8 mb-4">
+        Component Props (via defineRegistry)
+      </h3>
+      <Code lang="tsx">{`interface ComponentContext<P> {
+  props: P;                    // Typed props from catalog
   children?: React.ReactNode;  // Rendered children (for slot components)
+  onAction?: (action: { name: string; params?: object }) => void;
+  loading?: boolean;
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Hooks</h2>

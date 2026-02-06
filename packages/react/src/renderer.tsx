@@ -5,11 +5,18 @@ import type {
   UIElement,
   Spec,
   Action,
-  Catalog as NewCatalog,
+  Catalog,
   SchemaDefinition,
   LegacyCatalog,
   ComponentDefinition,
 } from "@json-render/core";
+import type {
+  Components,
+  Actions,
+  ActionFn,
+  SetData,
+  DataModel,
+} from "./catalog-types";
 import { useIsVisible } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
 import { useData } from "./contexts/data";
@@ -233,6 +240,151 @@ export function createRendererFromCatalog<
 }
 
 // ============================================================================
+// defineRegistry
+// ============================================================================
+
+/**
+ * Result returned by defineRegistry
+ */
+export interface DefineRegistryResult {
+  /** Component registry for `<Renderer registry={...} />` */
+  registry: ComponentRegistry;
+  /**
+   * Create ActionProvider-compatible handlers.
+   * Accepts getter functions so handlers always read the latest data/setData
+   * (e.g. from React refs).
+   */
+  handlers: (
+    getSetData: () => SetData | undefined,
+    getData: () => DataModel,
+  ) => Record<string, (params: Record<string, unknown>) => Promise<void>>;
+  /**
+   * Execute an action by name imperatively
+   * (for use outside the React tree, e.g. initial data loading).
+   */
+  executeAction: (
+    actionName: string,
+    params: Record<string, unknown> | undefined,
+    setData: SetData,
+    data?: DataModel,
+  ) => Promise<void>;
+}
+
+/**
+ * Create a registry from a catalog with components and/or actions.
+ *
+ * @example
+ * ```tsx
+ * // Components only
+ * const { registry } = defineRegistry(catalog, {
+ *   components: {
+ *     Card: ({ props, children }) => (
+ *       <div className="card">{props.title}{children}</div>
+ *     ),
+ *   },
+ * });
+ *
+ * // Actions only
+ * const { handlers, executeAction } = defineRegistry(catalog, {
+ *   actions: {
+ *     viewCustomers: async (params, setData) => { ... },
+ *   },
+ * });
+ *
+ * // Both
+ * const { registry, handlers, executeAction } = defineRegistry(catalog, {
+ *   components: { ... },
+ *   actions: { ... },
+ * });
+ * ```
+ */
+export function defineRegistry<C extends Catalog>(
+  _catalog: C,
+  options: {
+    components?: Components<C>;
+    actions?: Actions<C>;
+  },
+): DefineRegistryResult {
+  // Build component registry
+  const registry: ComponentRegistry = {};
+  if (options.components) {
+    for (const [name, componentFn] of Object.entries(options.components)) {
+      registry[name] = ({
+        element,
+        children,
+        onAction,
+        loading,
+      }: ComponentRenderProps) => {
+        return (componentFn as DefineRegistryComponentFn)({
+          props: element.props,
+          children,
+          onAction,
+          loading,
+        });
+      };
+    }
+  }
+
+  // Build action helpers
+  const actionMap = options.actions
+    ? (Object.entries(options.actions) as Array<
+        [string, DefineRegistryActionFn]
+      >)
+    : [];
+
+  const handlers = (
+    getSetData: () => SetData | undefined,
+    getData: () => DataModel,
+  ): Record<string, (params: Record<string, unknown>) => Promise<void>> => {
+    const result: Record<
+      string,
+      (params: Record<string, unknown>) => Promise<void>
+    > = {};
+    for (const [name, actionFn] of actionMap) {
+      result[name] = async (params) => {
+        const setData = getSetData();
+        const data = getData();
+        if (setData) {
+          await actionFn(params, setData, data);
+        }
+      };
+    }
+    return result;
+  };
+
+  const executeAction = async (
+    actionName: string,
+    params: Record<string, unknown> | undefined,
+    setData: SetData,
+    data: DataModel = {},
+  ): Promise<void> => {
+    const entry = actionMap.find(([name]) => name === actionName);
+    if (entry) {
+      await entry[1](params, setData, data);
+    } else {
+      console.warn(`Unknown action: ${actionName}`);
+    }
+  };
+
+  return { registry, handlers, executeAction };
+}
+
+/** @internal */
+type DefineRegistryComponentFn = (ctx: {
+  props: unknown;
+  children?: React.ReactNode;
+  onAction?: (action: Action) => void;
+  loading?: boolean;
+}) => React.ReactNode;
+
+/** @internal */
+type DefineRegistryActionFn = (
+  params: Record<string, unknown> | undefined,
+  setData: SetData,
+  data: DataModel,
+) => Promise<void>;
+
+// ============================================================================
 // NEW API
 // ============================================================================
 
@@ -289,7 +441,7 @@ export function createRenderer<
   TDef extends SchemaDefinition,
   TCatalog extends { components: Record<string, { props: unknown }> },
 >(
-  catalog: NewCatalog<TDef, TCatalog>,
+  catalog: Catalog<TDef, TCatalog>,
   components: ComponentMap<TCatalog["components"]>,
 ): ComponentType<CreateRendererProps> {
   // Convert component map to registry

@@ -10,33 +10,26 @@ React renderer that converts JSON specs into React component trees.
 ## Quick Start
 
 ```typescript
-import { Renderer } from "@json-render/react";
+import { defineRegistry, Renderer } from "@json-render/react";
 import { catalog } from "./catalog";
 
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) => <div>{props.title}{children}</div>,
+  },
+});
+
 function App({ spec }) {
-  return <Renderer spec={spec} catalog={catalog} />;
+  return <Renderer spec={spec} registry={registry} />;
 }
 ```
 
 ## Creating a Catalog
 
 ```typescript
-import { defineCatalog, defineComponents } from "@json-render/react";
-import { schema } from "@json-render/react"; // Uses element tree schema
+import { defineCatalog } from "@json-render/core";
+import { schema, defineRegistry } from "@json-render/react";
 import { z } from "zod";
-
-// Define component implementations
-const components = defineComponents(catalog, {
-  Button: ({ props }) => (
-    <button className={props.variant}>{props.label}</button>
-  ),
-  Card: ({ props, children }) => (
-    <div className="card">
-      <h2>{props.title}</h2>
-      {children}
-    </div>
-  ),
-});
 
 // Create catalog with props schemas
 export const catalog = defineCatalog(schema, {
@@ -52,6 +45,21 @@ export const catalog = defineCatalog(schema, {
       props: z.object({ title: z.string() }),
       description: "Card container with title",
     },
+  },
+});
+
+// Define component implementations with type-safe props
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Button: ({ props }) => (
+      <button className={props.variant}>{props.label}</button>
+    ),
+    Card: ({ props, children }) => (
+      <div className="card">
+        <h2>{props.title}</h2>
+        {children}
+      </div>
+    ),
   },
 });
 ```
@@ -85,8 +93,8 @@ The React schema uses an element tree format:
 
 | Export | Purpose |
 |--------|---------|
-| `Renderer` | Render spec to React components |
+| `defineRegistry` | Create a type-safe component registry from a catalog |
+| `Renderer` | Render a spec using a registry |
 | `schema` | Element tree schema |
-| `defineComponents` | Type-safe component registry |
 | `useData` | Access data context |
 | `useActions` | Access actions context |

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useUIStream, type Spec } from "@json-render/react";
 import { DashboardRenderer } from "@/lib/render/renderer";
-import { executeAction } from "@/lib/render/catalog/actions";
+import { executeAction } from "@/lib/render/registry";
 import { CodeHighlight } from "@/components/code-highlight";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
