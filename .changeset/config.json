@@ -14,10 +14,8 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "web",
-    "example-dashboard",
-    "example-remotion",
-    "com.example.json-render-demo"
-  ]
+  "privatePackages": {
+    "version": false,
+    "tag": false
+  }
 }
