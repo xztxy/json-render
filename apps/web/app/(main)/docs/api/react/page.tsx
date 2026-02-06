@@ -94,15 +94,15 @@ type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;`}</Co
 
       <h3 className="text-lg font-semibold mt-8 mb-4">useUIStream</h3>
       <Code lang="typescript">{`const {
-  spec,         // Spec - current UI state
+  spec,         // Spec | null - current UI state
   isStreaming,  // boolean - true while streaming
   error,        // Error | null
-  send,         // (prompt: string) => void
-  abort,        // () => void
+  send,         // (prompt: string, context?: Record<string, unknown>) => Promise<void>
+  clear,        // () => void - reset spec and error
 } = useUIStream({
-  api: string,                       // API endpoint URL
-  onChunk?: (chunk: string) => void, // Called for each chunk
-  onFinish?: (spec: Spec) => void,   // Called when streaming completes
+  api: string,                         // API endpoint URL
+  onComplete?: (spec: Spec) => void,   // Called when streaming completes
+  onError?: (error: Error) => void,    // Called when an error occurs
 });`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">useData</h3>

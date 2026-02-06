@@ -34,11 +34,11 @@ function App() {
     isStreaming,   // True while streaming
     error,         // Any error that occurred
     send,          // Function to start generation
-    abort,         // Function to cancel streaming
+    clear,         // Function to reset spec and error
   } = useUIStream({
     api: '/api/generate',
-    onChunk: (chunk) => {},   // Optional: called for each chunk
-    onFinish: (spec) => {},   // Optional: called when complete
+    onComplete: (spec) => {},  // Optional: called when streaming completes
+    onError: (error) => {},    // Optional: called when an error occurs
   });
 }`}</Code>
 
@@ -112,8 +112,14 @@ export async function POST(req: Request) {
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Aborting Streams</h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        Calling <code className="text-foreground">send</code> again
+        automatically aborts the previous request. Use{" "}
+        <code className="text-foreground">clear</code> to reset the spec and
+        error state:
+      </p>
       <Code lang="tsx">{`function App() {
-  const { isStreaming, send, abort } = useUIStream({
+  const { isStreaming, send, clear } = useUIStream({
     api: '/api/generate',
   });
 
@@ -122,9 +128,7 @@ export async function POST(req: Request) {
       <button onClick={() => send('Create dashboard')}>
         Generate
       </button>
-      {isStreaming && (
-        <button onClick={abort}>Cancel</button>
-      )}
+      <button onClick={clear}>Reset</button>
     </div>
   );
 }`}</Code>
