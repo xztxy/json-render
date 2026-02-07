@@ -49,28 +49,21 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["heading", "metrics", "filters", "list", "pagination"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Products & Prices", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     metrics: {
-      key: "metrics",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["productsMetric", "pricesMetric", "activeMetric"],
-      parentKey: "root",
     },
     productsMetric: {
-      key: "productsMetric",
       type: "Metric",
       props: {
         label: "Total Products",
@@ -78,10 +71,8 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     pricesMetric: {
-      key: "pricesMetric",
       type: "Metric",
       props: {
         label: "Total Prices",
@@ -89,10 +80,8 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     activeMetric: {
-      key: "activeMetric",
       type: "Metric",
       props: {
         label: "Active Products",
@@ -100,24 +89,18 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     filters: {
-      key: "filters",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: ["refreshBtn", "createBtn"],
-      parentKey: "root",
     },
     refreshBtn: {
-      key: "refreshBtn",
       type: "Button",
       props: { label: "Refresh", action: "fetchProducts", type: "secondary" },
       children: [],
-      parentKey: "filters",
     },
     createBtn: {
-      key: "createBtn",
       type: "Button",
       props: {
         label: "Create Product",
@@ -126,24 +109,18 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
         type: "primary",
       },
       children: [],
-      parentKey: "filters",
     },
     list: {
-      key: "list",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: productsList.slice(0, 10).map((_, i) => `product${i}`),
-      parentKey: "root",
     },
     pagination: {
-      key: "pagination",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: products?.hasMore ? ["loadMore"] : [],
-      parentKey: "root",
     },
     loadMore: {
-      key: "loadMore",
       type: "Button",
       props: {
         label: "Load More",
@@ -152,7 +129,6 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "pagination",
     },
   };
 
@@ -169,15 +145,12 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
         : "No prices";
 
     elements[`product${i}`] = {
-      key: `product${i}`,
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: [`productCard${i}`],
-      parentKey: "list",
     };
 
     elements[`productCard${i}`] = {
-      key: `productCard${i}`,
       type: "PropertyList",
       props: { orientation: "vertical" },
       children: [
@@ -186,39 +159,30 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
         `productPrice${i}`,
         `productStatus${i}`,
       ],
-      parentKey: `product${i}`,
     };
 
     elements[`productName${i}`] = {
-      key: `productName${i}`,
       type: "PropertyListItem",
       props: { label: "Name", value: p.name },
       children: [],
-      parentKey: `productCard${i}`,
     };
 
     elements[`productDesc${i}`] = {
-      key: `productDesc${i}`,
       type: "PropertyListItem",
       props: { label: "Description", value: p.description || "No description" },
       children: [],
-      parentKey: `productCard${i}`,
     };
 
     elements[`productPrice${i}`] = {
-      key: `productPrice${i}`,
       type: "PropertyListItem",
       props: { label: "Prices", value: priceDisplay },
       children: [],
-      parentKey: `productCard${i}`,
     };
 
     elements[`productStatus${i}`] = {
-      key: `productStatus${i}`,
       type: "PropertyListItem",
       props: { label: "Status", value: p.active ? "Active" : "Archived" },
       children: [],
-      parentKey: `productCard${i}`,
     };
   });
 

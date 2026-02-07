@@ -15,16 +15,12 @@ export const schema = defineSchema((s) => ({
     /** Flat map of elements by key */
     elements: s.record(
       s.object({
-        /** Unique key for this element */
-        key: s.string(),
         /** Component type from catalog */
         type: s.ref("catalog.components"),
         /** Component props */
         props: s.propsOf("catalog.components"),
         /** Child element keys (flat reference) */
         children: s.array(s.string()),
-        /** Parent element key (null for root) */
-        parentKey: s.string(),
         /** Visibility condition */
         visible: s.any(),
       }),

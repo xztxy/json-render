@@ -42,7 +42,6 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: [
@@ -53,17 +52,13 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         "list",
         "pagination",
       ],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Subscriptions", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     metrics: {
-      key: "metrics",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: [
@@ -72,10 +67,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         "pastDueMetric",
         "canceledMetric",
       ],
-      parentKey: "root",
     },
     activeMetric: {
-      key: "activeMetric",
       type: "Metric",
       props: {
         label: "Active",
@@ -83,10 +76,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     trialingMetric: {
-      key: "trialingMetric",
       type: "Metric",
       props: {
         label: "Trialing",
@@ -94,10 +85,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     pastDueMetric: {
-      key: "pastDueMetric",
       type: "Metric",
       props: {
         label: "Past Due",
@@ -105,10 +94,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         changeType: subscriptions?.pastDue ? "negative" : "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     canceledMetric: {
-      key: "canceledMetric",
       type: "Metric",
       props: {
         label: "Canceled",
@@ -116,10 +103,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     alert: {
-      key: "alert",
       type: "Banner",
       props: {
         title: subscriptions?.pastDue
@@ -128,17 +113,13 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         type: subscriptions?.pastDue ? "caution" : "default",
       },
       children: [],
-      parentKey: "root",
     },
     filters: {
-      key: "filters",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: ["refreshBtn", "exportBtn"],
-      parentKey: "root",
     },
     refreshBtn: {
-      key: "refreshBtn",
       type: "Button",
       props: {
         label: "Refresh",
@@ -146,10 +127,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "filters",
     },
     exportBtn: {
-      key: "exportBtn",
       type: "Button",
       props: {
         label: "Export CSV",
@@ -158,26 +137,20 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "filters",
     },
     list: {
-      key: "list",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: subscriptionsList
         .slice(0, 10)
         .map((_, i) => `subscription${i}`),
-      parentKey: "root",
     },
     pagination: {
-      key: "pagination",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: subscriptions?.hasMore ? ["loadMore"] : [],
-      parentKey: "root",
     },
     loadMore: {
-      key: "loadMore",
       type: "Button",
       props: {
         label: "Load More",
@@ -186,13 +159,11 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "pagination",
     },
   };
 
   subscriptionsList.slice(0, 10).forEach((s, i) => {
     elements[`subscription${i}`] = {
-      key: `subscription${i}`,
       type: "SubscriptionCard",
       props: {
         planName: s.planName,
@@ -208,7 +179,6 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         currentPeriodEnd: s.currentPeriodEnd,
       },
       children: [],
-      parentKey: "list",
     };
   });
 

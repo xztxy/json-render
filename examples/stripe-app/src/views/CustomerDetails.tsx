@@ -84,14 +84,11 @@ function createCustomerDetailSpec(
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["header", "details", "sections"],
-      parentKey: null,
     },
     header: {
-      key: "header",
       type: "Stack",
       props: {
         direction: "horizontal",
@@ -99,38 +96,28 @@ function createCustomerDetailSpec(
         distribute: "space-between",
       },
       children: ["customerInfo", "actions"],
-      parentKey: "root",
     },
     customerInfo: {
-      key: "customerInfo",
       type: "Stack",
       props: { direction: "vertical", gap: "xsmall" },
       children: ["customerName", "customerEmail"],
-      parentKey: "header",
     },
     customerName: {
-      key: "customerName",
       type: "Heading",
       props: { text: customer?.name ?? "Unknown Customer", size: "xlarge" },
       children: [],
-      parentKey: "customerInfo",
     },
     customerEmail: {
-      key: "customerEmail",
       type: "Text",
       props: { content: customer?.email ?? "", color: "secondary" },
       children: [],
-      parentKey: "customerInfo",
     },
     actions: {
-      key: "actions",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: ["editBtn", "portalBtn"],
-      parentKey: "header",
     },
     editBtn: {
-      key: "editBtn",
       type: "Button",
       props: {
         label: "Edit",
@@ -139,10 +126,8 @@ function createCustomerDetailSpec(
         type: "secondary",
       },
       children: [],
-      parentKey: "actions",
     },
     portalBtn: {
-      key: "portalBtn",
       type: "Button",
       props: {
         label: "Billing Portal",
@@ -151,31 +136,23 @@ function createCustomerDetailSpec(
         type: "primary",
       },
       children: [],
-      parentKey: "actions",
     },
     details: {
-      key: "details",
       type: "PropertyList",
       props: { orientation: "horizontal" },
       children: ["detailStatus", "detailCreated", "detailBalance"],
-      parentKey: "root",
     },
     detailStatus: {
-      key: "detailStatus",
       type: "PropertyListItem",
       props: { label: "Status", value: customer?.status ?? "Unknown" },
       children: [],
-      parentKey: "details",
     },
     detailCreated: {
-      key: "detailCreated",
       type: "PropertyListItem",
       props: { label: "Created", value: customer?.created ?? "Unknown" },
       children: [],
-      parentKey: "details",
     },
     detailBalance: {
-      key: "detailBalance",
       type: "PropertyListItem",
       props: {
         label: "Balance",
@@ -184,42 +161,32 @@ function createCustomerDetailSpec(
           : "$0.00",
       },
       children: [],
-      parentKey: "details",
     },
     sections: {
-      key: "sections",
       type: "Accordion",
       props: {},
       children: ["paymentsSection", "subscriptionsSection", "invoicesSection"],
-      parentKey: "root",
     },
 
     // Payments Section
     paymentsSection: {
-      key: "paymentsSection",
       type: "AccordionItem",
       props: { title: `Payments (${payments?.total ?? 0})`, defaultOpen: true },
       children: paymentsList.length > 0 ? ["paymentsList"] : ["noPayments"],
-      parentKey: "sections",
     },
     paymentsList: {
-      key: "paymentsList",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: paymentsList.slice(0, 5).map((_, i) => `payment${i}`),
-      parentKey: "paymentsSection",
     },
     noPayments: {
-      key: "noPayments",
       type: "Text",
       props: { content: "No payments found", color: "secondary" },
       children: [],
-      parentKey: "paymentsSection",
     },
 
     // Subscriptions Section
     subscriptionsSection: {
-      key: "subscriptionsSection",
       type: "AccordionItem",
       props: {
         title: `Subscriptions (${subscriptions?.total ?? 0})`,
@@ -229,54 +196,42 @@ function createCustomerDetailSpec(
         subscriptionsList.length > 0
           ? ["subscriptionsList"]
           : ["noSubscriptions"],
-      parentKey: "sections",
     },
     subscriptionsList: {
-      key: "subscriptionsList",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: subscriptionsList.slice(0, 5).map((_, i) => `subscription${i}`),
-      parentKey: "subscriptionsSection",
     },
     noSubscriptions: {
-      key: "noSubscriptions",
       type: "Text",
       props: { content: "No subscriptions found", color: "secondary" },
       children: [],
-      parentKey: "subscriptionsSection",
     },
 
     // Invoices Section
     invoicesSection: {
-      key: "invoicesSection",
       type: "AccordionItem",
       props: {
         title: `Invoices (${invoices?.total ?? 0})`,
         defaultOpen: false,
       },
       children: invoicesList.length > 0 ? ["invoicesList"] : ["noInvoices"],
-      parentKey: "sections",
     },
     invoicesList: {
-      key: "invoicesList",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: invoicesList.slice(0, 5).map((_, i) => `invoice${i}`),
-      parentKey: "invoicesSection",
     },
     noInvoices: {
-      key: "noInvoices",
       type: "Text",
       props: { content: "No invoices found", color: "secondary" },
       children: [],
-      parentKey: "invoicesSection",
     },
   };
 
   // Add payment cards
   paymentsList.slice(0, 5).forEach((p, i) => {
     elements[`payment${i}`] = {
-      key: `payment${i}`,
       type: "PaymentCard",
       props: {
         amount: 0,
@@ -286,14 +241,12 @@ function createCustomerDetailSpec(
         paymentId: p.id,
       },
       children: [],
-      parentKey: "paymentsList",
     };
   });
 
   // Add subscription cards
   subscriptionsList.slice(0, 5).forEach((s, i) => {
     elements[`subscription${i}`] = {
-      key: `subscription${i}`,
       type: "SubscriptionCard",
       props: {
         planName: s.planName,
@@ -304,14 +257,12 @@ function createCustomerDetailSpec(
         currentPeriodEnd: s.currentPeriodEnd,
       },
       children: [],
-      parentKey: "subscriptionsList",
     };
   });
 
   // Add invoice cards
   invoicesList.slice(0, 5).forEach((inv, i) => {
     elements[`invoice${i}`] = {
-      key: `invoice${i}`,
       type: "InvoiceCard",
       props: {
         invoiceNumber: inv.invoiceNumber,
@@ -321,7 +272,6 @@ function createCustomerDetailSpec(
         dueDate: inv.dueDate,
       },
       children: [],
-      parentKey: "invoicesList",
     };
   });
 

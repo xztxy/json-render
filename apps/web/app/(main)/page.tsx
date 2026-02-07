@@ -127,15 +127,16 @@ export const catalog = createCatalog({
                 Constrained output that your components render natively.
               </p>
               <Code lang="json">{`{
-  "key": "dashboard",
-  "type": "Card",
-  "props": {
-    "title": "Revenue Dashboard",
-    "description": null
-  },
-  "children": [
-    {
-      "key": "revenue",
+  "root": "dashboard",
+  "elements": {
+    "dashboard": {
+      "type": "Card",
+      "props": {
+        "title": "Revenue Dashboard"
+      },
+      "children": ["revenue"]
+    },
+    "revenue": {
       "type": "Metric",
       "props": {
         "label": "Total Revenue",
@@ -143,7 +144,7 @@ export const catalog = createCatalog({
         "format": "currency"
       }
     }
-  ]
+  }
 }`}</Code>
             </div>
           </div>
@@ -170,13 +171,11 @@ export const catalog = createCatalog({
   "root": "card",
   "elements": {
     "card": {
-      "key": "card",
       "type": "Card",
       "props": { "title": "Revenue" },
       "children": ["metric", "chart"]
     },
     "metric": {
-      "key": "metric",
       "type": "Metric",
       "props": {
         "label": "Total Revenue",
@@ -185,7 +184,6 @@ export const catalog = createCatalog({
       }
     },
     "chart": {
-      "key": "chart",
       "type": "Chart",
       "props": {
         "dataPath": "analytics/salesByRegion"

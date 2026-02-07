@@ -70,25 +70,19 @@ const spec: Spec = {
   root: "container",
   elements: {
     container: {
-      key: "container",
       type: "Stack",
       props: { direction: "vertical", gap: "medium" },
       children: ["heading", "metric"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Revenue", size: "large" },
       children: [],
-      parentKey: "container",
     },
     metric: {
-      key: "metric",
       type: "Metric",
       props: { label: "Total", value: "$12,345", format: "currency" },
       children: [],
-      parentKey: "container",
     },
   },
 };

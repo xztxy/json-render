@@ -13,18 +13,15 @@ describe("traverseSpec", () => {
       root: "root",
       elements: {
         root: {
-          key: "root",
           type: "Card",
           props: {},
           children: ["child1", "child2"],
         },
         child1: {
-          key: "child1",
           type: "Text",
           props: {},
         },
         child2: {
-          key: "child2",
           type: "Button",
           props: {},
         },
@@ -32,8 +29,8 @@ describe("traverseSpec", () => {
     };
 
     const visited: string[] = [];
-    traverseSpec(spec, (element) => {
-      visited.push(element.key);
+    traverseSpec(spec, (_element, key) => {
+      visited.push(key);
     });
 
     expect(visited).toEqual(["root", "child1", "child2"]);
@@ -41,8 +38,8 @@ describe("traverseSpec", () => {
 
   it("handles empty spec", () => {
     const visited: string[] = [];
-    traverseSpec(null as unknown as Spec, (element) => {
-      visited.push(element.key);
+    traverseSpec(null as unknown as Spec, (_element, key) => {
+      visited.push(key);
     });
     expect(visited).toEqual([]);
   });
@@ -54,18 +51,15 @@ describe("collectUsedComponents", () => {
       root: "root",
       elements: {
         root: {
-          key: "root",
           type: "Card",
           props: {},
           children: ["child1", "child2"],
         },
         child1: {
-          key: "child1",
           type: "Text",
           props: {},
         },
         child2: {
-          key: "child2",
           type: "Text",
           props: {},
         },
@@ -83,7 +77,6 @@ describe("collectDataPaths", () => {
       root: "root",
       elements: {
         root: {
-          key: "root",
           type: "Metric",
           props: { valuePath: "analytics/revenue" },
         },
@@ -99,7 +92,6 @@ describe("collectDataPaths", () => {
       root: "root",
       elements: {
         root: {
-          key: "root",
           type: "Text",
           props: { content: { path: "user/name" } },
         },
@@ -117,7 +109,6 @@ describe("collectActions", () => {
       root: "root",
       elements: {
         root: {
-          key: "root",
           type: "Button",
           props: { action: "submit_form" },
         },

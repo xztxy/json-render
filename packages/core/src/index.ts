@@ -5,6 +5,7 @@ export type {
   DynamicNumber,
   DynamicBoolean,
   UIElement,
+  FlatElement,
   Spec,
   VisibilityCondition,
   LogicExpression,

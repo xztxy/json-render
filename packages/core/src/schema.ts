@@ -546,9 +546,9 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push("Example output (each line is a separate JSON object):");
   lines.push("");
   lines.push(`{"op":"set","path":"/root","value":"card-1"}
-{"op":"set","path":"/elements/card-1","value":{"key":"card-1","type":"Card","props":{"title":"Dashboard"},"children":["metric-1","chart-1"],"parentKey":""}}
-{"op":"set","path":"/elements/metric-1","value":{"key":"metric-1","type":"Metric","props":{"label":"Revenue","valuePath":"analytics.revenue","format":"currency"},"children":[],"parentKey":"card-1"}}
-{"op":"set","path":"/elements/chart-1","value":{"key":"chart-1","type":"Chart","props":{"type":"bar","dataPath":"analytics.salesByRegion"},"children":[],"parentKey":"card-1"}}`);
+{"op":"set","path":"/elements/card-1","value":{"type":"Card","props":{"title":"Dashboard"},"children":["metric-1","chart-1"]}}
+{"op":"set","path":"/elements/metric-1","value":{"type":"Metric","props":{"label":"Revenue","valuePath":"analytics.revenue","format":"currency"},"children":[]}}
+{"op":"set","path":"/elements/chart-1","value":{"type":"Chart","props":{"type":"bar","dataPath":"analytics.salesByRegion"},"children":[]}}`);
   lines.push("");
 
   // Components section
@@ -594,9 +594,8 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     'First line sets root: {"op":"set","path":"/root","value":"<root-key>"}',
     'Then add each element: {"op":"set","path":"/elements/<key>","value":{...}}',
     "ONLY use components listed above",
-    "Each element value needs: key, type, props, children (array of child keys), parentKey",
-    "Use unique keys (e.g., 'header', 'metric-1', 'chart-revenue')",
-    "Root element's parentKey is empty string, children reference their parent's key",
+    "Each element value needs: type, props, children (array of child keys)",
+    "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",
   ];
   const allRules = [...baseRules, ...customRules];
   allRules.forEach((rule, i) => {

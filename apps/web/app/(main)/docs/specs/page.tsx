@@ -50,18 +50,14 @@ export default function SpecsPage() {
   "root": "card-1",
   "elements": {
     "card-1": {
-      "key": "card-1",
       "type": "Card",
       "props": { "title": "Welcome" },
-      "children": ["text-1"],
-      "parentKey": ""
+      "children": ["text-1"]
     },
     "text-1": {
-      "key": "text-1",
       "type": "Text",
       "props": { "content": "Hello, $data.user.name!" },
-      "children": [],
-      "parentKey": "card-1"
+      "children": []
     }
   }
 }`}</Code>
@@ -74,53 +70,39 @@ export default function SpecsPage() {
   "root": "card-1",
   "elements": {
     "card-1": {
-      "key": "card-1",
       "type": "Card",
       "props": { "title": "User Profile", "padding": "md" },
-      "children": ["row-1", "button-1"],
-      "parentKey": ""
+      "children": ["row-1", "button-1"]
     },
     "row-1": {
-      "key": "row-1",
       "type": "Row",
       "props": { "gap": "md" },
-      "children": ["avatar-1", "stack-1"],
-      "parentKey": "card-1"
+      "children": ["avatar-1", "stack-1"]
     },
     "avatar-1": {
-      "key": "avatar-1",
       "type": "Avatar",
       "props": { "src": "$data.user.avatar", "alt": "$data.user.name" },
-      "children": [],
-      "parentKey": "row-1"
+      "children": []
     },
     "stack-1": {
-      "key": "stack-1",
       "type": "Stack",
       "props": { "gap": "sm" },
-      "children": ["name-text", "email-text"],
-      "parentKey": "row-1"
+      "children": ["name-text", "email-text"]
     },
     "name-text": {
-      "key": "name-text",
       "type": "Text",
       "props": { "content": "$data.user.name", "variant": "heading" },
-      "children": [],
-      "parentKey": "stack-1"
+      "children": []
     },
     "email-text": {
-      "key": "email-text",
       "type": "Text",
       "props": { "content": "$data.user.email", "variant": "caption" },
-      "children": [],
-      "parentKey": "stack-1"
+      "children": []
     },
     "button-1": {
-      "key": "button-1",
       "type": "Button",
       "props": { "label": "Edit Profile" },
-      "children": [],
-      "parentKey": "card-1"
+      "children": []
     }
   }
 }`}</Code>
@@ -133,21 +115,16 @@ export default function SpecsPage() {
   "root": "page",
   "elements": {
     "page": {
-      "key": "page",
       "type": "Page",
       "props": {},
-      "children": ["header", "hero", "features", "footer"],
-      "parentKey": ""
+      "children": ["header", "hero", "features", "footer"]
     },
     "header": {
-      "key": "header",
       "type": "Header",
       "props": { "logo": "/logo.svg", "navItems": ["Products", "Pricing", "Docs"] },
-      "children": [],
-      "parentKey": "page"
+      "children": []
     },
     "hero": {
-      "key": "hero",
       "type": "Hero",
       "props": {
         "title": "Build UIs with JSON",
@@ -155,43 +132,32 @@ export default function SpecsPage() {
         "ctaLabel": "Get Started",
         "ctaHref": "/docs"
       },
-      "children": [],
-      "parentKey": "page"
+      "children": []
     },
     "features": {
-      "key": "features",
       "type": "Features",
       "props": { "columns": 3 },
-      "children": ["feature-1", "feature-2", "feature-3"],
-      "parentKey": "page"
+      "children": ["feature-1", "feature-2", "feature-3"]
     },
     "feature-1": {
-      "key": "feature-1",
       "type": "Feature",
       "props": { "icon": "zap", "title": "Fast", "description": "Render UIs in milliseconds" },
-      "children": [],
-      "parentKey": "features"
+      "children": []
     },
     "feature-2": {
-      "key": "feature-2",
       "type": "Feature",
       "props": { "icon": "shield", "title": "Secure", "description": "Validate all specs against your catalog" },
-      "children": [],
-      "parentKey": "features"
+      "children": []
     },
     "feature-3": {
-      "key": "feature-3",
       "type": "Feature",
       "props": { "icon": "sparkles", "title": "AI-Ready", "description": "Generate prompts from your catalog" },
-      "children": [],
-      "parentKey": "features"
+      "children": []
     },
     "footer": {
-      "key": "footer",
       "type": "Footer",
       "props": { "copyright": "2025 Acme Inc", "links": ["Privacy", "Terms", "Contact"] },
-      "children": [],
-      "parentKey": "page"
+      "children": []
     }
   }
 }`}</Code>
@@ -209,11 +175,9 @@ export default function SpecsPage() {
   "root": "card-1",
   "elements": {
     "card-1": {
-      "key": "card-1",
       "type": "Card",
       "props": { "title": "My Card" },
-      "children": ["text-1"],
-      "parentKey": ""
+      "children": ["text-1"]
     },
     "text-1": { ... }
   }
@@ -224,17 +188,11 @@ export default function SpecsPage() {
         Each element in the map has a consistent shape:
       </p>
       <Code lang="json">{`{
-  "key": "unique-id",
   "type": "ComponentName",
   "props": { "label": "Hello" },
-  "children": ["child-1", "child-2"],
-  "parentKey": "parent-id"
+  "children": ["child-1", "child-2"]
 }`}</Code>
       <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-3 mb-4">
-        <li>
-          <code className="text-foreground">key</code> — Unique identifier for
-          this element
-        </li>
         <li>
           <code className="text-foreground">type</code> — Component type from
           your catalog
@@ -246,10 +204,6 @@ export default function SpecsPage() {
           <code className="text-foreground">children</code> — Array of child
           element keys
         </li>
-        <li>
-          <code className="text-foreground">parentKey</code> — Key of parent
-          element (empty string for root)
-        </li>
       </ul>
 
       <h3 className="text-lg font-medium mt-8 mb-3">Dynamic Data</h3>
@@ -258,15 +212,13 @@ export default function SpecsPage() {
         <code className="text-foreground">$data</code> paths:
       </p>
       <Code lang="json">{`{
-  "key": "metric-1",
   "type": "Metric",
   "props": {
     "label": "Total Revenue",
     "value": "$data.metrics.revenue",
     "change": "$data.metrics.revenueChange"
   },
-  "children": [],
-  "parentKey": "dashboard"
+  "children": []
 }`}</Code>
 
       <h3 className="text-lg font-medium mt-8 mb-3">Conditional Visibility</h3>
@@ -275,13 +227,11 @@ export default function SpecsPage() {
         <code className="text-foreground">visible</code> property:
       </p>
       <Code lang="json">{`{
-  "key": "alert-1",
   "type": "Alert",
   "props": {
     "message": "You have unsaved changes"
   },
   "children": [],
-  "parentKey": "form",
   "visible": {
     "path": "$data.form.isDirty",
     "operator": "eq",

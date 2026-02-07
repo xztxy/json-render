@@ -275,11 +275,9 @@ export const openapiCatalog = createCatalog({
 }
 
 interface SpecElement {
-  key: string;
   type: string;
   props: Record<string, unknown>;
   children: string[];
-  parentKey: string;
 }
 
 function schemaToSpec(
@@ -295,7 +293,6 @@ function schemaToSpec(
 
   if (schema.enum) {
     elements.set(key, {
-      key,
       type: 'EnumField',
       props: {
         name,
@@ -306,11 +303,9 @@ function schemaToSpec(
         defaultValue: schema.default as string,
       },
       children: [],
-      parentKey,
     });
   } else if (schema.type === 'string') {
     elements.set(key, {
-      key,
       type: 'StringField',
       props: {
         name,
@@ -323,11 +318,9 @@ function schemaToSpec(
         defaultValue: schema.default as string,
       },
       children: [],
-      parentKey,
     });
   } else if (schema.type === 'integer' || schema.type === 'number') {
     elements.set(key, {
-      key,
       type: 'NumberField',
       props: {
         name,
@@ -340,11 +333,9 @@ function schemaToSpec(
         defaultValue: schema.default as number,
       },
       children: [],
-      parentKey,
     });
   } else if (schema.type === 'boolean') {
     elements.set(key, {
-      key,
       type: 'BooleanField',
       props: {
         name,
@@ -353,7 +344,6 @@ function schemaToSpec(
         defaultValue: schema.default as boolean,
       },
       children: [],
-      parentKey,
     });
   } else if (schema.type === 'array' && schema.items) {
     const childKeys: string[] = [];
@@ -361,7 +351,6 @@ function schemaToSpec(
     childKeys.push(itemKey);
 
     elements.set(key, {
-      key,
       type: 'ArrayField',
       props: {
         name,
@@ -369,7 +358,6 @@ function schemaToSpec(
         description: schema.description,
       },
       children: childKeys,
-      parentKey,
     });
   } else if (schema.type === 'object' && schema.properties) {
     const childKeys: string[] = [];
@@ -386,7 +374,6 @@ function schemaToSpec(
     }
 
     elements.set(key, {
-      key,
       type: 'ObjectField',
       props: {
         name,
@@ -394,7 +381,6 @@ function schemaToSpec(
         description: schema.description,
       },
       children: childKeys,
-      parentKey,
     });
   }
 
@@ -428,7 +414,6 @@ export function operationToSpec(
   }
 
   elements.set(rootKey, {
-    key: rootKey,
     type: 'Form',
     props: {
       operationId,
@@ -438,7 +423,6 @@ export function operationToSpec(
       description,
     },
     children: childKeys,
-    parentKey: '',
   });
 
   return {

@@ -98,25 +98,19 @@ export default function SchemasPage() {
   "root": "card-1",
   "elements": {
     "card-1": {
-      "key": "card-1",
       "type": "Card",
       "props": { "title": "Dashboard" },
-      "children": ["text-1", "button-1"],
-      "parentKey": ""
+      "children": ["text-1", "button-1"]
     },
     "text-1": {
-      "key": "text-1",
       "type": "Text",
       "props": { "content": "Welcome, $data.user.name" },
-      "children": [],
-      "parentKey": "card-1"
+      "children": []
     },
     "button-1": {
-      "key": "button-1",
       "type": "Button",
       "props": { "label": "Click me" },
-      "children": [],
-      "parentKey": "card-1"
+      "children": []
     }
   }
 }`}</Code>
@@ -129,11 +123,9 @@ export default function SchemasPage() {
         structure:
       </p>
       <Code lang="typescript">{`interface Element {
-  key: string;                 // Unique identifier
   type: string;                // Component type from catalog
   props: Record<string, any>;  // Component properties
   children: string[];          // Array of child element keys
-  parentKey: string;           // Parent element key (empty for root)
   visible?: VisibilityRule;    // Conditional display
 }`}</Code>
 
@@ -143,14 +135,12 @@ export default function SchemasPage() {
         <code className="text-foreground">$data</code> prefix in props:
       </p>
       <Code lang="json">{`{
-  "key": "greeting",
   "type": "Text",
   "props": {
     "content": "$data.user.name",
     "count": "$data.items.length"
   },
-  "children": [],
-  "parentKey": "card-1"
+  "children": []
 }`}</Code>
 
       <h3 className="text-lg font-medium mt-8 mb-3">Action Format</h3>

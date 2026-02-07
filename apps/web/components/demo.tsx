@@ -29,7 +29,6 @@ const SIMULATION_STAGES: SimulationStage[] = [
       root: "card",
       elements: {
         card: {
-          key: "card",
           type: "Card",
           props: { title: "Contact Us", maxWidth: "md" },
           children: [],
@@ -43,110 +42,96 @@ const SIMULATION_STAGES: SimulationStage[] = [
       root: "card",
       elements: {
         card: {
-          key: "card",
           type: "Card",
           props: { title: "Contact Us", maxWidth: "md" },
           children: ["name"],
         },
         name: {
-          key: "name",
           type: "Input",
           props: { label: "Name", name: "name" },
         },
       },
     },
     stream:
-      '{"op":"add","path":"/elements/card","value":{"key":"card","type":"Card","props":{"title":"Contact Us","maxWidth":"md"},"children":["name"]}}',
+      '{"op":"add","path":"/elements/card","value":{"type":"Card","props":{"title":"Contact Us","maxWidth":"md"},"children":["name"]}}',
   },
   {
     tree: {
       root: "card",
       elements: {
         card: {
-          key: "card",
           type: "Card",
           props: { title: "Contact Us", maxWidth: "md" },
           children: ["name", "email"],
         },
         name: {
-          key: "name",
           type: "Input",
           props: { label: "Name", name: "name" },
         },
         email: {
-          key: "email",
           type: "Input",
           props: { label: "Email", name: "email" },
         },
       },
     },
     stream:
-      '{"op":"add","path":"/elements/email","value":{"key":"email","type":"Input","props":{"label":"Email","name":"email"}}}',
+      '{"op":"add","path":"/elements/email","value":{"type":"Input","props":{"label":"Email","name":"email"}}}',
   },
   {
     tree: {
       root: "card",
       elements: {
         card: {
-          key: "card",
           type: "Card",
           props: { title: "Contact Us", maxWidth: "md" },
           children: ["name", "email", "message"],
         },
         name: {
-          key: "name",
           type: "Input",
           props: { label: "Name", name: "name" },
         },
         email: {
-          key: "email",
           type: "Input",
           props: { label: "Email", name: "email" },
         },
         message: {
-          key: "message",
           type: "Textarea",
           props: { label: "Message", name: "message" },
         },
       },
     },
     stream:
-      '{"op":"add","path":"/elements/message","value":{"key":"message","type":"Textarea","props":{"label":"Message","name":"message"}}}',
+      '{"op":"add","path":"/elements/message","value":{"type":"Textarea","props":{"label":"Message","name":"message"}}}',
   },
   {
     tree: {
       root: "card",
       elements: {
         card: {
-          key: "card",
           type: "Card",
           props: { title: "Contact Us", maxWidth: "md" },
           children: ["name", "email", "message", "submit"],
         },
         name: {
-          key: "name",
           type: "Input",
           props: { label: "Name", name: "name" },
         },
         email: {
-          key: "email",
           type: "Input",
           props: { label: "Email", name: "email" },
         },
         message: {
-          key: "message",
           type: "Textarea",
           props: { label: "Message", name: "message" },
         },
         submit: {
-          key: "submit",
           type: "Button",
           props: { label: "Send Message", variant: "primary" },
         },
       },
     },
     stream:
-      '{"op":"add","path":"/elements/submit","value":{"key":"submit","type":"Button","props":{"label":"Send Message","variant":"primary"}}}',
+      '{"op":"add","path":"/elements/submit","value":{"type":"Button","props":{"label":"Send Message","variant":"primary"}}}',
   },
 ];
 

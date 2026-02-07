@@ -72,12 +72,10 @@ describe("createCatalog", () => {
     });
 
     const validElement = {
-      key: "1",
       type: "text",
       props: { content: "Hello" },
     };
     const invalidElement = {
-      key: "1",
       type: "text",
       props: { content: 123 },
     };
@@ -96,7 +94,7 @@ describe("createCatalog", () => {
     const validSpec = {
       root: "1",
       elements: {
-        "1": { key: "1", type: "text", props: { content: "Hello" } },
+        "1": { type: "text", props: { content: "Hello" } },
       },
     };
 
@@ -120,16 +118,13 @@ describe("createCatalog", () => {
       root: "card-1",
       elements: {
         "card-1": {
-          key: "card-1",
           type: "card",
           props: { title: "Hello" },
           children: ["text-1"],
         },
         "text-1": {
-          key: "text-1",
           type: "text",
           props: { content: "World" },
-          parentKey: "card-1",
         },
       },
     };
@@ -147,7 +142,7 @@ describe("createCatalog", () => {
     const invalidSpec = {
       root: "1",
       elements: {
-        "1": { key: "1", type: "nonexistent", props: { content: "Hello" } },
+        "1": { type: "nonexistent", props: { content: "Hello" } },
       },
     };
 
@@ -398,7 +393,6 @@ describe("defineCatalog (new schema API)", () => {
       root: s.string(),
       elements: s.record(
         s.object({
-          key: s.string(),
           type: s.ref("catalog.components"),
           props: s.any(),
           children: s.array(s.string()),
@@ -489,7 +483,6 @@ describe("defineCatalog (new schema API)", () => {
       root: "text-1",
       elements: {
         "text-1": {
-          key: "text-1",
           type: "Text",
           props: { content: "Hello" },
           children: [],
@@ -558,7 +551,6 @@ describe("defineCatalog (new schema API)", () => {
       root: "text-1",
       elements: {
         "text-1": {
-          key: "text-1",
           type: "Text",
           props: { content: "Hello" },
           children: [],

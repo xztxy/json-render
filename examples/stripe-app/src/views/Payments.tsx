@@ -38,28 +38,21 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["heading", "metrics", "filters", "list", "pagination"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Payments", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     metrics: {
-      key: "metrics",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["volumeMetric", "rateMetric", "countMetric"],
-      parentKey: "root",
     },
     volumeMetric: {
-      key: "volumeMetric",
       type: "Metric",
       props: {
         label: "Total Volume",
@@ -67,10 +60,8 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     rateMetric: {
-      key: "rateMetric",
       type: "Metric",
       props: {
         label: "Success Rate",
@@ -78,10 +69,8 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     countMetric: {
-      key: "countMetric",
       type: "Metric",
       props: {
         label: "Total Payments",
@@ -89,24 +78,18 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     filters: {
-      key: "filters",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: ["refreshBtn", "exportBtn"],
-      parentKey: "root",
     },
     refreshBtn: {
-      key: "refreshBtn",
       type: "Button",
       props: { label: "Refresh", action: "refreshPayments", type: "secondary" },
       children: [],
-      parentKey: "filters",
     },
     exportBtn: {
-      key: "exportBtn",
       type: "Button",
       props: {
         label: "Export CSV",
@@ -115,24 +98,18 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "filters",
     },
     list: {
-      key: "list",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: paymentsList.slice(0, 10).map((_, i) => `payment${i}`),
-      parentKey: "root",
     },
     pagination: {
-      key: "pagination",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: payments?.hasMore ? ["loadMore"] : [],
-      parentKey: "root",
     },
     loadMore: {
-      key: "loadMore",
       type: "Button",
       props: {
         label: "Load More",
@@ -144,13 +121,11 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "pagination",
     },
   };
 
   paymentsList.slice(0, 10).forEach((p, i) => {
     elements[`payment${i}`] = {
-      key: `payment${i}`,
       type: "PaymentCard",
       props: {
         amount: 0,
@@ -160,7 +135,6 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         paymentId: p.id,
       },
       children: [],
-      parentKey: "list",
     };
   });
 

@@ -56,14 +56,11 @@ function createPaymentDetailSpec(
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["header", "details", "actions", "refundsSection"],
-      parentKey: null,
     },
     header: {
-      key: "header",
       type: "Stack",
       props: {
         direction: "horizontal",
@@ -71,31 +68,23 @@ function createPaymentDetailSpec(
         distribute: "space-between",
       },
       children: ["paymentInfo", "statusBadge"],
-      parentKey: "root",
     },
     paymentInfo: {
-      key: "paymentInfo",
       type: "Stack",
       props: { direction: "vertical", gap: "xsmall" },
       children: ["paymentAmount", "paymentId"],
-      parentKey: "header",
     },
     paymentAmount: {
-      key: "paymentAmount",
       type: "Heading",
       props: { text: payment?.formattedAmount ?? "$0.00", size: "xlarge" },
       children: [],
-      parentKey: "paymentInfo",
     },
     paymentId: {
-      key: "paymentId",
       type: "Text",
       props: { content: paymentId, color: "secondary", size: "small" },
       children: [],
-      parentKey: "paymentInfo",
     },
     statusBadge: {
-      key: "statusBadge",
       type: "Badge",
       props: {
         label: payment?.status ?? "unknown",
@@ -107,10 +96,8 @@ function createPaymentDetailSpec(
               : "negative",
       },
       children: [],
-      parentKey: "header",
     },
     details: {
-      key: "details",
       type: "PropertyList",
       props: { orientation: "vertical" },
       children: [
@@ -119,54 +106,42 @@ function createPaymentDetailSpec(
         "detailCurrency",
         "detailCustomer",
       ],
-      parentKey: "root",
     },
     detailDescription: {
-      key: "detailDescription",
       type: "PropertyListItem",
       props: {
         label: "Description",
         value: payment?.description ?? "No description",
       },
       children: [],
-      parentKey: "details",
     },
     detailCreated: {
-      key: "detailCreated",
       type: "PropertyListItem",
       props: { label: "Created", value: payment?.created ?? "Unknown" },
       children: [],
-      parentKey: "details",
     },
     detailCurrency: {
-      key: "detailCurrency",
       type: "PropertyListItem",
       props: {
         label: "Currency",
         value: (payment?.currency ?? "usd").toUpperCase(),
       },
       children: [],
-      parentKey: "details",
     },
     detailCustomer: {
-      key: "detailCustomer",
       type: "PropertyListItem",
       props: { label: "Customer", value: payment?.customerId ?? "Guest" },
       children: [],
-      parentKey: "details",
     },
     actions: {
-      key: "actions",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children:
         payment?.status === "succeeded"
           ? ["refundBtn", "viewBtn"]
           : ["viewBtn"],
-      parentKey: "root",
     },
     refundBtn: {
-      key: "refundBtn",
       type: "Button",
       props: {
         label: "Refund Payment",
@@ -175,10 +150,8 @@ function createPaymentDetailSpec(
         type: "destructive",
       },
       children: [],
-      parentKey: "actions",
     },
     viewBtn: {
-      key: "viewBtn",
       type: "Button",
       props: {
         label: "View in Dashboard",
@@ -187,44 +160,34 @@ function createPaymentDetailSpec(
         type: "secondary",
       },
       children: [],
-      parentKey: "actions",
     },
     refundsSection: {
-      key: "refundsSection",
       type: "Accordion",
       props: {},
       children: ["refundsAccordion"],
-      parentKey: "root",
     },
     refundsAccordion: {
-      key: "refundsAccordion",
       type: "AccordionItem",
       props: {
         title: `Refunds (${refunds?.total ?? 0})`,
         defaultOpen: refundsList.length > 0,
       },
       children: refundsList.length > 0 ? ["refundsList"] : ["noRefunds"],
-      parentKey: "refundsSection",
     },
     refundsList: {
-      key: "refundsList",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: refundsList.slice(0, 5).map((_, i) => `refund${i}`),
-      parentKey: "refundsAccordion",
     },
     noRefunds: {
-      key: "noRefunds",
       type: "Text",
       props: { content: "No refunds", color: "secondary" },
       children: [],
-      parentKey: "refundsAccordion",
     },
   };
 
   refundsList.slice(0, 5).forEach((r, i) => {
     elements[`refund${i}`] = {
-      key: `refund${i}`,
       type: "RefundCard",
       props: {
         amount: r.amount,
@@ -233,7 +196,6 @@ function createPaymentDetailSpec(
         reason: r.reason,
       },
       children: [],
-      parentKey: "refundsList",
     };
   });
 

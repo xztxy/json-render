@@ -41,7 +41,6 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: [
@@ -52,24 +51,18 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         "list",
         "pagination",
       ],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Invoices", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     metrics: {
-      key: "metrics",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["outstandingMetric", "paidMetric", "overdueMetric"],
-      parentKey: "root",
     },
     outstandingMetric: {
-      key: "outstandingMetric",
       type: "Metric",
       props: {
         label: "Outstanding",
@@ -77,10 +70,8 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     paidMetric: {
-      key: "paidMetric",
       type: "Metric",
       props: {
         label: "Paid",
@@ -88,10 +79,8 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     overdueMetric: {
-      key: "overdueMetric",
       type: "Metric",
       props: {
         label: "Overdue",
@@ -99,10 +88,8 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         changeType: invoices?.overdue !== "$0.00" ? "negative" : "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     alert: {
-      key: "alert",
       type: "Banner",
       props: {
         title:
@@ -112,24 +99,18 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         type: invoices?.overdue !== "$0.00" ? "caution" : "default",
       },
       children: [],
-      parentKey: "root",
     },
     filters: {
-      key: "filters",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: ["refreshBtn", "createBtn", "exportBtn"],
-      parentKey: "root",
     },
     refreshBtn: {
-      key: "refreshBtn",
       type: "Button",
       props: { label: "Refresh", action: "refreshInvoices", type: "secondary" },
       children: [],
-      parentKey: "filters",
     },
     createBtn: {
-      key: "createBtn",
       type: "Button",
       props: {
         label: "Create Invoice",
@@ -138,10 +119,8 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         type: "primary",
       },
       children: [],
-      parentKey: "filters",
     },
     exportBtn: {
-      key: "exportBtn",
       type: "Button",
       props: {
         label: "Export CSV",
@@ -150,24 +129,18 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "filters",
     },
     list: {
-      key: "list",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: invoicesList.slice(0, 10).map((_, i) => `invoice${i}`),
-      parentKey: "root",
     },
     pagination: {
-      key: "pagination",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: invoices?.hasMore ? ["loadMore"] : [],
-      parentKey: "root",
     },
     loadMore: {
-      key: "loadMore",
       type: "Button",
       props: {
         label: "Load More",
@@ -176,13 +149,11 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "pagination",
     },
   };
 
   invoicesList.slice(0, 10).forEach((inv, i) => {
     elements[`invoice${i}`] = {
-      key: `invoice${i}`,
       type: "InvoiceCard",
       props: {
         invoiceNumber: inv.invoiceNumber,
@@ -198,7 +169,6 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         customerEmail: inv.customerEmail,
       },
       children: [],
-      parentKey: "list",
     };
   });
 

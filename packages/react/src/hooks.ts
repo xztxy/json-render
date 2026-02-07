@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { Spec, UIElement, JsonPatch } from "@json-render/core";
+import type {
+  Spec,
+  UIElement,
+  FlatElement,
+  JsonPatch,
+} from "@json-render/core";
 import { setByPath } from "@json-render/core";
 
 /**
@@ -236,18 +241,18 @@ export function useUIStream({
 }
 
 /**
- * Convert a flat element list to a Spec
+ * Convert a flat element list to a Spec.
+ * Input elements use key/parentKey to establish identity and relationships.
+ * Output spec uses the map-based format where key is the map entry key
+ * and parent-child relationships are expressed through children arrays.
  */
-export function flatToTree(
-  elements: Array<UIElement & { parentKey?: string | null }>,
-): Spec {
+export function flatToTree(elements: FlatElement[]): Spec {
   const elementMap: Record<string, UIElement> = {};
   let root = "";
 
   // First pass: add all elements to map
   for (const element of elements) {
     elementMap[element.key] = {
-      key: element.key,
       type: element.type,
       props: element.props,
       children: [],

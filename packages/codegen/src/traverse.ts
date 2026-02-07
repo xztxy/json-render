@@ -4,7 +4,12 @@ import type { Spec, UIElement } from "@json-render/core";
  * Visitor function for spec traversal
  */
 export interface TreeVisitor {
-  (element: UIElement, depth: number, parent: UIElement | null): void;
+  (
+    element: UIElement,
+    key: string,
+    depth: number,
+    parent: UIElement | null,
+  ): void;
 }
 
 /**
@@ -25,7 +30,7 @@ export function traverseSpec(
     const element = spec.elements[key];
     if (!element) return;
 
-    visitor(element, depth, parent);
+    visitor(element, key, depth, parent);
 
     if (element.children) {
       for (const childKey of element.children) {
@@ -43,7 +48,7 @@ export function traverseSpec(
 export function collectUsedComponents(spec: Spec): Set<string> {
   const components = new Set<string>();
 
-  traverseSpec(spec, (element) => {
+  traverseSpec(spec, (element, _key) => {
     components.add(element.type);
   });
 
@@ -56,7 +61,7 @@ export function collectUsedComponents(spec: Spec): Set<string> {
 export function collectDataPaths(spec: Spec): Set<string> {
   const paths = new Set<string>();
 
-  traverseSpec(spec, (element) => {
+  traverseSpec(spec, (element, _key) => {
     // Check props for data paths
     for (const [propName, propValue] of Object.entries(element.props)) {
       // Check for path props (e.g., valuePath, dataPath, bindPath)
@@ -141,7 +146,7 @@ function collectPathsFromCondition(
 export function collectActions(spec: Spec): Set<string> {
   const actions = new Set<string>();
 
-  traverseSpec(spec, (element) => {
+  traverseSpec(spec, (element, _key) => {
     for (const propValue of Object.values(element.props)) {
       // Check for action prop (string action name)
       if (typeof propValue === "string" && propValue.startsWith("action:")) {

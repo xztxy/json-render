@@ -53,18 +53,29 @@ export interface UIElement<
   T extends string = string,
   P = Record<string, unknown>,
 > {
-  /** Unique key for reconciliation */
-  key: string;
   /** Component type from the catalog */
   type: T;
   /** Component props */
   props: P;
   /** Child element keys (flat structure) */
   children?: string[];
-  /** Parent element key (null for root) */
-  parentKey?: string | null;
   /** Visibility condition */
   visible?: VisibilityCondition;
+}
+
+/**
+ * Element with key and parentKey for use with flatToTree.
+ * When elements are in an array (not a keyed map), key and parentKey
+ * are needed to establish identity and parent-child relationships.
+ */
+export interface FlatElement<
+  T extends string = string,
+  P = Record<string, unknown>,
+> extends UIElement<T, P> {
+  /** Unique key identifying this element */
+  key: string;
+  /** Parent element key (null for root) */
+  parentKey?: string | null;
 }
 
 /**

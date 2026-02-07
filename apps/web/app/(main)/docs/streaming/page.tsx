@@ -18,9 +18,10 @@ export default function StreamingPage() {
         format where each line is a JSON patch operation that progressively
         builds your spec:
       </p>
-      <Code lang="json">{`{"op":"set","path":"/root","value":{"key":"root","type":"Card","props":{"title":"Dashboard"}}}
-{"op":"set","path":"/root/children/0","value":{"key":"metric-1","type":"Metric","props":{"label":"Revenue"}}}
-{"op":"set","path":"/root/children/1","value":{"key":"metric-2","type":"Metric","props":{"label":"Users"}}}`}</Code>
+      <Code lang="json">{`{"op":"set","path":"/root","value":"root"}
+{"op":"set","path":"/elements/root","value":{"type":"Card","props":{"title":"Dashboard"},"children":["metric-1","metric-2"]}}
+{"op":"set","path":"/elements/metric-1","value":{"type":"Metric","props":{"label":"Revenue"}}}
+{"op":"set","path":"/elements/metric-2","value":{"type":"Metric","props":{"label":"Users"}}}`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">useUIStream Hook</h2>
       <p className="text-sm text-muted-foreground mb-4">

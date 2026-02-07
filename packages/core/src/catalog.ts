@@ -143,11 +143,9 @@ export function createCatalog<
     const def = components[componentName]!;
 
     return z.object({
-      key: z.string(),
       type: z.literal(componentName as string),
       props: def.props,
       children: z.array(z.string()).optional(),
-      parentKey: z.string().nullable().optional(),
       visible: VisibilityConditionSchema.optional(),
     });
   });
@@ -157,11 +155,9 @@ export function createCatalog<
 
   if (componentSchemas.length === 0) {
     elementSchema = z.object({
-      key: z.string(),
       type: z.string(),
       props: z.record(z.string(), z.unknown()),
       children: z.array(z.string()).optional(),
-      parentKey: z.string().nullable().optional(),
       visible: VisibilityConditionSchema.optional(),
     }) as unknown as z.ZodType<UIElement>;
   } else if (componentSchemas.length === 1) {
@@ -500,7 +496,7 @@ export function generateSystemPrompt<
   lines.push("OUTPUT FORMAT (JSONL):");
   lines.push('{"op":"set","path":"/root","value":"element-key"}');
   lines.push(
-    '{"op":"add","path":"/elements/key","value":{"key":"...","type":"...","props":{...},"children":[...]}}',
+    '{"op":"add","path":"/elements/key","value":{"type":"...","props":{...},"children":[...]}}',
   );
   lines.push('{"op":"remove","path":"/elements/key"}');
   lines.push("");
@@ -513,7 +509,7 @@ export function generateSystemPrompt<
     "Remove elements with op:remove - also update the parent's children array to exclude the removed key",
     "Children array contains string keys, not objects",
     "Parent first, then children",
-    "Each element needs: key, type, props",
+    "Each element needs: type, props",
     "ONLY use props listed above - never invent new props",
   ];
   const allRules = [...baseRules, ...customRules];

@@ -38,28 +38,21 @@ function createRevenueSpec(data: Record<string, unknown>): Spec {
     root: "root",
     elements: {
       root: {
-        key: "root",
         type: "Stack",
         props: { direction: "vertical", gap: "large" },
         children: ["heading", "metrics", "refresh"],
-        parentKey: null,
       },
       heading: {
-        key: "heading",
         type: "Heading",
         props: { text: "Revenue Dashboard", size: "xlarge" },
         children: [],
-        parentKey: "root",
       },
       metrics: {
-        key: "metrics",
         type: "Stack",
         props: { direction: "horizontal", gap: "medium" },
         children: ["m1", "m2", "m3"],
-        parentKey: "root",
       },
       m1: {
-        key: "m1",
         type: "Metric",
         props: {
           label: "Payment Volume",
@@ -70,10 +63,8 @@ function createRevenueSpec(data: Record<string, unknown>): Spec {
           changeType: "positive",
         },
         children: [],
-        parentKey: "metrics",
       },
       m2: {
-        key: "m2",
         type: "Metric",
         props: {
           label: "Active Subscriptions",
@@ -84,10 +75,8 @@ function createRevenueSpec(data: Record<string, unknown>): Spec {
           changeType: "positive",
         },
         children: [],
-        parentKey: "metrics",
       },
       m3: {
-        key: "m3",
         type: "Metric",
         props: {
           label: "Total Customers",
@@ -95,10 +84,8 @@ function createRevenueSpec(data: Record<string, unknown>): Spec {
           changeType: "neutral",
         },
         children: [],
-        parentKey: "metrics",
       },
       refresh: {
-        key: "refresh",
         type: "Button",
         props: {
           label: "Refresh Data",
@@ -106,7 +93,6 @@ function createRevenueSpec(data: Record<string, unknown>): Spec {
           type: "secondary",
         },
         children: [],
-        parentKey: "root",
       },
     },
   };
@@ -129,28 +115,21 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["heading", "stats", "payments", "refresh"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Recent Payments", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     stats: {
-      key: "stats",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["s1", "s2"],
-      parentKey: "root",
     },
     s1: {
-      key: "s1",
       type: "Metric",
       props: {
         label: "Total Volume",
@@ -158,10 +137,8 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "stats",
     },
     s2: {
-      key: "s2",
       type: "Metric",
       props: {
         label: "Success Rate",
@@ -169,17 +146,13 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "stats",
     },
     payments: {
-      key: "payments",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: paymentsList.slice(0, 5).map((_, i) => `p${i}`),
-      parentKey: "root",
     },
     refresh: {
-      key: "refresh",
       type: "Button",
       props: {
         label: "Refresh Payments",
@@ -187,13 +160,11 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "root",
     },
   };
 
   paymentsList.slice(0, 5).forEach((p, i) => {
     elements[`p${i}`] = {
-      key: `p${i}`,
       type: "PaymentCard",
       props: {
         amount: 0, // We'll use formattedAmount in description
@@ -203,7 +174,6 @@ function createPaymentsSpec(data: Record<string, unknown>): Spec {
         paymentId: p.id,
       },
       children: [],
-      parentKey: "payments",
     };
   });
 
@@ -229,28 +199,21 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["heading", "metrics", "alert", "subs", "refresh"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Subscriptions Overview", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     metrics: {
-      key: "metrics",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["m1", "m2", "m3"],
-      parentKey: "root",
     },
     m1: {
-      key: "m1",
       type: "Metric",
       props: {
         label: "Active",
@@ -258,10 +221,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     m2: {
-      key: "m2",
       type: "Metric",
       props: {
         label: "Trialing",
@@ -269,10 +230,8 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "metrics",
     },
     m3: {
-      key: "m3",
       type: "Metric",
       props: {
         label: "Past Due",
@@ -280,27 +239,21 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         changeType: subscriptions?.pastDue ? "negative" : "neutral",
       },
       children: [],
-      parentKey: "metrics",
     },
     alert: {
-      key: "alert",
       type: "Banner",
       props: {
         title: `${subscriptions?.trialing ?? 0} subscriptions currently trialing`,
         type: "default",
       },
       children: [],
-      parentKey: "root",
     },
     subs: {
-      key: "subs",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: subsList.slice(0, 5).map((_, i) => `sub${i}`),
-      parentKey: "root",
     },
     refresh: {
-      key: "refresh",
       type: "Button",
       props: {
         label: "Refresh Subscriptions",
@@ -308,13 +261,11 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "root",
     },
   };
 
   subsList.slice(0, 5).forEach((s, i) => {
     elements[`sub${i}`] = {
-      key: `sub${i}`,
       type: "SubscriptionCard",
       props: {
         planName: s.planName,
@@ -323,7 +274,6 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
         interval: (s.interval as "month" | "year") ?? "month",
       },
       children: [],
-      parentKey: "subs",
     };
   });
 
@@ -346,28 +296,21 @@ function createCustomersSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["heading", "stats", "customers", "refresh"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Customer Directory", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     stats: {
-      key: "stats",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["s1"],
-      parentKey: "root",
     },
     s1: {
-      key: "s1",
       type: "Metric",
       props: {
         label: "Total Customers",
@@ -375,17 +318,13 @@ function createCustomersSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "stats",
     },
     customers: {
-      key: "customers",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: customersList.slice(0, 5).map((_, i) => `c${i}`),
-      parentKey: "root",
     },
     refresh: {
-      key: "refresh",
       type: "Button",
       props: {
         label: "Refresh Customers",
@@ -393,13 +332,11 @@ function createCustomersSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "root",
     },
   };
 
   customersList.slice(0, 5).forEach((c, i) => {
     elements[`c${i}`] = {
-      key: `c${i}`,
       type: "CustomerCard",
       props: {
         name: c.name,
@@ -408,7 +345,6 @@ function createCustomersSpec(data: Record<string, unknown>): Spec {
         customerId: c.id,
       },
       children: [],
-      parentKey: "customers",
     };
   });
 
@@ -434,28 +370,21 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["heading", "stats", "invoices", "refresh"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Invoice Management", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     stats: {
-      key: "stats",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["s1", "s2", "s3"],
-      parentKey: "root",
     },
     s1: {
-      key: "s1",
       type: "Metric",
       props: {
         label: "Outstanding",
@@ -463,10 +392,8 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "stats",
     },
     s2: {
-      key: "s2",
       type: "Metric",
       props: {
         label: "Paid",
@@ -474,10 +401,8 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         changeType: "positive",
       },
       children: [],
-      parentKey: "stats",
     },
     s3: {
-      key: "s3",
       type: "Metric",
       props: {
         label: "Overdue",
@@ -485,17 +410,13 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         changeType: invoices?.overdue !== "$0.00" ? "negative" : "neutral",
       },
       children: [],
-      parentKey: "stats",
     },
     invoices: {
-      key: "invoices",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: invoicesList.slice(0, 5).map((_, i) => `inv${i}`),
-      parentKey: "root",
     },
     refresh: {
-      key: "refresh",
       type: "Button",
       props: {
         label: "Refresh Invoices",
@@ -503,13 +424,11 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "root",
     },
   };
 
   invoicesList.slice(0, 5).forEach((inv, i) => {
     elements[`inv${i}`] = {
-      key: `inv${i}`,
       type: "InvoiceCard",
       props: {
         invoiceNumber: inv.invoiceNumber,
@@ -518,7 +437,6 @@ function createInvoicesSpec(data: Record<string, unknown>): Spec {
         dueDate: inv.dueDate,
       },
       children: [],
-      parentKey: "invoices",
     };
   });
 

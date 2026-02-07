@@ -36,28 +36,21 @@ function createCustomersListSpec(data: Record<string, unknown>): Spec {
 
   const elements: Spec["elements"] = {
     root: {
-      key: "root",
       type: "Stack",
       props: { direction: "vertical", gap: "large" },
       children: ["heading", "stats", "actions", "list", "pagination"],
-      parentKey: null,
     },
     heading: {
-      key: "heading",
       type: "Heading",
       props: { text: "Customer Directory", size: "xlarge" },
       children: [],
-      parentKey: "root",
     },
     stats: {
-      key: "stats",
       type: "Stack",
       props: { direction: "horizontal", gap: "medium" },
       children: ["totalMetric"],
-      parentKey: "root",
     },
     totalMetric: {
-      key: "totalMetric",
       type: "Metric",
       props: {
         label: "Total Customers",
@@ -65,17 +58,13 @@ function createCustomersListSpec(data: Record<string, unknown>): Spec {
         changeType: "neutral",
       },
       children: [],
-      parentKey: "stats",
     },
     actions: {
-      key: "actions",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: ["refreshBtn", "exportBtn"],
-      parentKey: "root",
     },
     refreshBtn: {
-      key: "refreshBtn",
       type: "Button",
       props: {
         label: "Refresh",
@@ -83,10 +72,8 @@ function createCustomersListSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "actions",
     },
     exportBtn: {
-      key: "exportBtn",
       type: "Button",
       props: {
         label: "Export CSV",
@@ -95,24 +82,18 @@ function createCustomersListSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "actions",
     },
     list: {
-      key: "list",
       type: "Stack",
       props: { direction: "vertical", gap: "small" },
       children: customerList.slice(0, 10).map((_, i) => `customer${i}`),
-      parentKey: "root",
     },
     pagination: {
-      key: "pagination",
       type: "Stack",
       props: { direction: "horizontal", gap: "small" },
       children: customers?.hasMore ? ["loadMore"] : [],
-      parentKey: "root",
     },
     loadMore: {
-      key: "loadMore",
       type: "Button",
       props: {
         label: "Load More",
@@ -124,13 +105,11 @@ function createCustomersListSpec(data: Record<string, unknown>): Spec {
         type: "secondary",
       },
       children: [],
-      parentKey: "pagination",
     },
   };
 
   customerList.slice(0, 10).forEach((c, i) => {
     elements[`customer${i}`] = {
-      key: `customer${i}`,
       type: "CustomerCard",
       props: {
         name: c.name,
@@ -139,7 +118,6 @@ function createCustomersListSpec(data: Record<string, unknown>): Spec {
         customerId: c.id,
       },
       children: [],
-      parentKey: "list",
     };
   });
 
