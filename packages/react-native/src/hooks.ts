@@ -10,21 +10,81 @@ import {
   getByPath,
   addByPath,
   removeByPath,
+  validateSpec,
+  autoFixSpec,
+  formatSpecIssues,
 } from "@json-render/core";
 
 /**
- * Parse a single JSON patch line
+ * Result of attempting to parse a JSONL line.
+ * - `patch`: successfully parsed patch (or null)
+ * - `malformed`: true only if the line looked like JSON (starts with `{`)
+ *   but could not be parsed. Plain text commentary is NOT malformed.
  */
-function parsePatchLine(line: string): JsonPatch | null {
-  try {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("//")) {
-      return null;
-    }
-    return JSON.parse(trimmed) as JsonPatch;
-  } catch {
-    return null;
+interface ParseResult {
+  patch: JsonPatch | null;
+  malformed: boolean;
+}
+
+/**
+ * Check if a line looks like it's attempting to be JSON.
+ * LLMs often output commentary text before/between patches — those
+ * lines should be skipped, not treated as malformed.
+ */
+function looksLikeJson(line: string): boolean {
+  return line.startsWith("{") || line.startsWith("[");
+}
+
+/**
+ * Parse a single JSON patch line.
+ * Includes recovery for common LLM JSON errors like trailing extra braces.
+ *
+ * Returns a ParseResult so the caller can distinguish between:
+ * - Successfully parsed patch
+ * - Commentary text (skip silently)
+ * - Genuinely malformed JSON (trigger retry)
+ */
+function parsePatchLine(line: string): ParseResult {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith("//")) {
+    return { patch: null, malformed: false };
   }
+
+  // If it doesn't look like JSON at all, it's commentary — skip it
+  if (!looksLikeJson(trimmed)) {
+    return { patch: null, malformed: false };
+  }
+
+  // Try parsing as-is first
+  try {
+    return { patch: JSON.parse(trimmed) as JsonPatch, malformed: false };
+  } catch {
+    // Fall through to recovery
+  }
+
+  // Recovery: strip trailing extra braces/brackets one at a time
+  // LLMs commonly generate extra closing characters in nested JSON
+  let attempt = trimmed;
+  for (let i = 0; i < 3; i++) {
+    const last = attempt[attempt.length - 1];
+    if (last === "}" || last === "]") {
+      attempt = attempt.slice(0, -1);
+      try {
+        const result = JSON.parse(attempt) as JsonPatch;
+        console.warn(
+          `[json-render] Recovered malformed JSONL line by removing ${i + 1} trailing '${last}'`,
+        );
+        return { patch: result, malformed: false };
+      } catch {
+        // Keep stripping
+      }
+    } else {
+      break;
+    }
+  }
+
+  // Looks like JSON but couldn't parse — genuinely malformed
+  return { patch: null, malformed: true };
 }
 
 /**
@@ -133,6 +193,20 @@ function applyPatch(spec: Spec, patch: JsonPatch): Spec {
   return newSpec;
 }
 
+// =============================================================================
+// Stream result types
+// =============================================================================
+
+/** Result of a single stream request */
+interface StreamResult {
+  /** The spec after applying all successfully parsed patches */
+  spec: Spec;
+  /** Whether the stream completed naturally (vs. being aborted) */
+  completed: boolean;
+  /** Malformed lines that could not be parsed (even after recovery) */
+  malformedLines: string[];
+}
+
 /**
  * Options for useUIStream
  */
@@ -154,6 +228,25 @@ export interface UseUIStreamOptions {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fetch?: (url: string, init?: any) => Promise<Response>;
+  /**
+   * Enable validation and auto-repair.
+   *
+   * When true:
+   * - **Mid-stream**: Each JSONL line is validated as it arrives. If a line
+   *   is malformed JSON (and recovery fails), the stream is aborted
+   *   immediately and a repair prompt is sent to continue generation.
+   * - **Post-stream**: After the stream completes, structural validation
+   *   runs (missing children, visible-in-props, etc.). Issues that can be
+   *   auto-fixed are fixed locally; remaining errors trigger a repair prompt.
+   *
+   * Defaults to false.
+   */
+  validate?: boolean;
+  /**
+   * Maximum number of automatic repair retries (covers both mid-stream
+   * and post-stream retries combined). Defaults to 5.
+   */
+  maxRetries?: number;
 }
 
 /**
@@ -166,8 +259,12 @@ export interface UseUIStreamReturn {
   isStreaming: boolean;
   /** Error if any */
   error: Error | null;
+  /** Raw JSONL lines received from the stream */
+  rawLines: string[];
   /** Send a prompt to generate UI */
   send: (prompt: string, context?: Record<string, unknown>) => Promise<void>;
+  /** Stop the current generation */
+  stop: () => void;
   /** Clear the current spec */
   clear: () => void;
 }
@@ -180,16 +277,177 @@ export function useUIStream({
   onComplete,
   onError,
   fetch: fetchFn = globalThis.fetch,
+  validate: enableValidation = false,
+  maxRetries = 5,
 }: UseUIStreamOptions): UseUIStreamReturn {
   const [spec, setSpec] = useState<Spec | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [rawLines, setRawLines] = useState<string[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const stop = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsStreaming(false);
+  }, []);
 
   const clear = useCallback(() => {
     setSpec(null);
     setError(null);
+    setRawLines([]);
   }, []);
+
+  /**
+   * Stream a single request. Returns the result including whether the
+   * stream completed and any malformed lines encountered.
+   *
+   * When `abortOnMalformed` is true, the stream is aborted on the first
+   * malformed line so the caller can retry immediately.
+   */
+  const streamRequest = useCallback(
+    async (
+      prompt: string,
+      context: Record<string, unknown> | undefined,
+      initialSpec: Spec,
+      abortOnMalformed: boolean,
+    ): Promise<StreamResult> => {
+      let currentSpec = initialSpec;
+      setSpec(currentSpec);
+      const malformedLines: string[] = [];
+
+      const response = await fetchFn(api, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          context,
+          currentSpec,
+        }),
+        signal: abortControllerRef.current!.signal,
+      });
+
+      console.log("[useUIStream] response status:", response.status);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          // Ignore JSON parsing errors, use default message
+        }
+        throw new Error(errorMessage);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let chunkCount = 0;
+      let totalBytes = 0;
+      let aborted = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          console.log(
+            "[useUIStream] stream done. Total chunks:",
+            chunkCount,
+            "bytes:",
+            totalBytes,
+          );
+          break;
+        }
+
+        chunkCount++;
+        totalBytes += value?.byteLength ?? 0;
+        const decoded = decoder.decode(value, { stream: true });
+        buffer += decoded;
+
+        if (chunkCount <= 5) {
+          console.log(
+            `[useUIStream] chunk #${chunkCount} (${value?.byteLength ?? 0}b):`,
+            decoded.slice(0, 200),
+          );
+        }
+
+        // Process complete lines
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        const newLines: string[] = [];
+        for (const line of lines) {
+          if (line.trim()) {
+            newLines.push(line);
+          }
+          const { patch, malformed } = parsePatchLine(line);
+          if (patch) {
+            console.log("[useUIStream] applied patch:", patch.op, patch.path);
+            currentSpec = applyPatch(currentSpec, patch);
+            setSpec({ ...currentSpec });
+          } else if (malformed) {
+            // Genuinely malformed JSON (started with { but couldn't parse)
+            malformedLines.push(line.trim());
+            console.warn(
+              "[useUIStream] malformed JSON line:",
+              line.trim().slice(0, 200),
+            );
+
+            if (abortOnMalformed) {
+              console.warn(
+                "[useUIStream] aborting stream due to malformed JSON, will retry",
+              );
+              await reader.cancel();
+              aborted = true;
+              break;
+            }
+          }
+          // else: commentary text — skip silently
+        }
+
+        if (aborted) break;
+
+        if (newLines.length > 0) {
+          setRawLines((prev) => [...prev, ...newLines]);
+        }
+      }
+
+      // Process any remaining buffer (only if stream completed naturally)
+      if (!aborted && buffer.trim()) {
+        console.log("[useUIStream] remaining buffer:", buffer.slice(0, 200));
+        setRawLines((prev) => [...prev, buffer]);
+        const { patch, malformed } = parsePatchLine(buffer);
+        if (patch) {
+          currentSpec = applyPatch(currentSpec, patch);
+          setSpec({ ...currentSpec });
+        } else if (malformed) {
+          malformedLines.push(buffer.trim());
+        }
+      }
+
+      console.log(
+        "[useUIStream] spec state - root:",
+        currentSpec.root,
+        "elements:",
+        Object.keys(currentSpec.elements).length,
+        "completed:",
+        !aborted,
+        "malformed:",
+        malformedLines.length,
+      );
+
+      return { spec: currentSpec, completed: !aborted, malformedLines };
+    },
+    [api, fetchFn],
+  );
 
   const send = useCallback(
     async (prompt: string, context?: Record<string, unknown>) => {
@@ -199,6 +457,7 @@ export function useUIStream({
 
       setIsStreaming(true);
       setError(null);
+      setRawLines([]);
 
       // Start with previous spec if provided, otherwise empty spec
       const previousSpec = context?.previousSpec as Spec | undefined;
@@ -206,119 +465,101 @@ export function useUIStream({
         previousSpec && previousSpec.root
           ? { ...previousSpec, elements: { ...previousSpec.elements } }
           : { root: "", elements: {} };
-      setSpec(currentSpec);
+
+      let retriesUsed = 0;
+      let currentPrompt = prompt;
+      let currentContext = context;
 
       try {
-        const response = await fetchFn(api, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt,
-            context,
+        // Retry loop handles both mid-stream (malformed JSON) and
+        // post-stream (structural validation) repairs.
+        while (retriesUsed <= maxRetries) {
+          const result = await streamRequest(
+            currentPrompt,
+            currentContext,
             currentSpec,
-          }),
-          signal: abortControllerRef.current.signal,
-        });
+            enableValidation, // only abort on malformed when validation is on
+          );
+          currentSpec = result.spec;
 
-        console.log("[useUIStream] response status:", response.status);
-        console.log(
-          "[useUIStream] response headers:",
-          JSON.stringify(
-            Object.fromEntries((response.headers as any).entries?.() ?? []),
-          ),
-        );
-
-        if (!response.ok) {
-          // Try to parse JSON error response for better error messages
-          let errorMessage = `HTTP error: ${response.status}`;
-          try {
-            const errorData = await response.json();
-            if (errorData.message) {
-              errorMessage = errorData.message;
-            } else if (errorData.error) {
-              errorMessage = errorData.error;
+          // ---------------------------------------------------------------
+          // Mid-stream repair: stream was aborted due to malformed line
+          // ---------------------------------------------------------------
+          if (!result.completed && result.malformedLines.length > 0) {
+            if (retriesUsed >= maxRetries) {
+              console.warn(
+                "[useUIStream] malformed lines but max retries exhausted",
+              );
+              break;
             }
-          } catch {
-            // Ignore JSON parsing errors, use default message
+            retriesUsed++;
+            console.warn(
+              `[useUIStream] mid-stream retry ${retriesUsed}/${maxRetries} due to malformed JSON`,
+            );
+
+            // Build a repair prompt that asks the AI to continue from
+            // the current partial spec
+            currentContext = { ...context, previousSpec: currentSpec };
+            currentPrompt =
+              `The previous generation contained malformed JSON that could not be parsed. The line was:\n` +
+              `${result.malformedLines[result.malformedLines.length - 1]?.slice(0, 500)}\n\n` +
+              `The current spec state is provided. Continue generating from where you left off. ` +
+              `Output ONLY the remaining patches needed to complete the UI.`;
+            continue;
           }
-          throw new Error(errorMessage);
-        }
 
-        console.log(
-          "[useUIStream] response.body type:",
-          typeof response.body,
-          "truthy:",
-          !!response.body,
-        );
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error("No response body");
-        }
+          // ---------------------------------------------------------------
+          // Post-stream: validation is off or spec is empty → done
+          // ---------------------------------------------------------------
+          if (!enableValidation || !currentSpec.root) {
+            break;
+          }
 
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let chunkCount = 0;
-        let totalBytes = 0;
+          // ---------------------------------------------------------------
+          // Post-stream: auto-fix deterministic issues (no retry needed)
+          // ---------------------------------------------------------------
+          const { spec: fixedSpec, fixes } = autoFixSpec(currentSpec);
+          if (fixes.length > 0) {
+            console.log("[useUIStream] auto-fixed spec issues:", fixes);
+            currentSpec = fixedSpec;
+            setSpec({ ...currentSpec });
+          }
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            console.log(
-              "[useUIStream] stream done. Total chunks:",
-              chunkCount,
-              "bytes:",
-              totalBytes,
+          // ---------------------------------------------------------------
+          // Post-stream: structural validation
+          // ---------------------------------------------------------------
+          const validation = validateSpec(currentSpec);
+          if (validation.valid) {
+            console.log("[useUIStream] spec validation passed");
+            break;
+          }
+
+          // Still has errors
+          const errors = validation.issues.filter(
+            (i) => i.severity === "error",
+          );
+          if (retriesUsed >= maxRetries) {
+            console.warn(
+              "[useUIStream] spec validation failed, max retries exhausted:",
+              errors.map((e) => e.message),
             );
             break;
           }
 
-          chunkCount++;
-          totalBytes += value?.byteLength ?? 0;
-          const decoded = decoder.decode(value, { stream: true });
-          buffer += decoded;
+          retriesUsed++;
+          const issueText = formatSpecIssues(validation.issues);
+          console.warn(
+            `[useUIStream] post-stream retry ${retriesUsed}/${maxRetries}:`,
+            errors.map((e) => e.message),
+          );
 
-          if (chunkCount <= 5) {
-            console.log(
-              `[useUIStream] chunk #${chunkCount} (${value?.byteLength ?? 0}b):`,
-              decoded.slice(0, 200),
-            );
-          }
-
-          // Process complete lines
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            const patch = parsePatchLine(line);
-            if (patch) {
-              console.log("[useUIStream] applied patch:", patch.op, patch.path);
-              currentSpec = applyPatch(currentSpec, patch);
-              setSpec({ ...currentSpec });
-            } else if (line.trim()) {
-              console.log(
-                "[useUIStream] unparseable line:",
-                line.slice(0, 200),
-              );
-            }
-          }
+          currentContext = { ...context, previousSpec: currentSpec };
+          currentPrompt =
+            `FIX THE FOLLOWING ERRORS in the current UI spec. Output ONLY the patches needed to fix these issues, do not recreate the entire UI.\n\n` +
+            issueText;
+          // continue loop
         }
 
-        // Process any remaining buffer
-        if (buffer.trim()) {
-          console.log("[useUIStream] remaining buffer:", buffer.slice(0, 200));
-          const patch = parsePatchLine(buffer);
-          if (patch) {
-            currentSpec = applyPatch(currentSpec, patch);
-            setSpec({ ...currentSpec });
-          }
-        }
-
-        console.log(
-          "[useUIStream] final spec root:",
-          currentSpec.root,
-          "elements:",
-          Object.keys(currentSpec.elements).length,
-        );
         onComplete?.(currentSpec);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
@@ -331,7 +572,15 @@ export function useUIStream({
         setIsStreaming(false);
       }
     },
-    [api, fetchFn, onComplete, onError],
+    [
+      api,
+      fetchFn,
+      onComplete,
+      onError,
+      enableValidation,
+      maxRetries,
+      streamRequest,
+    ],
   );
 
   // Cleanup on unmount
@@ -345,7 +594,9 @@ export function useUIStream({
     spec,
     isStreaming,
     error,
+    rawLines,
     send,
+    stop,
     clear,
   };
 }

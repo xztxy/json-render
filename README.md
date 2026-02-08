@@ -100,8 +100,9 @@ function Dashboard({ spec }) {
 
 | Package | Description |
 |---------|-------------|
-| `@json-render/core` | Schemas, catalogs, AI prompts, SpecStream utilities |
+| `@json-render/core` | Schemas, catalogs, AI prompts, dynamic props, SpecStream utilities |
 | `@json-render/react` | React renderer, contexts, hooks |
+| `@json-render/react-native` | React Native renderer with standard mobile components |
 | `@json-render/remotion` | Remotion video renderer, timeline schema |
 
 ## Renderers
@@ -197,17 +198,38 @@ const systemPrompt = catalog.prompt();
 }
 ```
 
-### Data Binding
+### Dynamic Props
+
+Any prop value can be data-driven using expressions:
 
 ```json
 {
-  "type": "Metric",
+  "type": "Icon",
   "props": {
-    "label": "Revenue",
-    "value": "{{data.revenue}}"
+    "name": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "home", "$else": "home-outline" },
+    "color": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "#007AFF", "$else": "#8E8E93" }
   }
 }
 ```
+
+Two expression forms:
+
+- **`{ "$path": "/data/key" }`** -- reads a value from the data model
+- **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** -- evaluates a condition (same syntax as visibility conditions) and picks a branch
+
+### Actions
+
+Components can trigger actions, including the built-in `setData` action:
+
+```json
+{
+  "type": "Pressable",
+  "props": { "action": "setData", "actionParams": { "path": "/activeTab", "value": "home" } },
+  "children": ["home-icon"]
+}
+```
+
+The `setData` action updates the data model directly, which re-evaluates visibility conditions and dynamic prop expressions.
 
 ---
 

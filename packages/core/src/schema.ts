@@ -587,6 +587,62 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     lines.push("");
   }
 
+  // Visibility conditions
+  lines.push("VISIBILITY CONDITIONS:");
+  lines.push(
+    "Elements can have an optional `visible` field to conditionally show/hide based on data state. IMPORTANT: `visible` is a top-level field on the element object (sibling of type/props/children), NOT inside props.",
+  );
+  lines.push(
+    'Correct: {"type":"Column","props":{"gap":8},"visible":{"eq":[{"path":"/tab"},"home"]},"children":[...]}',
+  );
+  lines.push(
+    '- `{ "eq": [{ "path": "/dataPath" }, "value"] }` - visible when data at path equals value',
+  );
+  lines.push(
+    '- `{ "neq": [{ "path": "/dataPath" }, "value"] }` - visible when data at path does not equal value',
+  );
+  lines.push('- `{ "path": "/dataPath" }` - visible when path is truthy');
+  lines.push(
+    '- `{ "and": [...] }`, `{ "or": [...] }`, `{ "not": {...} }` - combine conditions',
+  );
+  lines.push("- `true` / `false` - always visible/hidden");
+  lines.push("");
+  lines.push(
+    "Use the Pressable component with action 'setData' to update data state and drive visibility.",
+  );
+  lines.push(
+    'Example: A Pressable with actionParams { "path": "/activeTab", "value": "home" } sets data, then a container with visible: { "eq": [{ "path": "/activeTab" }, "home"] } shows only when that tab is active.',
+  );
+  lines.push("");
+
+  // Dynamic prop expressions
+  lines.push("DYNAMIC PROPS:");
+  lines.push(
+    "Any prop value can be a dynamic expression that resolves based on data state. Two forms are supported:",
+  );
+  lines.push("");
+  lines.push(
+    '1. Data binding: `{ "$path": "/dataPath" }` - resolves to the value at that data path.',
+  );
+  lines.push(
+    '   Example: `"color": { "$path": "/theme/primary" }` reads the color from data.',
+  );
+  lines.push("");
+  lines.push(
+    '2. Conditional: `{ "$cond": <condition>, "$then": <value>, "$else": <value> }` - evaluates the condition (same syntax as visibility conditions) and picks the matching value.',
+  );
+  lines.push(
+    '   Example: `"color": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "#007AFF", "$else": "#8E8E93" }`',
+  );
+  lines.push(
+    '   Example: `"name": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "home", "$else": "home-outline" }`',
+  );
+  lines.push("");
+  lines.push(
+    "Use dynamic props instead of duplicating elements with opposing visible conditions when only prop values differ.",
+  );
+  lines.push("");
+
   // Rules
   lines.push("RULES:");
   const baseRules = [

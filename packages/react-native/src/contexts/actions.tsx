@@ -89,6 +89,17 @@ export function ActionProvider({
   const execute = useCallback(
     async (action: Action) => {
       const resolved = resolveAction(action, data);
+
+      // Built-in: setData updates the DataProvider state directly
+      if (resolved.name === "setData" && resolved.params) {
+        const path = resolved.params.path as string;
+        const value = resolved.params.value;
+        if (path) {
+          set(path, value);
+        }
+        return;
+      }
+
       const handler = handlers[resolved.name];
 
       if (!handler) {

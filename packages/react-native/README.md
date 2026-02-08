@@ -1,0 +1,223 @@
+# @json-render/react-native
+
+React Native renderer for json-render. Turn JSON specs into native mobile UIs with standard components, data binding, visibility, actions, and dynamic props.
+
+## Installation
+
+```bash
+npm install @json-render/react-native @json-render/core zod
+```
+
+## Quick Start
+
+### 1. Create a Catalog
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react-native/schema";
+import {
+  standardComponentDefinitions,
+  standardActionDefinitions,
+} from "@json-render/react-native/catalog";
+import { z } from "zod";
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    ...standardComponentDefinitions,
+    // Add custom components
+    Icon: {
+      props: z.object({
+        name: z.string(),
+        size: z.number().nullable(),
+        color: z.string().nullable(),
+      }),
+      slots: [],
+      description: "Icon display using Ionicons",
+    },
+  },
+  actions: standardActionDefinitions,
+});
+```
+
+### 2. Define Custom Component Implementations
+
+```tsx
+import { defineRegistry, type Components } from "@json-render/react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { catalog } from "./catalog";
+
+export const { registry } = defineRegistry(catalog, {
+  components: {
+    Icon: ({ props }) => (
+      <Ionicons
+        name={props.name as keyof typeof Ionicons.glyphMap}
+        size={props.size ?? 24}
+        color={props.color ?? "#111827"}
+      />
+    ),
+  } as Components<typeof catalog>,
+});
+```
+
+Standard components (Container, Row, Column, Button, TextInput, etc.) are included by default -- you only need to register custom ones.
+
+### 3. Render Specs
+
+```tsx
+import {
+  Renderer,
+  DataProvider,
+  VisibilityProvider,
+  ActionProvider,
+  ValidationProvider,
+} from "@json-render/react-native";
+import { registry } from "./registry";
+
+function App({ spec }) {
+  return (
+    <DataProvider initialData={{}}>
+      <VisibilityProvider>
+        <ActionProvider handlers={{}}>
+          <ValidationProvider>
+            <Renderer spec={spec} registry={registry} />
+          </ValidationProvider>
+        </ActionProvider>
+      </VisibilityProvider>
+    </DataProvider>
+  );
+}
+```
+
+## Standard Components
+
+### Layout
+
+| Component | Description |
+|-----------|-------------|
+| `Container` | Basic wrapper with padding, background, border radius |
+| `Row` | Horizontal flex layout with gap, alignment, flex |
+| `Column` | Vertical flex layout with gap, alignment, flex |
+| `ScrollContainer` | Scrollable area (vertical or horizontal) |
+| `SafeArea` | Safe area insets for notch/home indicator |
+| `Pressable` | Touchable wrapper that triggers actions on press |
+| `Spacer` | Fixed or flexible spacing between elements |
+| `Divider` | Thin line separator |
+
+### Content
+
+| Component | Description |
+|-----------|-------------|
+| `Heading` | Heading text (levels 1-6) |
+| `Paragraph` | Body text |
+| `Label` | Small label text |
+| `Image` | Image display with sizing modes |
+| `Avatar` | Circular avatar image |
+| `Badge` | Small status badge |
+| `Chip` | Tag/chip for categories |
+
+### Input
+
+| Component | Description |
+|-----------|-------------|
+| `Button` | Pressable button with variants |
+| `TextInput` | Text input field |
+| `Switch` | Toggle switch |
+| `Checkbox` | Checkbox with label |
+| `Slider` | Range slider |
+| `SearchBar` | Search input |
+
+### Feedback
+
+| Component | Description |
+|-----------|-------------|
+| `Spinner` | Loading indicator |
+| `ProgressBar` | Progress indicator |
+
+### Composite
+
+| Component | Description |
+|-----------|-------------|
+| `Card` | Card container with optional header |
+| `ListItem` | List row with title, subtitle, accessory |
+| `Modal` | Bottom sheet modal |
+
+## Pressable Component
+
+The `Pressable` component wraps children and triggers an action on press. It's essential for building interactive UIs like tab bars:
+
+```json
+{
+  "type": "Pressable",
+  "props": {
+    "action": "setData",
+    "actionParams": { "path": "/activeTab", "value": "home" }
+  },
+  "children": ["home-tab-icon", "home-tab-label"]
+}
+```
+
+## Built-in Actions
+
+The `setData` action is handled automatically by `ActionProvider`. It updates the data model, which triggers re-evaluation of visibility conditions and dynamic prop expressions:
+
+```json
+{
+  "action": "setData",
+  "actionParams": { "path": "/activeTab", "value": "home" }
+}
+```
+
+## Dynamic Prop Expressions
+
+Any prop value can be a dynamic expression resolved at render time:
+
+```json
+{
+  "type": "Icon",
+  "props": {
+    "name": {
+      "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+      "$then": "home",
+      "$else": "home-outline"
+    },
+    "color": {
+      "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+      "$then": "#007AFF",
+      "$else": "#8E8E93"
+    }
+  }
+}
+```
+
+See [@json-render/core](../core/README.md) for full expression syntax.
+
+## Tab Navigation Pattern
+
+Combine `Pressable`, `setData`, visibility conditions, and dynamic props for functional tabs:
+
+1. Each tab button is a `Pressable` with `action: "setData"` and `actionParams: { path: "/activeTab", value: "tabName" }`
+2. Tab icons/labels use `$cond` dynamic props for active/inactive styling
+3. Tab content sections use `visible` conditions: `{ "eq": [{ "path": "/activeTab" }, "tabName"] }`
+
+## AI Prompt Generation
+
+```typescript
+const systemPrompt = catalog.prompt({
+  customRules: [
+    "Use SafeArea as the root element",
+    "Use Pressable + setData for interactive tabs",
+  ],
+});
+```
+
+## Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `useData()` | Access data context (`data`, `get`, `set`) |
+| `useDataValue(path)` | Get single value from data |
+| `useVisibility()` | Access visibility evaluation |
+| `useIsVisible(condition)` | Check if condition is met |
+| `useActions()` | Access action context |
+| `useUIStream(options)` | Stream specs from an API endpoint |
+| `createStandardActionHandlers(options)` | Create handlers for standard actions |

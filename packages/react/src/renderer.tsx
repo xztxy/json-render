@@ -10,6 +10,7 @@ import type {
   LegacyCatalog,
   ComponentDefinition,
 } from "@json-render/core";
+import { resolveElementProps } from "@json-render/core";
 import type {
   Components,
   Actions,
@@ -17,7 +18,7 @@ import type {
   SetData,
   DataModel,
 } from "./catalog-types";
-import { useIsVisible } from "./contexts/visibility";
+import { useIsVisible, useVisibility } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
 import { useData } from "./contexts/data";
 import { DataProvider } from "./contexts/data";
@@ -83,6 +84,7 @@ function ElementRenderer({
   fallback?: ComponentRenderer;
 }) {
   const isVisible = useIsVisible(element.visible);
+  const { ctx } = useVisibility();
   const { execute } = useActions();
 
   // Don't render if not visible
@@ -90,18 +92,33 @@ function ElementRenderer({
     return null;
   }
 
+  // Resolve dynamic prop expressions ($path, $cond/$then/$else)
+  const resolvedProps = resolveElementProps(
+    element.props as Record<string, unknown>,
+    ctx,
+  );
+  const resolvedElement =
+    resolvedProps !== element.props
+      ? { ...element, props: resolvedProps }
+      : element;
+
   // Get the component renderer
-  const Component = registry[element.type] ?? fallback;
+  const Component = registry[resolvedElement.type] ?? fallback;
 
   if (!Component) {
-    console.warn(`No renderer for component type: ${element.type}`);
+    console.warn(`No renderer for component type: ${resolvedElement.type}`);
     return null;
   }
 
   // Render children
-  const children = element.children?.map((childKey) => {
+  const children = resolvedElement.children?.map((childKey) => {
     const childElement = spec.elements[childKey];
     if (!childElement) {
+      if (!loading) {
+        console.warn(
+          `[json-render] Missing element "${childKey}" referenced as child of "${resolvedElement.type}". This element will not render.`,
+        );
+      }
       return null;
     }
     return (
@@ -117,7 +134,7 @@ function ElementRenderer({
   });
 
   return (
-    <Component element={element} onAction={execute} loading={loading}>
+    <Component element={resolvedElement} onAction={execute} loading={loading}>
       {children}
     </Component>
   );

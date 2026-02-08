@@ -77,12 +77,39 @@ const { result, newPatches } = compiler.push(chunk);
 const finalSpec = compiler.getResult();
 ```
 
+## Dynamic Prop Expressions
+
+Any prop value can be a dynamic expression resolved at render time:
+
+- **`{ "$path": "/data/key" }`** -- reads a value from the data model
+- **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** -- evaluates a visibility condition and picks a branch
+
+`$cond` uses the same syntax as visibility conditions (`eq`, `neq`, `path`, `and`, `or`, `not`). `$then` and `$else` can themselves be expressions (recursive).
+
+```json
+{
+  "color": {
+    "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+    "$then": "#007AFF",
+    "$else": "#8E8E93"
+  }
+}
+```
+
+```typescript
+import { resolvePropValue, resolveElementProps } from "@json-render/core";
+
+const resolved = resolveElementProps(element.props, { dataModel: myData });
+```
+
 ## Key Exports
 
 | Export | Purpose |
 |--------|---------|
 | `defineSchema` | Create a new schema |
 | `defineCatalog` | Create a catalog from schema |
+| `resolvePropValue` | Resolve a single prop expression against data |
+| `resolveElementProps` | Resolve all prop expressions in an element |
 | `createSpecStreamCompiler` | Stream JSONL patches into spec |
 | `parseSpecStreamLine` | Parse single JSONL line |
 | `applySpecStreamPatch` | Apply patch to object |

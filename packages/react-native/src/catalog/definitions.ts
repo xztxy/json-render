@@ -48,6 +48,7 @@ export const standardComponentDefinitions = {
         .nullable(),
       flexWrap: z.enum(["wrap", "nowrap"]).nullable(),
       padding: z.number().nullable(),
+      flex: z.number().nullable(),
     }),
     slots: ["default"],
     description:
@@ -71,6 +72,7 @@ export const standardComponentDefinitions = {
         ])
         .nullable(),
       padding: z.number().nullable(),
+      flex: z.number().nullable(),
     }),
     slots: ["default"],
     description:
@@ -106,6 +108,16 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Empty space between elements. Set size for fixed spacing or flex for flexible spacing.",
+  },
+
+  Pressable: {
+    props: z.object({
+      action: z.string(),
+      actionParams: z.record(z.string(), z.unknown()).nullable(),
+    }),
+    slots: ["default"],
+    description:
+      "Touchable wrapper that triggers an action on press. Wrap any element to make it tappable. Use with action 'setData' and actionParams { path, value } to update state for visibility-driven UIs like tabs.",
   },
 
   Divider: {

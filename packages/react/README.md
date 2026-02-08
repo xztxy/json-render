@@ -249,6 +249,41 @@ const { errors, validate } = useFieldValidation("/form/email", {
 }
 ```
 
+## Dynamic Prop Expressions
+
+Any prop value can use data-driven expressions that resolve at render time. The renderer resolves these transparently before passing props to components.
+
+```json
+{
+  "type": "Badge",
+  "props": {
+    "label": { "$path": "/user/role" },
+    "color": {
+      "$cond": { "eq": [{ "path": "/user/role" }, "admin"] },
+      "$then": "red",
+      "$else": "gray"
+    }
+  }
+}
+```
+
+See [@json-render/core](../core/README.md) for full expression syntax.
+
+## Built-in Actions
+
+The `setData` action is handled automatically by `ActionProvider`. It updates the data model, which triggers re-evaluation of visibility conditions and dynamic prop expressions:
+
+```json
+{
+  "type": "Button",
+  "props": {
+    "label": "Switch Tab",
+    "action": "setData",
+    "actionParams": { "path": "/activeTab", "value": "settings" }
+  }
+}
+```
+
 ## Component Props
 
 When using `defineRegistry`, components receive these props:

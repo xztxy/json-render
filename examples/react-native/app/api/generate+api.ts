@@ -1,8 +1,8 @@
 import { streamText } from "ai";
 import { createGatewayProvider } from "@ai-sdk/gateway";
-import { catalog } from "../../lib/catalog";
+import { catalog, customRules } from "../../lib/render/catalog";
 
-const SYSTEM_PROMPT = catalog.prompt();
+const SYSTEM_PROMPT = catalog.prompt({ customRules });
 
 const MAX_PROMPT_LENGTH = 500;
 const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";

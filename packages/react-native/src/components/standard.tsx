@@ -63,6 +63,7 @@ function RowComponent({ element, children }: ComponentRenderProps) {
       | "space-evenly";
     flexWrap?: "wrap" | "nowrap";
     padding?: number;
+    flex?: number;
   };
 
   return (
@@ -74,6 +75,7 @@ function RowComponent({ element, children }: ComponentRenderProps) {
         justifyContent: p.justifyContent ?? undefined,
         flexWrap: p.flexWrap ?? undefined,
         padding: p.padding ?? undefined,
+        flex: p.flex ?? undefined,
       }}
     >
       {children}
@@ -93,6 +95,7 @@ function ColumnComponent({ element, children }: ComponentRenderProps) {
       | "space-around"
       | "space-evenly";
     padding?: number;
+    flex?: number;
   };
 
   return (
@@ -103,6 +106,7 @@ function ColumnComponent({ element, children }: ComponentRenderProps) {
         alignItems: p.alignItems ?? undefined,
         justifyContent: p.justifyContent ?? undefined,
         padding: p.padding ?? undefined,
+        flex: p.flex ?? undefined,
       }}
     >
       {children}
@@ -166,6 +170,32 @@ function SpacerComponent({ element }: ComponentRenderProps) {
         flex: p.flex ?? undefined,
       }}
     />
+  );
+}
+
+function PressableComponent({
+  element,
+  children,
+  onAction,
+}: ComponentRenderProps) {
+  const p = element.props as {
+    action: string;
+    actionParams?: Record<string, unknown>;
+  };
+
+  return (
+    <Pressable
+      onPress={() => {
+        if (p.action) {
+          onAction?.({ name: p.action, params: p.actionParams });
+        }
+      }}
+      style={({ pressed }) => ({
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      {children}
+    </Pressable>
   );
 }
 
@@ -1019,6 +1049,7 @@ export const standardComponents: ComponentRegistry = {
   Column: ColumnComponent,
   ScrollContainer: ScrollContainerComponent,
   SafeArea: SafeAreaComponent,
+  Pressable: PressableComponent,
   Spacer: SpacerComponent,
   Divider: DividerComponent,
   // Content

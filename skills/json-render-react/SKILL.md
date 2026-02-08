@@ -89,6 +89,33 @@ The React schema uses an element tree format:
 | `ValidationContext` | Form validation state |
 | `VisibilityContext` | Conditional rendering |
 
+## Dynamic Prop Expressions
+
+Any prop value can be a data-driven expression resolved by the renderer before components receive props:
+
+- **`{ "$path": "/data/key" }`** -- reads from data model
+- **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** -- conditional value
+
+```json
+{
+  "color": {
+    "$cond": { "eq": [{ "path": "/status" }, "active"] },
+    "$then": "green",
+    "$else": "gray"
+  }
+}
+```
+
+Components receive already-resolved props -- no changes needed to component implementations.
+
+## Built-in Actions
+
+The `setData` action is handled automatically by `ActionProvider` and updates the data model directly, which re-evaluates visibility conditions and dynamic prop expressions:
+
+```json
+{ "action": "setData", "actionParams": { "path": "/activeTab", "value": "home" } }
+```
+
 ## Key Exports
 
 | Export | Purpose |

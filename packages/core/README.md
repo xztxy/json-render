@@ -173,14 +173,85 @@ const spec = compileSpecStream<MySpec>(jsonlString);
 | `applySpecStreamPatch(obj, patch)` | Apply patch to object |
 | `compileSpecStream<T>(jsonl)` | Compile entire JSONL string |
 
+### Dynamic Props
+
+| Export | Purpose |
+|--------|---------|
+| `resolvePropValue(value, ctx)` | Resolve a single prop expression |
+| `resolveElementProps(props, ctx)` | Resolve all prop expressions in an element |
+| `PropExpression<T>` | Type for prop values that may contain expressions |
+
 ### Types
 
 | Export | Purpose |
 |--------|---------|
 | `Spec` | Base spec type |
 | `Catalog` | Catalog type |
+| `VisibilityCondition` | Visibility condition type (used by `$cond`) |
+| `VisibilityContext` | Context for evaluating visibility and prop expressions |
 | `SpecStreamLine` | Single patch operation |
 | `SpecStreamCompiler` | Streaming compiler interface |
+
+## Dynamic Prop Expressions
+
+Any prop value can be a dynamic expression that resolves based on data state at render time. Expressions are resolved by the renderer before props reach components.
+
+### Data Binding (`$path`)
+
+Read a value directly from the data model:
+
+```json
+{
+  "color": { "$path": "/theme/primary" },
+  "label": { "$path": "/user/name" }
+}
+```
+
+### Conditional (`$cond` / `$then` / `$else`)
+
+Evaluate a condition (same syntax as visibility conditions) and pick a value:
+
+```json
+{
+  "color": {
+    "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+    "$then": "#007AFF",
+    "$else": "#8E8E93"
+  },
+  "name": {
+    "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+    "$then": "home",
+    "$else": "home-outline"
+  }
+}
+```
+
+`$then` and `$else` can themselves be expressions (recursive):
+
+```json
+{
+  "label": {
+    "$cond": { "path": "/user/isAdmin" },
+    "$then": { "$path": "/admin/greeting" },
+    "$else": "Welcome"
+  }
+}
+```
+
+### API
+
+```typescript
+import { resolvePropValue, resolveElementProps } from "@json-render/core";
+
+// Resolve a single value
+const color = resolvePropValue(
+  { $cond: { eq: [{ path: "/active" }, "yes"] }, $then: "blue", $else: "gray" },
+  { dataModel: myData }
+);
+
+// Resolve all props on an element
+const resolved = resolveElementProps(element.props, { dataModel: myData });
+```
 
 ## Custom Schemas
 

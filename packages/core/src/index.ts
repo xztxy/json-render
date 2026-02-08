@@ -49,6 +49,11 @@ export {
   visibility,
 } from "./visibility";
 
+// Prop Expressions
+export type { PropExpression } from "./props";
+
+export { resolvePropValue, resolveElementProps } from "./props";
+
 // Actions
 export type {
   Action,
@@ -91,6 +96,16 @@ export {
   runValidation,
   check,
 } from "./validation";
+
+// Spec Structural Validation
+export type {
+  SpecIssueSeverity,
+  SpecIssue,
+  SpecValidationIssues,
+  ValidateSpecOptions,
+} from "./spec-validator";
+
+export { validateSpec, autoFixSpec, formatSpecIssues } from "./spec-validator";
 
 // Schema (new API)
 export type {
