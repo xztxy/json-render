@@ -41,9 +41,9 @@
       "require": "./dist/schema.js"
     },
     "./catalog": {
-      "types": "./dist/catalog/index.d.ts",
-      "import": "./dist/catalog/index.mjs",
-      "require": "./dist/catalog/index.js"
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.mjs",
+      "require": "./dist/catalog.js"
     }
   },
   "files": [
