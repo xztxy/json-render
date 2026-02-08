@@ -20,6 +20,12 @@ export const customRules = [
   'Example: If state has todos[0].title = "Buy groceries", the Paragraph displaying it MUST use "text": { "$path": "/todos/0/title" } -- NOT "text": "Buy groceries". Hardcoding text that also exists in state causes the UI to go out of sync when state changes.',
   "This applies to ALL display props that correspond to state fields: text, label, color, checked, value, etc. If a value lives in /state, read it with $path.",
 
+  // Array state actions
+  'ARRAY STATE: Use "pushState" to add items to arrays and "removeState" to remove items by index.',
+  'pushState params: { "path": "/todos", "value": { "title": { "path": "/newTodoText" }, "completed": false }, "clearPath": "/newTodoText" }. The value can contain { "path": "/statePath" } references to read current state. Use clearPath to reset an input after adding.',
+  'removeState params: { "path": "/todos", "index": 0 }. Removes the item at the given index from the array.',
+  "For todo lists, shopping carts, or any list that users can add to / remove from, use pushState and removeState instead of trying to hardcode arrays with setState.",
+
   // Image URLs using Picsum (free, no API key)
   'Image props: { "src": "https://picsum.photos/WIDTH/HEIGHT?random=N" } - use Picsum for any placeholder or example images',
   "Use different random numbers for each image to get different photos (e.g., ?random=1, ?random=2, ?random=3)",

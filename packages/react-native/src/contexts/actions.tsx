@@ -18,6 +18,46 @@ import {
 import { useStateStore } from "./state";
 
 /**
+ * Deep-resolve dynamic value references ({ path: "/..." }) within an object.
+ * This allows pushState values to contain references to current state.
+ */
+function deepResolveValue(
+  value: unknown,
+  get: (path: string) => unknown,
+): unknown {
+  if (value === null || value === undefined) return value;
+
+  // { path: "/foo" } -> read from state
+  if (
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    "path" in (value as Record<string, unknown>)
+  ) {
+    const obj = value as Record<string, unknown>;
+    // Only treat as a path reference if it has exactly one key
+    if (Object.keys(obj).length === 1 && typeof obj.path === "string") {
+      return get(obj.path as string);
+    }
+  }
+
+  // Recurse into arrays
+  if (Array.isArray(value)) {
+    return value.map((item) => deepResolveValue(item, get));
+  }
+
+  // Recurse into plain objects
+  if (typeof value === "object") {
+    const resolved: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      resolved[key] = deepResolveValue(val, get);
+    }
+    return resolved;
+  }
+
+  return value;
+}
+
+/**
  * Pending confirmation state
  */
 export interface PendingConfirmation {
@@ -96,6 +136,38 @@ export function ActionProvider({
         const value = resolved.params.value;
         if (path) {
           set(path, value);
+        }
+        return;
+      }
+
+      // Built-in: pushState appends an item to an array in state.
+      // Supports dynamic values inside the value object via { path: "/..." } syntax.
+      if (resolved.name === "pushState" && resolved.params) {
+        const path = resolved.params.path as string;
+        const rawValue = resolved.params.value;
+        if (path) {
+          const resolvedValue = deepResolveValue(rawValue, get);
+          const arr = (get(path) as unknown[] | undefined) ?? [];
+          set(path, [...arr, resolvedValue]);
+          // Optionally clear a path after pushing (e.g. clear the input)
+          const clearPath = resolved.params.clearPath as string | undefined;
+          if (clearPath) {
+            set(clearPath, "");
+          }
+        }
+        return;
+      }
+
+      // Built-in: removeState removes an item from an array in state by index.
+      if (resolved.name === "removeState" && resolved.params) {
+        const path = resolved.params.path as string;
+        const index = resolved.params.index as number;
+        if (path !== undefined && index !== undefined) {
+          const arr = (get(path) as unknown[] | undefined) ?? [];
+          set(
+            path,
+            arr.filter((_, i) => i !== index),
+          );
         }
         return;
       }

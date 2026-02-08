@@ -446,6 +446,25 @@ export const standardActionDefinitions = {
     description: "Update a value in the state model at the given path.",
   },
 
+  pushState: {
+    params: z.object({
+      path: z.string(),
+      value: z.unknown(),
+      clearPath: z.string().optional(),
+    }),
+    description:
+      'Append an item to an array in the state model. The value can contain { path: "/statePath" } references to read from current state. Use clearPath to reset another path after pushing (e.g. clear an input field).',
+  },
+
+  removeState: {
+    params: z.object({
+      path: z.string(),
+      index: z.number(),
+    }),
+    description:
+      "Remove an item from an array in the state model at the given index.",
+  },
+
   refresh: {
     params: z.object({
       target: z.string().nullable(),

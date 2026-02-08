@@ -569,6 +569,20 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     'When content comes from the state model, use { "$path": "/some/path" } dynamic props to display it instead of hardcoding the same value in both state and props. The state model is the single source of truth.',
   );
   lines.push("");
+  lines.push("ARRAY STATE ACTIONS:");
+  lines.push(
+    'Use action "pushState" to append items to arrays. Params: { path: "/arrayPath", value: { ...item }, clearPath: "/inputPath" }.',
+  );
+  lines.push(
+    'Values inside pushState can contain { "path": "/statePath" } references to read current state (e.g. the text from an input field).',
+  );
+  lines.push(
+    'Use action "removeState" to remove items from arrays by index. Params: { path: "/arrayPath", index: N }.',
+  );
+  lines.push(
+    "For lists where users can add/remove items (todos, carts, etc.), use pushState and removeState instead of hardcoding with setState.",
+  );
+  lines.push("");
 
   // Components section
   const components = (catalog.data as Record<string, unknown>).components as
