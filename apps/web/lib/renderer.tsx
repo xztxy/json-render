@@ -62,7 +62,7 @@ export function PlaygroundRenderer({
   if (!spec) return null;
 
   return (
-    <StateProvider initialState={data}>
+    <StateProvider initialState={data ?? spec.state}>
       <VisibilityProvider>
         <ActionProvider>
           <Renderer

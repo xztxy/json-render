@@ -69,6 +69,18 @@ function setSpecValue(newSpec: Spec, path: string, value: unknown): void {
     return;
   }
 
+  if (path === "/state") {
+    newSpec.state = value as Record<string, unknown>;
+    return;
+  }
+
+  if (path.startsWith("/state/")) {
+    if (!newSpec.state) newSpec.state = {};
+    const statePath = path.slice("/state".length); // e.g. "/posts"
+    setByPath(newSpec.state as Record<string, unknown>, statePath, value);
+    return;
+  }
+
   if (path.startsWith("/elements/")) {
     const pathParts = path.slice("/elements/".length).split("/");
     const elementKey = pathParts[0];
@@ -96,6 +108,17 @@ function setSpecValue(newSpec: Spec, path: string, value: unknown): void {
  * Remove a value at a spec path.
  */
 function removeSpecValue(newSpec: Spec, path: string): void {
+  if (path === "/state") {
+    delete newSpec.state;
+    return;
+  }
+
+  if (path.startsWith("/state/") && newSpec.state) {
+    const statePath = path.slice("/state".length);
+    removeByPath(newSpec.state as Record<string, unknown>, statePath);
+    return;
+  }
+
   if (path.startsWith("/elements/")) {
     const pathParts = path.slice("/elements/".length).split("/");
     const elementKey = pathParts[0];
@@ -124,6 +147,11 @@ function removeSpecValue(newSpec: Spec, path: string): void {
  */
 function getSpecValue(spec: Spec, path: string): unknown {
   if (path === "/root") return spec.root;
+  if (path === "/state") return spec.state;
+  if (path.startsWith("/state/") && spec.state) {
+    const statePath = path.slice("/state".length);
+    return getByPath(spec.state as Record<string, unknown>, statePath);
+  }
   return getByPath(spec as unknown as Record<string, unknown>, path);
 }
 
@@ -132,7 +160,11 @@ function getSpecValue(spec: Spec, path: string): unknown {
  * Supports add, remove, replace, move, copy, and test operations.
  */
 function applyPatch(spec: Spec, patch: JsonPatch): Spec {
-  const newSpec = { ...spec, elements: { ...spec.elements } };
+  const newSpec = {
+    ...spec,
+    elements: { ...spec.elements },
+    ...(spec.state ? { state: { ...spec.state } } : {}),
+  };
 
   switch (patch.op) {
     case "add":

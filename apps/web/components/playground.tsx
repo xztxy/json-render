@@ -685,7 +685,11 @@ ${jsx}
         {renderView === "preview" ? (
           currentTree && currentTree.root ? (
             <div className="w-full min-h-full flex items-center justify-center p-6">
-              <PlaygroundRenderer spec={currentTree} loading={isStreaming} />
+              <PlaygroundRenderer
+                spec={currentTree}
+                data={currentTree.state}
+                loading={isStreaming}
+              />
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground/50 text-sm">
