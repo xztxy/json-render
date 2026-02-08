@@ -62,5 +62,33 @@ export async function POST(req: Request) {
     temperature: 0.7,
   });
 
-  return result.toTextStreamResponse();
+  // Stream the text, then append token usage metadata at the end
+  const encoder = new TextEncoder();
+  const textStream = result.textStream;
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      for await (const chunk of textStream) {
+        controller.enqueue(encoder.encode(chunk));
+      }
+      // Append usage metadata after stream completes
+      try {
+        const usage = await result.usage;
+        const meta = JSON.stringify({
+          __meta: "usage",
+          promptTokens: usage.inputTokens,
+          completionTokens: usage.outputTokens,
+          totalTokens: usage.totalTokens,
+        });
+        controller.enqueue(encoder.encode(`\n${meta}\n`));
+      } catch {
+        // Usage not available -- skip silently
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }

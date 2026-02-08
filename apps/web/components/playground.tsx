@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { useUIStream } from "@json-render/react";
+import { useUIStream, type TokenUsage } from "@json-render/react";
 import type { Spec } from "@json-render/core";
 import { collectUsedComponents, serializeProps } from "@json-render/codegen";
 import { toast } from "sonner";
@@ -25,6 +25,8 @@ interface Version {
   prompt: string;
   tree: Spec | null;
   status: "generating" | "complete" | "error";
+  usage: TokenUsage | null;
+  rawLines: string[];
 }
 
 const EXAMPLE_PROMPTS = [
@@ -40,7 +42,6 @@ export function Playground() {
     null,
   );
   const [inputValue, setInputValue] = useState("");
-  const [streamLines, setStreamLines] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("json");
   const [renderView, setRenderView] = useState<RenderView>("preview");
   const [mobilePane, setMobilePane] = useState<MobilePane>("chat");
@@ -56,6 +57,8 @@ export function Playground() {
   const {
     spec: apiSpec,
     isStreaming,
+    usage: streamUsage,
+    rawLines: streamRawLines,
     send,
     clear,
   } = useUIStream({
@@ -93,6 +96,11 @@ export function Playground() {
       : (selectedVersion?.tree ??
         (isSelectedVersionGenerating ? apiSpec : null));
 
+  // Raw JSONL lines: live from stream during generation, or stored per version
+  const currentRawLines = isSelectedVersionGenerating
+    ? streamRawLines
+    : (selectedVersion?.rawLines ?? []);
+
   // Keep the ref updated with the current tree for use in handleSubmit
   if (
     currentTree &&
@@ -107,24 +115,6 @@ export function Playground() {
     versionsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [versions]);
 
-  useEffect(() => {
-    if (apiSpec) {
-      const streamLine = JSON.stringify({ tree: apiSpec });
-      if (
-        !streamLines.includes(streamLine) &&
-        Object.keys(apiSpec.elements).length > 0
-      ) {
-        setStreamLines((prev) => {
-          const lastLine = prev[prev.length - 1];
-          if (lastLine !== streamLine) {
-            return [...prev, streamLine];
-          }
-          return prev;
-        });
-      }
-    }
-  }, [apiSpec, streamLines]);
-
   // Update version when streaming completes
   useEffect(() => {
     if (
@@ -137,13 +127,19 @@ export function Playground() {
       setVersions((prev) =>
         prev.map((v) =>
           v.id === completedVersionId
-            ? { ...v, tree: apiSpec, status: "complete" as const }
+            ? {
+                ...v,
+                tree: apiSpec,
+                status: "complete" as const,
+                usage: streamUsage,
+                rawLines: streamRawLines,
+              }
             : v,
         ),
       );
       generatingVersionIdRef.current = null;
     }
-  }, [isStreaming, apiSpec]);
+  }, [isStreaming, apiSpec, streamUsage, streamRawLines]);
 
   const handleSubmit = useCallback(async () => {
     if (!inputValue.trim() || isStreaming) return;
@@ -154,13 +150,14 @@ export function Playground() {
       prompt: inputValue.trim(),
       tree: null,
       status: "generating",
+      usage: null,
+      rawLines: [],
     };
 
     generatingVersionIdRef.current = newVersionId;
     setVersions((prev) => [...prev, newVersion]);
     setSelectedVersionId(newVersionId);
     setInputValue("");
-    setStreamLines([]); // Reset stream lines for new generation
 
     // Pass the current tree as context so the API can iterate on it
     await send(inputValue.trim(), { previousSpec: currentTreeRef.current });
@@ -306,6 +303,19 @@ ${jsx}
                   <span className="text-xs text-red-500 shrink-0">failed</span>
                 )}
               </div>
+              {version.usage && (
+                <div className="flex items-center gap-2 mt-1 ml-6">
+                  <span className="text-[10px] font-mono text-muted-foreground/60">
+                    {version.usage.promptTokens.toLocaleString()} in
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground/60">
+                    {version.usage.completionTokens.toLocaleString()} out
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground/60">
+                    {version.usage.totalTokens.toLocaleString()} total
+                  </span>
+                </div>
+              )}
             </button>
           ))
         )}
@@ -337,7 +347,6 @@ ${jsx}
               onClick={() => {
                 setVersions([]);
                 setSelectedVersionId(null);
-                setStreamLines([]);
                 clear();
               }}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -409,15 +418,15 @@ ${jsx}
         ))}
         <div className="flex-1" />
         <CopyButton
-          text={activeTab === "stream" ? streamLines.join("\n") : jsonCode}
+          text={activeTab === "stream" ? currentRawLines.join("\n") : jsonCode}
           className="text-muted-foreground"
         />
       </div>
       <div className="flex-1 overflow-auto">
         {activeTab === "stream" ? (
-          streamLines.length > 0 ? (
+          currentRawLines.length > 0 ? (
             <CodeBlock
-              code={streamLines.join("\n")}
+              code={currentRawLines.join("\n")}
               lang="json"
               fillHeight
               hideCopyButton

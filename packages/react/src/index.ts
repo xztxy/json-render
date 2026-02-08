@@ -94,4 +94,5 @@ export {
   flatToTree,
   type UseUIStreamOptions,
   type UseUIStreamReturn,
+  type TokenUsage,
 } from "./hooks";

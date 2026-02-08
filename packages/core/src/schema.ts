@@ -550,28 +550,34 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push("");
   lines.push("Example output (each line is a separate JSON object):");
   lines.push("");
-  lines.push(`{"op":"add","path":"/root","value":"card-1"}
-{"op":"add","path":"/elements/card-1","value":{"type":"Card","props":{"title":"Dashboard"},"children":["metric-1","chart-1"]}}
-{"op":"add","path":"/elements/metric-1","value":{"type":"Metric","props":{"label":"Revenue","valuePath":"analytics.revenue","format":"currency"},"children":[]}}
-{"op":"add","path":"/elements/chart-1","value":{"type":"Chart","props":{"type":"bar","statePath":"analytics.salesByRegion"},"children":[]}}`);
+  lines.push(`{"op":"add","path":"/state","value":{"posts":[{"id":"1","title":"Getting Started","author":"Jane","date":"Jan 15"},{"id":"2","title":"Advanced Tips","author":"Bob","date":"Feb 3"}]}}
+{"op":"add","path":"/root","value":"blog"}
+{"op":"add","path":"/elements/blog","value":{"type":"Stack","props":{"direction":"vertical","gap":"md"},"children":["heading","posts-grid"]}}
+{"op":"add","path":"/elements/heading","value":{"type":"Heading","props":{"text":"Blog","level":"h1"},"children":[]}}
+{"op":"add","path":"/elements/posts-grid","value":{"type":"Grid","props":{"columns":2,"gap":"md"},"repeat":{"path":"/posts","key":"id"},"children":["post-card"]}}
+{"op":"add","path":"/elements/post-card","value":{"type":"Card","props":{"title":{"$path":"$item/title"}},"children":["post-meta"]}}
+{"op":"add","path":"/elements/post-meta","value":{"type":"Text","props":{"text":{"$path":"$item/author"},"variant":"muted"},"children":[]}}`);
   lines.push("");
 
   // Initial state section
   lines.push("INITIAL STATE:");
   lines.push(
-    "Specs can include an optional /state field to seed the state model. Components with statePath read from and write to this state.",
+    "Specs include a /state field to seed the state model. Components with statePath read from and write to this state, and $path expressions read from it.",
   );
   lines.push(
-    "When your UI uses statePath bindings (e.g. TextInput, Checkbox, Switch), you SHOULD provide initial state so those components have starting values.",
+    "CRITICAL: You MUST include a /state field whenever your UI displays data via $path expressions, uses repeat to iterate over arrays, or uses statePath bindings. Without /state, $path references resolve to nothing and repeat lists render zero items.",
   );
   lines.push(
-    'Output initial state as a patch: {"op":"add","path":"/state","value":{"todos":[{"title":"Buy milk","completed":false}],"newTodoText":""}}',
+    'Output initial state as a patch: {"op":"add","path":"/state","value":{"todos":[{"id":"1","title":"Buy milk","completed":false}],"newTodoText":""}}',
   );
   lines.push(
     "Output the /state patch BEFORE element patches so the state model is populated before components render.",
   );
   lines.push(
     'When content comes from the state model, use { "$path": "/some/path" } dynamic props to display it instead of hardcoding the same value in both state and props. The state model is the single source of truth.',
+  );
+  lines.push(
+    "Include realistic sample data in state. For blogs: 3-4 posts with titles, excerpts, authors, dates. For product lists: 3-5 items with names, prices, descriptions. Never leave arrays empty.",
   );
   lines.push("");
   lines.push("DYNAMIC LISTS (repeat field):");
@@ -746,7 +752,8 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push("RULES:");
   const baseRules = [
     "Output ONLY JSONL patches - one JSON object per line, no markdown, no code fences",
-    'First line sets root: {"op":"add","path":"/root","value":"<root-key>"}',
+    'ALWAYS output /state FIRST with sample data: {"op":"add","path":"/state","value":{...}}. This is REQUIRED whenever using $path, repeat, or statePath. Without it, the UI renders empty.',
+    'Then set root: {"op":"add","path":"/root","value":"<root-key>"}',
     'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
     "ONLY use components listed above",
     "Each element value needs: type, props, children (array of child keys)",

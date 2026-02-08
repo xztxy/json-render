@@ -90,11 +90,15 @@ export function buildUserPrompt(options: UserPromptOptions): string {
   }
 
   // --- Fresh generation mode ---
-  let result = userText;
+  const parts: string[] = [userText];
 
   if (state && Object.keys(state).length > 0) {
-    result += `\n\nAVAILABLE STATE:\n${JSON.stringify(state, null, 2)}`;
+    parts.push(`\nAVAILABLE STATE:\n${JSON.stringify(state, null, 2)}`);
   }
 
-  return result;
+  parts.push(
+    `\nRemember: Start with {"op":"add","path":"/state","value":{...}} containing realistic sample data. Then output /root and /elements patches.`,
+  );
+
+  return parts.join("\n");
 }

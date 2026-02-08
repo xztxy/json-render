@@ -15,15 +15,46 @@ import {
 } from "@json-render/core";
 
 /**
- * Parse a single JSON patch line
+ * Token usage metadata from AI generation
  */
-function parsePatchLine(line: string): JsonPatch | null {
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+/**
+ * Parse result for a single line -- either a patch or usage metadata
+ */
+type ParsedLine =
+  | { type: "patch"; patch: JsonPatch }
+  | { type: "usage"; usage: TokenUsage }
+  | null;
+
+/**
+ * Parse a single JSON line (patch or metadata)
+ */
+function parseLine(line: string): ParsedLine {
   try {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("//")) {
       return null;
     }
-    return JSON.parse(trimmed) as JsonPatch;
+    const parsed = JSON.parse(trimmed);
+
+    // Check for usage metadata
+    if (parsed.__meta === "usage") {
+      return {
+        type: "usage",
+        usage: {
+          promptTokens: parsed.promptTokens ?? 0,
+          completionTokens: parsed.completionTokens ?? 0,
+          totalTokens: parsed.totalTokens ?? 0,
+        },
+      };
+    }
+
+    return { type: "patch", patch: parsed as JsonPatch };
   } catch {
     return null;
   }
@@ -157,6 +188,10 @@ export interface UseUIStreamReturn {
   isStreaming: boolean;
   /** Error if any */
   error: Error | null;
+  /** Token usage from the last generation */
+  usage: TokenUsage | null;
+  /** Raw JSONL lines received from the stream (JSON patch lines) */
+  rawLines: string[];
   /** Send a prompt to generate UI */
   send: (prompt: string, context?: Record<string, unknown>) => Promise<void>;
   /** Clear the current spec */
@@ -174,6 +209,8 @@ export function useUIStream({
   const [spec, setSpec] = useState<Spec | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [usage, setUsage] = useState<TokenUsage | null>(null);
+  const [rawLines, setRawLines] = useState<string[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const clear = useCallback(() => {
@@ -189,6 +226,8 @@ export function useUIStream({
 
       setIsStreaming(true);
       setError(null);
+      setUsage(null);
+      setRawLines([]);
 
       // Start with previous spec if provided, otherwise empty spec
       const previousSpec = context?.previousSpec as Spec | undefined;
@@ -245,9 +284,15 @@ export function useUIStream({
           buffer = lines.pop() ?? "";
 
           for (const line of lines) {
-            const patch = parsePatchLine(line);
-            if (patch) {
-              currentSpec = applyPatch(currentSpec, patch);
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            const result = parseLine(trimmed);
+            if (!result) continue;
+            if (result.type === "usage") {
+              setUsage(result.usage);
+            } else {
+              setRawLines((prev) => [...prev, trimmed]);
+              currentSpec = applyPatch(currentSpec, result.patch);
               setSpec({ ...currentSpec });
             }
           }
@@ -255,10 +300,16 @@ export function useUIStream({
 
         // Process any remaining buffer
         if (buffer.trim()) {
-          const patch = parsePatchLine(buffer);
-          if (patch) {
-            currentSpec = applyPatch(currentSpec, patch);
-            setSpec({ ...currentSpec });
+          const trimmed = buffer.trim();
+          const result = parseLine(trimmed);
+          if (result) {
+            if (result.type === "usage") {
+              setUsage(result.usage);
+            } else {
+              setRawLines((prev) => [...prev, trimmed]);
+              currentSpec = applyPatch(currentSpec, result.patch);
+              setSpec({ ...currentSpec });
+            }
           }
         }
 
@@ -288,6 +339,8 @@ export function useUIStream({
     spec,
     isStreaming,
     error,
+    usage,
+    rawLines,
     send,
     clear,
   };
