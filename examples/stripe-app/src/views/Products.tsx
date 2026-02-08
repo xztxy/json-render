@@ -194,15 +194,15 @@ function createProductsSpec(data: Record<string, unknown>): Spec {
 // =============================================================================
 
 const Products = (_props: ExtensionContextValue) => {
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [data, setState] = useState<Record<string, unknown>>({});
   const [spec, setSpec] = useState<Spec | null>(null);
   const [loading, setLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
 
-  const handleSetData = useCallback(
+  const handleSetState = useCallback(
     (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => {
-      setData((prev) => updater(prev));
+      setState((prev) => updater(prev));
     },
     [],
   );
@@ -211,13 +211,13 @@ const Products = (_props: ExtensionContextValue) => {
     const loadData = async () => {
       setLoading(true);
       await Promise.all([
-        executeAction("fetchProducts", { limit: 10 }, handleSetData, {}),
-        executeAction("fetchPrices", { limit: 50 }, handleSetData, {}),
+        executeAction("fetchProducts", { limit: 10 }, handleSetState, {}),
+        executeAction("fetchPrices", { limit: 50 }, handleSetState, {}),
       ]);
       setLoading(false);
     };
     loadData();
-  }, [handleSetData]);
+  }, [handleSetState]);
 
   useEffect(() => {
     if (!loading && Object.keys(data).length > 0) {
@@ -280,7 +280,7 @@ const Products = (_props: ExtensionContextValue) => {
             executeAction(
               "openDashboard",
               { page: "products" },
-              handleSetData,
+              handleSetState,
               data,
             )
           }
@@ -314,7 +314,7 @@ const Products = (_props: ExtensionContextValue) => {
           <StripeRenderer
             spec={spec}
             data={data}
-            setData={handleSetData}
+            setData={handleSetState}
             loading={generating}
           />
         )}

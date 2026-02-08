@@ -14,7 +14,7 @@ import {
   type ValidationFunction,
   type ValidationResult,
 } from "@json-render/core";
-import { useData } from "./data";
+import { useStateStore } from "./state";
 
 /**
  * Field validation state
@@ -66,7 +66,7 @@ export function ValidationProvider({
   customFunctions = {},
   children,
 }: ValidationProviderProps) {
-  const { data, authState } = useData();
+  const { state, authState } = useStateStore();
   const [fieldStates, setFieldStates] = useState<
     Record<string, FieldValidationState>
   >({});
@@ -83,10 +83,10 @@ export function ValidationProvider({
 
   const validate = useCallback(
     (path: string, config: ValidationConfig): ValidationResult => {
-      const value = data[path.split("/").filter(Boolean).join(".")];
+      const value = state[path.split("/").filter(Boolean).join(".")];
       const result = runValidation(config, {
         value,
-        dataModel: data,
+        stateModel: state,
         customFunctions,
         authState,
       });
@@ -102,7 +102,7 @@ export function ValidationProvider({
 
       return result;
     },
-    [data, customFunctions, authState],
+    [state, customFunctions, authState],
   );
 
   const touch = useCallback((path: string) => {

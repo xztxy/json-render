@@ -84,7 +84,7 @@ The React schema uses an element tree format:
 
 | Context | Purpose |
 |---------|---------|
-| `DataContext` | Provide data for binding (`{{path.to.value}}`) |
+| `StateContext` | Provide data for binding (`{{path.to.value}}`) |
 | `ActionsContext` | Provide action handlers |
 | `ValidationContext` | Form validation state |
 | `VisibilityContext` | Conditional rendering |
@@ -93,7 +93,7 @@ The React schema uses an element tree format:
 
 Any prop value can be a data-driven expression resolved by the renderer before components receive props:
 
-- **`{ "$path": "/data/key" }`** -- reads from data model
+- **`{ "$path": "/state/key" }`** -- reads from data model
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** -- conditional value
 
 ```json
@@ -110,10 +110,10 @@ Components receive already-resolved props -- no changes needed to component impl
 
 ## Built-in Actions
 
-The `setData` action is handled automatically by `ActionProvider` and updates the data model directly, which re-evaluates visibility conditions and dynamic prop expressions:
+The `setState` action is handled automatically by `ActionProvider` and updates the data model directly, which re-evaluates visibility conditions and dynamic prop expressions:
 
 ```json
-{ "action": "setData", "actionParams": { "path": "/activeTab", "value": "home" } }
+{ "action": "setState", "actionParams": { "path": "/activeTab", "value": "home" } }
 ```
 
 ## Key Exports
@@ -123,5 +123,5 @@ The `setData` action is handled automatically by `ActionProvider` and updates th
 | `defineRegistry` | Create a type-safe component registry from a catalog |
 | `Renderer` | Render a spec using a registry |
 | `schema` | Element tree schema |
-| `useData` | Access data context |
+| `useStateStore` | Access data context |
 | `useActions` | Access actions context |

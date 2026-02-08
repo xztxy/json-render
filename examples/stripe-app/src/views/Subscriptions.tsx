@@ -190,15 +190,15 @@ function createSubscriptionsSpec(data: Record<string, unknown>): Spec {
 // =============================================================================
 
 const Subscriptions = (_props: ExtensionContextValue) => {
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [data, setState] = useState<Record<string, unknown>>({});
   const [spec, setSpec] = useState<Spec | null>(null);
   const [loading, setLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
 
-  const handleSetData = useCallback(
+  const handleSetState = useCallback(
     (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => {
-      setData((prev) => updater(prev));
+      setState((prev) => updater(prev));
     },
     [],
   );
@@ -209,13 +209,13 @@ const Subscriptions = (_props: ExtensionContextValue) => {
       await executeAction(
         "fetchSubscriptions",
         { limit: 10 },
-        handleSetData,
+        handleSetState,
         {},
       );
       setLoading(false);
     };
     loadData();
-  }, [handleSetData]);
+  }, [handleSetState]);
 
   useEffect(() => {
     if (!loading && Object.keys(data).length > 0) {
@@ -282,7 +282,7 @@ const Subscriptions = (_props: ExtensionContextValue) => {
             executeAction(
               "openDashboard",
               { page: "subscriptions" },
-              handleSetData,
+              handleSetState,
               data,
             )
           }
@@ -316,7 +316,7 @@ const Subscriptions = (_props: ExtensionContextValue) => {
           <StripeRenderer
             spec={spec}
             data={data}
-            setData={handleSetData}
+            setData={handleSetState}
             loading={generating}
           />
         )}

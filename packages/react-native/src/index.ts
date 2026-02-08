@@ -1,12 +1,12 @@
 // Contexts
 export {
-  DataProvider,
-  useData,
-  useDataValue,
-  useDataBinding,
-  type DataContextValue,
-  type DataProviderProps,
-} from "./contexts/data";
+  StateProvider,
+  useStateStore,
+  useStateValue,
+  useStateBinding,
+  type StateContextValue,
+  type StateProviderProps,
+} from "./contexts/state";
 
 export {
   VisibilityProvider,
@@ -52,8 +52,8 @@ export type { Spec } from "@json-render/core";
 
 // Catalog-aware types for React Native
 export type {
-  SetData,
-  DataModel,
+  SetState,
+  StateModel,
   ActionTrigger,
   ComponentContext,
   ComponentFn,

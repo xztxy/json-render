@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import type { ComponentRenderProps } from "../renderer";
 import type { ComponentRegistry } from "../renderer";
-import { useDataBinding } from "../contexts/data";
+import { useStateBinding } from "../contexts/state";
 
 // =============================================================================
 // Layout Components
@@ -563,7 +563,7 @@ function TextInputComponent({ element }: ComponentRenderProps) {
   const p = element.props as {
     placeholder?: string;
     value?: string;
-    dataPath?: string;
+    statePath?: string;
     secureTextEntry?: boolean;
     keyboardType?:
       | "default"
@@ -577,9 +577,11 @@ function TextInputComponent({ element }: ComponentRenderProps) {
     flex?: number;
   };
 
-  const [boundValue, setBoundValue] = useDataBinding<string>(p.dataPath ?? "");
-  // Use bound value if dataPath is set, otherwise fall back to static value
-  const displayValue = p.dataPath ? (boundValue ?? "") : (p.value ?? "");
+  const [boundValue, setBoundValue] = useStateBinding<string>(
+    p.statePath ?? "",
+  );
+  // Use bound value if statePath is set, otherwise fall back to static value
+  const displayValue = p.statePath ? (boundValue ?? "") : (p.value ?? "");
 
   return (
     <View style={p.flex != null ? { flex: p.flex } : undefined}>
@@ -587,7 +589,7 @@ function TextInputComponent({ element }: ComponentRenderProps) {
       <RNTextInput
         placeholder={p.placeholder ?? undefined}
         value={displayValue}
-        onChangeText={p.dataPath ? setBoundValue : undefined}
+        onChangeText={p.statePath ? setBoundValue : undefined}
         secureTextEntry={p.secureTextEntry ?? false}
         keyboardType={p.keyboardType ?? "default"}
         multiline={p.multiline ?? false}
@@ -607,19 +609,21 @@ function TextInputComponent({ element }: ComponentRenderProps) {
 function SwitchComponent({ element }: ComponentRenderProps) {
   const p = element.props as {
     value?: boolean;
-    dataPath?: string;
+    statePath?: string;
     label?: string;
     disabled?: boolean;
   };
 
-  const [boundValue, setBoundValue] = useDataBinding<boolean>(p.dataPath ?? "");
-  const displayValue = p.dataPath ? (boundValue ?? false) : (p.value ?? false);
+  const [boundValue, setBoundValue] = useStateBinding<boolean>(
+    p.statePath ?? "",
+  );
+  const displayValue = p.statePath ? (boundValue ?? false) : (p.value ?? false);
 
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <RNSwitch
         value={displayValue}
-        onValueChange={p.dataPath ? setBoundValue : undefined}
+        onValueChange={p.statePath ? setBoundValue : undefined}
         disabled={p.disabled ?? false}
       />
       {p.label && (
@@ -632,19 +636,21 @@ function SwitchComponent({ element }: ComponentRenderProps) {
 function CheckboxComponent({ element }: ComponentRenderProps) {
   const p = element.props as {
     checked?: boolean;
-    dataPath?: string;
+    statePath?: string;
     label?: string;
     disabled?: boolean;
   };
 
-  const [boundValue, setBoundValue] = useDataBinding<boolean>(p.dataPath ?? "");
-  const checked = p.dataPath ? (boundValue ?? false) : (p.checked ?? false);
+  const [boundValue, setBoundValue] = useStateBinding<boolean>(
+    p.statePath ?? "",
+  );
+  const checked = p.statePath ? (boundValue ?? false) : (p.checked ?? false);
 
   return (
     <Pressable
       disabled={p.disabled ?? false}
       onPress={() => {
-        if (p.dataPath) {
+        if (p.statePath) {
           setBoundValue(!checked);
         }
       }}
@@ -686,7 +692,7 @@ function SliderComponent({ element }: ComponentRenderProps) {
     max?: number;
     step?: number;
     value?: number;
-    dataPath?: string;
+    statePath?: string;
     label?: string;
     color?: string;
   };
@@ -736,7 +742,7 @@ function SearchBarComponent({ element, onAction }: ComponentRenderProps) {
   const p = element.props as {
     placeholder?: string;
     value?: string;
-    dataPath?: string;
+    statePath?: string;
     action?: string;
   };
 
@@ -957,7 +963,7 @@ function ModalComponent({ element, children }: ComponentRenderProps) {
     visible: boolean;
     title?: string;
     animationType?: "slide" | "fade" | "none";
-    dataPath?: string;
+    statePath?: string;
   };
 
   return (

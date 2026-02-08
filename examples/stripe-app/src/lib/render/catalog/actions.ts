@@ -1,9 +1,9 @@
 import { stripe, formatAmount, formatDate } from "../../stripe";
 
 /**
- * Type for setData function
+ * Type for setState function
  */
-type SetData = (
+type SetState = (
   updater: (prev: Record<string, unknown>) => Record<string, unknown>,
 ) => void;
 
@@ -16,14 +16,14 @@ export const actionHandlers: Record<
   string,
   (
     params: Record<string, unknown> | undefined,
-    setData: SetData,
+    setState: SetState,
     data: Record<string, unknown>,
   ) => Promise<void>
 > = {
   // ===========================================================================
   // Customer Actions
   // ===========================================================================
-  fetchCustomers: async (params, setData) => {
+  fetchCustomers: async (params, setState) => {
     try {
       const customers = await stripe.customers.list({
         limit: (params?.limit as number) ?? 10,
@@ -42,7 +42,7 @@ export const actionHandlers: Record<
         currency: c.currency ?? "usd",
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         customers: {
           data,
@@ -64,7 +64,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createCustomer: async (params, setData) => {
+  createCustomer: async (params, setState) => {
     try {
       await stripe.customers.create({
         email: (params?.email as string) ?? "",
@@ -73,13 +73,13 @@ export const actionHandlers: Record<
         description: (params?.description as string) ?? undefined,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchCustomers({}, setData, {});
+      await actionHandlers.fetchCustomers({}, setState, {});
     } catch (error) {
       console.error("createCustomer error:", error);
     }
   },
 
-  updateCustomer: async (params, setData) => {
+  updateCustomer: async (params, setState) => {
     try {
       if (!params?.customerId) return;
       await stripe.customers.update(params.customerId as string, {
@@ -89,23 +89,23 @@ export const actionHandlers: Record<
         description: (params?.description as string) ?? undefined,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchCustomers({}, setData, {});
+      await actionHandlers.fetchCustomers({}, setState, {});
     } catch (error) {
       console.error("updateCustomer error:", error);
     }
   },
 
-  deleteCustomer: async (params, setData) => {
+  deleteCustomer: async (params, setState) => {
     try {
       if (!params?.customerId) return;
       await stripe.customers.del(params.customerId as string);
-      await actionHandlers.fetchCustomers({}, setData, {});
+      await actionHandlers.fetchCustomers({}, setState, {});
     } catch (error) {
       console.error("deleteCustomer error:", error);
     }
   },
 
-  searchCustomers: async (params, setData) => {
+  searchCustomers: async (params, setState) => {
     try {
       const customers = await stripe.customers.search({
         query: (params?.query as string) ?? "",
@@ -120,7 +120,7 @@ export const actionHandlers: Record<
         created: formatDate(c.created),
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         searchResults: { customers: data, total: customers.data.length },
       }));
@@ -132,7 +132,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Payment Intent Actions
   // ===========================================================================
-  fetchPayments: async (params, setData) => {
+  fetchPayments: async (params, setState) => {
     try {
       const payments = await stripe.paymentIntents.list({
         limit: (params?.limit as number) ?? 10,
@@ -158,7 +158,7 @@ export const actionHandlers: Record<
           ? ((succeeded.length / payments.data.length) * 100).toFixed(1)
           : "0";
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         payments: {
           data,
@@ -182,7 +182,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createPaymentIntent: async (params, setData) => {
+  createPaymentIntent: async (params, setState) => {
     try {
       await stripe.paymentIntents.create({
         amount: (params?.amount as number) ?? 0,
@@ -191,25 +191,25 @@ export const actionHandlers: Record<
         description: (params?.description as string) ?? undefined,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchPayments({}, setData, {});
+      await actionHandlers.fetchPayments({}, setState, {});
     } catch (error) {
       console.error("createPaymentIntent error:", error);
     }
   },
 
-  capturePayment: async (params, setData) => {
+  capturePayment: async (params, setState) => {
     try {
       if (!params?.paymentId) return;
       await stripe.paymentIntents.capture(params.paymentId as string, {
         amount_to_capture: (params?.amountToCapture as number) ?? undefined,
       });
-      await actionHandlers.fetchPayments({}, setData, {});
+      await actionHandlers.fetchPayments({}, setState, {});
     } catch (error) {
       console.error("capturePayment error:", error);
     }
   },
 
-  cancelPayment: async (params, setData) => {
+  cancelPayment: async (params, setState) => {
     try {
       if (!params?.paymentId) return;
       await stripe.paymentIntents.cancel(params.paymentId as string, {
@@ -220,7 +220,7 @@ export const actionHandlers: Record<
             | "requested_by_customer"
             | "abandoned") ?? undefined,
       });
-      await actionHandlers.fetchPayments({}, setData, {});
+      await actionHandlers.fetchPayments({}, setState, {});
     } catch (error) {
       console.error("cancelPayment error:", error);
     }
@@ -229,7 +229,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Refund Actions
   // ===========================================================================
-  fetchRefunds: async (params, setData) => {
+  fetchRefunds: async (params, setState) => {
     try {
       const refunds = await stripe.refunds.list({
         limit: (params?.limit as number) ?? 10,
@@ -247,7 +247,7 @@ export const actionHandlers: Record<
         formattedAmount: formatAmount(r.amount, r.currency),
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         refunds: { data, total: refunds.data.length },
       }));
@@ -256,7 +256,7 @@ export const actionHandlers: Record<
     }
   },
 
-  refundPayment: async (params, setData) => {
+  refundPayment: async (params, setState) => {
     try {
       if (!params?.paymentId) return;
       await stripe.refunds.create({
@@ -268,20 +268,20 @@ export const actionHandlers: Record<
             | "fraudulent"
             | "requested_by_customer") ?? undefined,
       });
-      await actionHandlers.fetchPayments({}, setData, {});
-      await actionHandlers.fetchRefunds({}, setData, {});
+      await actionHandlers.fetchPayments({}, setState, {});
+      await actionHandlers.fetchRefunds({}, setState, {});
     } catch (error) {
       console.error("refundPayment error:", error);
     }
   },
 
-  updateRefund: async (params, setData) => {
+  updateRefund: async (params, setState) => {
     try {
       if (!params?.refundId) return;
       await stripe.refunds.update(params.refundId as string, {
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchRefunds({}, setData, {});
+      await actionHandlers.fetchRefunds({}, setState, {});
     } catch (error) {
       console.error("updateRefund error:", error);
     }
@@ -290,7 +290,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Charge Actions
   // ===========================================================================
-  fetchCharges: async (params, setData) => {
+  fetchCharges: async (params, setState) => {
     try {
       const charges = await stripe.charges.list({
         limit: (params?.limit as number) ?? 10,
@@ -309,7 +309,7 @@ export const actionHandlers: Record<
         formattedAmount: formatAmount(c.amount, c.currency),
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         charges: { data, total: charges.data.length },
       }));
@@ -318,13 +318,13 @@ export const actionHandlers: Record<
     }
   },
 
-  captureCharge: async (params, setData) => {
+  captureCharge: async (params, setState) => {
     try {
       if (!params?.chargeId) return;
       await stripe.charges.capture(params.chargeId as string, {
         amount: (params?.amount as number) ?? undefined,
       });
-      await actionHandlers.fetchCharges({}, setData, {});
+      await actionHandlers.fetchCharges({}, setState, {});
     } catch (error) {
       console.error("captureCharge error:", error);
     }
@@ -333,7 +333,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Subscription Actions
   // ===========================================================================
-  fetchSubscriptions: async (params, setData) => {
+  fetchSubscriptions: async (params, setState) => {
     try {
       const subscriptions = await stripe.subscriptions.list({
         limit: (params?.limit as number) ?? 10,
@@ -370,7 +370,7 @@ export const actionHandlers: Record<
         (s) => s.status === "canceled",
       ).length;
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         subscriptions: {
           data,
@@ -396,7 +396,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createSubscription: async (params, setData) => {
+  createSubscription: async (params, setState) => {
     try {
       if (!params?.customerId || !params?.priceId) return;
       await stripe.subscriptions.create({
@@ -410,13 +410,13 @@ export const actionHandlers: Record<
         trial_period_days: (params?.trialPeriodDays as number) ?? undefined,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchSubscriptions({}, setData, {});
+      await actionHandlers.fetchSubscriptions({}, setState, {});
     } catch (error) {
       console.error("createSubscription error:", error);
     }
   },
 
-  updateSubscription: async (params, setData) => {
+  updateSubscription: async (params, setState) => {
     try {
       if (!params?.subscriptionId) return;
       const updateParams: Record<string, unknown> = {};
@@ -435,13 +435,13 @@ export const actionHandlers: Record<
         params.subscriptionId as string,
         updateParams,
       );
-      await actionHandlers.fetchSubscriptions({}, setData, {});
+      await actionHandlers.fetchSubscriptions({}, setState, {});
     } catch (error) {
       console.error("updateSubscription error:", error);
     }
   },
 
-  cancelSubscription: async (params, setData) => {
+  cancelSubscription: async (params, setState) => {
     try {
       if (!params?.subscriptionId) return;
       if (params.immediately) {
@@ -451,13 +451,13 @@ export const actionHandlers: Record<
           cancel_at_period_end: true,
         });
       }
-      await actionHandlers.fetchSubscriptions({}, setData, {});
+      await actionHandlers.fetchSubscriptions({}, setState, {});
     } catch (error) {
       console.error("cancelSubscription error:", error);
     }
   },
 
-  pauseSubscription: async (params, setData) => {
+  pauseSubscription: async (params, setState) => {
     try {
       if (!params?.subscriptionId) return;
       await stripe.subscriptions.update(params.subscriptionId as string, {
@@ -466,19 +466,19 @@ export const actionHandlers: Record<
           resumes_at: (params?.resumeAt as number) ?? undefined,
         },
       });
-      await actionHandlers.fetchSubscriptions({}, setData, {});
+      await actionHandlers.fetchSubscriptions({}, setState, {});
     } catch (error) {
       console.error("pauseSubscription error:", error);
     }
   },
 
-  resumeSubscription: async (params, setData) => {
+  resumeSubscription: async (params, setState) => {
     try {
       if (!params?.subscriptionId) return;
       await stripe.subscriptions.update(params.subscriptionId as string, {
         pause_collection: "",
       });
-      await actionHandlers.fetchSubscriptions({}, setData, {});
+      await actionHandlers.fetchSubscriptions({}, setState, {});
     } catch (error) {
       console.error("resumeSubscription error:", error);
     }
@@ -487,7 +487,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Invoice Actions
   // ===========================================================================
-  fetchInvoices: async (params, setData) => {
+  fetchInvoices: async (params, setState) => {
     try {
       const invoices = await stripe.invoices.list({
         limit: (params?.limit as number) ?? 10,
@@ -522,7 +522,7 @@ export const actionHandlers: Record<
         )
         .reduce((sum, i) => sum + i.amount_due, 0);
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         invoices: {
           data,
@@ -547,7 +547,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createInvoice: async (params, setData) => {
+  createInvoice: async (params, setState) => {
     try {
       if (!params?.customerId) return;
       await stripe.invoices.create({
@@ -556,13 +556,13 @@ export const actionHandlers: Record<
         days_until_due: (params?.daysUntilDue as number) ?? undefined,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchInvoices({}, setData, {});
+      await actionHandlers.fetchInvoices({}, setState, {});
     } catch (error) {
       console.error("createInvoice error:", error);
     }
   },
 
-  addInvoiceItem: async (params, setData) => {
+  addInvoiceItem: async (params, setState) => {
     try {
       if (!params?.invoiceId) return;
       await stripe.invoiceItems.create({
@@ -571,61 +571,61 @@ export const actionHandlers: Record<
         currency: (params?.currency as string) ?? "usd",
         description: (params?.description as string) ?? undefined,
       });
-      await actionHandlers.fetchInvoices({}, setData, {});
+      await actionHandlers.fetchInvoices({}, setState, {});
     } catch (error) {
       console.error("addInvoiceItem error:", error);
     }
   },
 
-  finalizeInvoice: async (params, setData) => {
+  finalizeInvoice: async (params, setState) => {
     try {
       if (!params?.invoiceId) return;
       await stripe.invoices.finalizeInvoice(params.invoiceId as string, {
         auto_advance: (params?.autoAdvance as boolean) ?? undefined,
       });
-      await actionHandlers.fetchInvoices({}, setData, {});
+      await actionHandlers.fetchInvoices({}, setState, {});
     } catch (error) {
       console.error("finalizeInvoice error:", error);
     }
   },
 
-  sendInvoice: async (params, setData) => {
+  sendInvoice: async (params, setState) => {
     try {
       if (!params?.invoiceId) return;
       await stripe.invoices.sendInvoice(params.invoiceId as string);
-      await actionHandlers.fetchInvoices({}, setData, {});
+      await actionHandlers.fetchInvoices({}, setState, {});
     } catch (error) {
       console.error("sendInvoice error:", error);
     }
   },
 
-  payInvoice: async (params, setData) => {
+  payInvoice: async (params, setState) => {
     try {
       if (!params?.invoiceId) return;
       await stripe.invoices.pay(params.invoiceId as string, {
         payment_method: (params?.paymentMethodId as string) ?? undefined,
       });
-      await actionHandlers.fetchInvoices({}, setData, {});
+      await actionHandlers.fetchInvoices({}, setState, {});
     } catch (error) {
       console.error("payInvoice error:", error);
     }
   },
 
-  voidInvoice: async (params, setData) => {
+  voidInvoice: async (params, setState) => {
     try {
       if (!params?.invoiceId) return;
       await stripe.invoices.voidInvoice(params.invoiceId as string);
-      await actionHandlers.fetchInvoices({}, setData, {});
+      await actionHandlers.fetchInvoices({}, setState, {});
     } catch (error) {
       console.error("voidInvoice error:", error);
     }
   },
 
-  markInvoiceUncollectible: async (params, setData) => {
+  markInvoiceUncollectible: async (params, setState) => {
     try {
       if (!params?.invoiceId) return;
       await stripe.invoices.markUncollectible(params.invoiceId as string);
-      await actionHandlers.fetchInvoices({}, setData, {});
+      await actionHandlers.fetchInvoices({}, setState, {});
     } catch (error) {
       console.error("markInvoiceUncollectible error:", error);
     }
@@ -649,7 +649,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Product & Price Actions
   // ===========================================================================
-  fetchProducts: async (params, setData) => {
+  fetchProducts: async (params, setState) => {
     try {
       const products = await stripe.products.list({
         limit: (params?.limit as number) ?? 10,
@@ -665,7 +665,7 @@ export const actionHandlers: Record<
         images: p.images,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         products: {
           data,
@@ -687,7 +687,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createProduct: async (params, setData) => {
+  createProduct: async (params, setState) => {
     try {
       if (!params?.name) return;
       await stripe.products.create({
@@ -696,13 +696,13 @@ export const actionHandlers: Record<
         active: (params?.active as boolean) ?? true,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchProducts({}, setData, {});
+      await actionHandlers.fetchProducts({}, setState, {});
     } catch (error) {
       console.error("createProduct error:", error);
     }
   },
 
-  updateProduct: async (params, setData) => {
+  updateProduct: async (params, setState) => {
     try {
       if (!params?.productId) return;
       await stripe.products.update(params.productId as string, {
@@ -711,25 +711,25 @@ export const actionHandlers: Record<
         active: (params?.active as boolean) ?? undefined,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchProducts({}, setData, {});
+      await actionHandlers.fetchProducts({}, setState, {});
     } catch (error) {
       console.error("updateProduct error:", error);
     }
   },
 
-  archiveProduct: async (params, setData) => {
+  archiveProduct: async (params, setState) => {
     try {
       if (!params?.productId) return;
       await stripe.products.update(params.productId as string, {
         active: false,
       });
-      await actionHandlers.fetchProducts({}, setData, {});
+      await actionHandlers.fetchProducts({}, setState, {});
     } catch (error) {
       console.error("archiveProduct error:", error);
     }
   },
 
-  fetchPrices: async (params, setData) => {
+  fetchPrices: async (params, setState) => {
     try {
       const prices = await stripe.prices.list({
         limit: (params?.limit as number) ?? 10,
@@ -750,7 +750,7 @@ export const actionHandlers: Record<
         productId: typeof p.product === "string" ? p.product : p.product?.id,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         prices: { data, total: prices.data.length, hasMore: prices.has_more },
       }));
@@ -759,7 +759,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createPrice: async (params, setData) => {
+  createPrice: async (params, setState) => {
     try {
       if (!params?.productId || !params?.unitAmount) return;
       const recurring = params?.recurring as
@@ -777,13 +777,13 @@ export const actionHandlers: Record<
           : undefined,
         nickname: (params?.nickname as string) ?? undefined,
       });
-      await actionHandlers.fetchPrices({}, setData, {});
+      await actionHandlers.fetchPrices({}, setState, {});
     } catch (error) {
       console.error("createPrice error:", error);
     }
   },
 
-  updatePrice: async (params, setData) => {
+  updatePrice: async (params, setState) => {
     try {
       if (!params?.priceId) return;
       await stripe.prices.update(params.priceId as string, {
@@ -791,7 +791,7 @@ export const actionHandlers: Record<
         nickname: (params?.nickname as string) ?? undefined,
         metadata: (params?.metadata as Record<string, string>) ?? undefined,
       });
-      await actionHandlers.fetchPrices({}, setData, {});
+      await actionHandlers.fetchPrices({}, setState, {});
     } catch (error) {
       console.error("updatePrice error:", error);
     }
@@ -800,14 +800,14 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Balance & Payout Actions
   // ===========================================================================
-  fetchBalance: async (_, setData) => {
+  fetchBalance: async (_, setState) => {
     try {
       const balance = await stripe.balance.retrieve();
 
       const available = balance.available.reduce((sum, b) => sum + b.amount, 0);
       const pending = balance.pending.reduce((sum, b) => sum + b.amount, 0);
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         balance: {
           available,
@@ -822,7 +822,7 @@ export const actionHandlers: Record<
     }
   },
 
-  fetchPayouts: async (params, setData) => {
+  fetchPayouts: async (params, setState) => {
     try {
       const payouts = await stripe.payouts.list({
         limit: (params?.limit as number) ?? 10,
@@ -839,7 +839,7 @@ export const actionHandlers: Record<
         formattedAmount: formatAmount(p.amount, p.currency),
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         payouts: {
           data,
@@ -852,7 +852,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createPayout: async (params, setData) => {
+  createPayout: async (params, setState) => {
     try {
       if (!params?.amount) return;
       await stripe.payouts.create({
@@ -860,18 +860,18 @@ export const actionHandlers: Record<
         currency: (params?.currency as string) ?? "usd",
         description: (params?.description as string) ?? undefined,
       });
-      await actionHandlers.fetchPayouts({}, setData, {});
-      await actionHandlers.fetchBalance({}, setData, {});
+      await actionHandlers.fetchPayouts({}, setState, {});
+      await actionHandlers.fetchBalance({}, setState, {});
     } catch (error) {
       console.error("createPayout error:", error);
     }
   },
 
-  cancelPayout: async (params, setData) => {
+  cancelPayout: async (params, setState) => {
     try {
       if (!params?.payoutId) return;
       await stripe.payouts.cancel(params.payoutId as string);
-      await actionHandlers.fetchPayouts({}, setData, {});
+      await actionHandlers.fetchPayouts({}, setState, {});
     } catch (error) {
       console.error("cancelPayout error:", error);
     }
@@ -880,7 +880,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Dispute Actions
   // ===========================================================================
-  fetchDisputes: async (params, setData) => {
+  fetchDisputes: async (params, setState) => {
     try {
       const disputes = await stripe.disputes.list({
         limit: (params?.limit as number) ?? 10,
@@ -900,7 +900,7 @@ export const actionHandlers: Record<
           : null,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         disputes: {
           data,
@@ -922,7 +922,7 @@ export const actionHandlers: Record<
     }
   },
 
-  updateDispute: async (params, setData) => {
+  updateDispute: async (params, setState) => {
     try {
       if (!params?.disputeId) return;
       const evidence = params?.evidence as Record<string, string> | undefined;
@@ -938,17 +938,17 @@ export const actionHandlers: Record<
           : undefined,
         submit: (params?.submit as boolean) ?? undefined,
       });
-      await actionHandlers.fetchDisputes({}, setData, {});
+      await actionHandlers.fetchDisputes({}, setState, {});
     } catch (error) {
       console.error("updateDispute error:", error);
     }
   },
 
-  closeDispute: async (params, setData) => {
+  closeDispute: async (params, setState) => {
     try {
       if (!params?.disputeId) return;
       await stripe.disputes.close(params.disputeId as string);
-      await actionHandlers.fetchDisputes({}, setData, {});
+      await actionHandlers.fetchDisputes({}, setState, {});
     } catch (error) {
       console.error("closeDispute error:", error);
     }
@@ -957,7 +957,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Payment Method Actions
   // ===========================================================================
-  fetchPaymentMethods: async (params, setData) => {
+  fetchPaymentMethods: async (params, setState) => {
     try {
       if (!params?.customerId) return;
       const paymentMethods = await stripe.paymentMethods.list({
@@ -979,7 +979,7 @@ export const actionHandlers: Record<
         created: formatDate(pm.created),
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         paymentMethods: { data, total: paymentMethods.data.length },
       }));
@@ -988,7 +988,7 @@ export const actionHandlers: Record<
     }
   },
 
-  attachPaymentMethod: async (params, setData) => {
+  attachPaymentMethod: async (params, setState) => {
     try {
       if (!params?.paymentMethodId || !params?.customerId) return;
       await stripe.paymentMethods.attach(params.paymentMethodId as string, {
@@ -996,7 +996,7 @@ export const actionHandlers: Record<
       });
       await actionHandlers.fetchPaymentMethods(
         { customerId: params.customerId },
-        setData,
+        setState,
         {},
       );
     } catch (error) {
@@ -1004,7 +1004,7 @@ export const actionHandlers: Record<
     }
   },
 
-  detachPaymentMethod: async (params, _setData) => {
+  detachPaymentMethod: async (params, _setState) => {
     try {
       if (!params?.paymentMethodId) return;
       await stripe.paymentMethods.detach(params.paymentMethodId as string);
@@ -1013,7 +1013,7 @@ export const actionHandlers: Record<
     }
   },
 
-  setDefaultPaymentMethod: async (params, setData) => {
+  setDefaultPaymentMethod: async (params, setState) => {
     try {
       if (!params?.customerId || !params?.paymentMethodId) return;
       await stripe.customers.update(params.customerId as string, {
@@ -1021,7 +1021,7 @@ export const actionHandlers: Record<
           default_payment_method: params.paymentMethodId as string,
         },
       });
-      await actionHandlers.fetchCustomers({}, setData, {});
+      await actionHandlers.fetchCustomers({}, setState, {});
     } catch (error) {
       console.error("setDefaultPaymentMethod error:", error);
     }
@@ -1030,7 +1030,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Coupon & Promotion Actions
   // ===========================================================================
-  fetchCoupons: async (params, setData) => {
+  fetchCoupons: async (params, setState) => {
     try {
       const coupons = await stripe.coupons.list({
         limit: (params?.limit as number) ?? 10,
@@ -1049,7 +1049,7 @@ export const actionHandlers: Record<
         valid: c.valid,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         coupons: { data, total: coupons.data.length },
       }));
@@ -1058,7 +1058,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createCoupon: async (params, setData) => {
+  createCoupon: async (params, setState) => {
     try {
       await stripe.coupons.create({
         percent_off: (params?.percentOff as number) ?? undefined,
@@ -1070,23 +1070,23 @@ export const actionHandlers: Record<
         name: (params?.name as string) ?? undefined,
         max_redemptions: (params?.maxRedemptions as number) ?? undefined,
       });
-      await actionHandlers.fetchCoupons({}, setData, {});
+      await actionHandlers.fetchCoupons({}, setState, {});
     } catch (error) {
       console.error("createCoupon error:", error);
     }
   },
 
-  deleteCoupon: async (params, setData) => {
+  deleteCoupon: async (params, setState) => {
     try {
       if (!params?.couponId) return;
       await stripe.coupons.del(params.couponId as string);
-      await actionHandlers.fetchCoupons({}, setData, {});
+      await actionHandlers.fetchCoupons({}, setState, {});
     } catch (error) {
       console.error("deleteCoupon error:", error);
     }
   },
 
-  fetchPromotionCodes: async (params, setData) => {
+  fetchPromotionCodes: async (params, setState) => {
     try {
       const promoCodes = await stripe.promotionCodes.list({
         limit: (params?.limit as number) ?? 10,
@@ -1104,7 +1104,7 @@ export const actionHandlers: Record<
         expiresAt: p.expires_at ? formatDate(p.expires_at) : null,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         promotionCodes: { data, total: promoCodes.data.length },
       }));
@@ -1113,7 +1113,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createPromotionCode: async (params, setData) => {
+  createPromotionCode: async (params, setState) => {
     try {
       if (!params?.couponId) return;
       await stripe.promotionCodes.create({
@@ -1122,7 +1122,7 @@ export const actionHandlers: Record<
         max_redemptions: (params?.maxRedemptions as number) ?? undefined,
         expires_at: (params?.expiresAt as number) ?? undefined,
       });
-      await actionHandlers.fetchPromotionCodes({}, setData, {});
+      await actionHandlers.fetchPromotionCodes({}, setState, {});
     } catch (error) {
       console.error("createPromotionCode error:", error);
     }
@@ -1131,7 +1131,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Checkout Session Actions
   // ===========================================================================
-  createCheckoutSession: async (params, setData) => {
+  createCheckoutSession: async (params, setState) => {
     try {
       const lineItems =
         (params?.lineItems as Array<{ priceId: string; quantity: number }>) ??
@@ -1148,7 +1148,7 @@ export const actionHandlers: Record<
         customer: (params?.customerId as string) ?? undefined,
       });
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         checkoutSession: { id: session.id, url: session.url },
       }));
@@ -1161,7 +1161,7 @@ export const actionHandlers: Record<
     }
   },
 
-  fetchCheckoutSessions: async (params, setData) => {
+  fetchCheckoutSessions: async (params, setState) => {
     try {
       const sessions = await stripe.checkout.sessions.list({
         limit: (params?.limit as number) ?? 10,
@@ -1180,7 +1180,7 @@ export const actionHandlers: Record<
         created: formatDate(s.created),
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         checkoutSessions: { data, total: sessions.data.length },
       }));
@@ -1189,11 +1189,11 @@ export const actionHandlers: Record<
     }
   },
 
-  expireCheckoutSession: async (params, setData) => {
+  expireCheckoutSession: async (params, setState) => {
     try {
       if (!params?.sessionId) return;
       await stripe.checkout.sessions.expire(params.sessionId as string);
-      await actionHandlers.fetchCheckoutSessions({}, setData, {});
+      await actionHandlers.fetchCheckoutSessions({}, setState, {});
     } catch (error) {
       console.error("expireCheckoutSession error:", error);
     }
@@ -1202,7 +1202,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Billing Portal Actions
   // ===========================================================================
-  createBillingPortalSession: async (params, setData) => {
+  createBillingPortalSession: async (params, setState) => {
     try {
       if (!params?.customerId) return;
       const session = await stripe.billingPortal.sessions.create({
@@ -1210,7 +1210,7 @@ export const actionHandlers: Record<
         return_url: (params?.returnUrl as string) ?? window.location.href,
       });
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         billingPortalSession: { url: session.url },
       }));
@@ -1226,7 +1226,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Event Actions
   // ===========================================================================
-  fetchEvents: async (params, setData) => {
+  fetchEvents: async (params, setState) => {
     try {
       const events = await stripe.events.list({
         limit: (params?.limit as number) ?? 10,
@@ -1244,7 +1244,7 @@ export const actionHandlers: Record<
         livemode: e.livemode,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         events: { data, total: events.data.length, hasMore: events.has_more },
       }));
@@ -1256,7 +1256,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Setup Intent Actions
   // ===========================================================================
-  createSetupIntent: async (params, setData) => {
+  createSetupIntent: async (params, setState) => {
     try {
       const setupIntent = await stripe.setupIntents.create({
         customer: (params?.customerId as string) ?? undefined,
@@ -1266,7 +1266,7 @@ export const actionHandlers: Record<
         usage: (params?.usage as "on_session" | "off_session") ?? "off_session",
       });
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         setupIntent: {
           id: setupIntent.id,
@@ -1278,7 +1278,7 @@ export const actionHandlers: Record<
     }
   },
 
-  fetchSetupIntents: async (params, setData) => {
+  fetchSetupIntents: async (params, setState) => {
     try {
       const setupIntents = await stripe.setupIntents.list({
         limit: (params?.limit as number) ?? 10,
@@ -1293,7 +1293,7 @@ export const actionHandlers: Record<
         paymentMethodTypes: si.payment_method_types,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         setupIntents: { data, total: setupIntents.data.length },
       }));
@@ -1302,11 +1302,11 @@ export const actionHandlers: Record<
     }
   },
 
-  cancelSetupIntent: async (params, setData) => {
+  cancelSetupIntent: async (params, setState) => {
     try {
       if (!params?.setupIntentId) return;
       await stripe.setupIntents.cancel(params.setupIntentId as string);
-      await actionHandlers.fetchSetupIntents({}, setData, {});
+      await actionHandlers.fetchSetupIntents({}, setState, {});
     } catch (error) {
       console.error("cancelSetupIntent error:", error);
     }
@@ -1315,7 +1315,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Tax Rate Actions
   // ===========================================================================
-  fetchTaxRates: async (params, setData) => {
+  fetchTaxRates: async (params, setState) => {
     try {
       const taxRates = await stripe.taxRates.list({
         limit: (params?.limit as number) ?? 10,
@@ -1333,7 +1333,7 @@ export const actionHandlers: Record<
         active: tr.active,
       }));
 
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         taxRates: { data, total: taxRates.data.length },
       }));
@@ -1342,7 +1342,7 @@ export const actionHandlers: Record<
     }
   },
 
-  createTaxRate: async (params, setData) => {
+  createTaxRate: async (params, setState) => {
     try {
       if (!params?.displayName || params?.percentage === undefined) return;
       await stripe.taxRates.create({
@@ -1352,7 +1352,7 @@ export const actionHandlers: Record<
         jurisdiction: (params?.jurisdiction as string) ?? undefined,
         description: (params?.description as string) ?? undefined,
       });
-      await actionHandlers.fetchTaxRates({}, setData, {});
+      await actionHandlers.fetchTaxRates({}, setState, {});
     } catch (error) {
       console.error("createTaxRate error:", error);
     }
@@ -1361,28 +1361,28 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Data & Refresh Actions
   // ===========================================================================
-  refreshData: async (_, setData) => {
+  refreshData: async (_, setState) => {
     await Promise.all([
-      actionHandlers.fetchCustomers({}, setData, {}),
-      actionHandlers.fetchPayments({}, setData, {}),
-      actionHandlers.fetchSubscriptions({}, setData, {}),
-      actionHandlers.fetchInvoices({}, setData, {}),
+      actionHandlers.fetchCustomers({}, setState, {}),
+      actionHandlers.fetchPayments({}, setState, {}),
+      actionHandlers.fetchSubscriptions({}, setState, {}),
+      actionHandlers.fetchInvoices({}, setState, {}),
     ]);
   },
 
-  refreshCustomers: async (_, setData) => {
-    await actionHandlers.fetchCustomers({}, setData, {});
+  refreshCustomers: async (_, setState) => {
+    await actionHandlers.fetchCustomers({}, setState, {});
   },
 
-  refreshPayments: async (_, setData) => {
+  refreshPayments: async (_, setState) => {
     await actionHandlers.fetchPayments({}, setData, {});
   },
 
-  refreshSubscriptions: async (_, setData) => {
+  refreshSubscriptions: async (_, setState) => {
     await actionHandlers.fetchSubscriptions({}, setData, {});
   },
 
-  refreshInvoices: async (_, setData) => {
+  refreshInvoices: async (_, setState) => {
     await actionHandlers.fetchInvoices({}, setData, {});
   },
 
@@ -1468,10 +1468,10 @@ export const actionHandlers: Record<
     // Implementation depends on form handling logic
   },
 
-  resetForm: async (params, setData) => {
+  resetForm: async (params, setState) => {
     const formId = params?.formId as string;
     if (formId) {
-      setData((prev) => ({ ...prev, [formId]: {} }));
+      setState((prev) => ({ ...prev, [formId]: {} }));
     }
   },
 
@@ -1480,9 +1480,9 @@ export const actionHandlers: Record<
     return;
   },
 
-  setFormValue: async (params, setData) => {
+  setFormValue: async (params, setState) => {
     if (params?.path) {
-      setData((prev) => ({ ...prev, [params.path as string]: params?.value }));
+      setState((prev) => ({ ...prev, [params.path as string]: params?.value }));
     }
   },
 
@@ -1500,8 +1500,8 @@ export const actionHandlers: Record<
     }
   },
 
-  setLoading: async (params, setData) => {
-    setData((prev) => ({
+  setLoading: async (params, setState) => {
+    setState((prev) => ({
       ...prev,
       loading: params?.loading,
       loadingMessage: params?.message,
@@ -1511,9 +1511,9 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Filter & Sort Actions
   // ===========================================================================
-  setFilter: async (params, setData) => {
+  setFilter: async (params, setState) => {
     if (params?.key) {
-      setData((prev) => ({
+      setState((prev) => ({
         ...prev,
         filters: {
           ...(prev.filters as Record<string, unknown>),
@@ -1523,23 +1523,23 @@ export const actionHandlers: Record<
     }
   },
 
-  clearFilters: async (_, setData) => {
-    setData((prev) => ({ ...prev, filters: {} }));
+  clearFilters: async (_, setState) => {
+    setState((prev) => ({ ...prev, filters: {} }));
   },
 
-  setSort: async (params, setData) => {
-    setData((prev) => ({
+  setSort: async (params, setState) => {
+    setState((prev) => ({
       ...prev,
       sort: { field: params?.field, direction: params?.direction },
     }));
   },
 
-  setPageSize: async (params, setData) => {
-    setData((prev) => ({ ...prev, pageSize: params?.size }));
+  setPageSize: async (params, setState) => {
+    setState((prev) => ({ ...prev, pageSize: params?.size }));
   },
 
-  goToPage: async (params, setData) => {
-    setData((prev) => ({ ...prev, currentPage: params?.page }));
+  goToPage: async (params, setState) => {
+    setState((prev) => ({ ...prev, currentPage: params?.page }));
   },
 };
 
@@ -1547,7 +1547,7 @@ export const actionHandlers: Record<
 // Execute Action
 // =============================================================================
 
-type SetDataFn = (
+type SetStateFn = (
   updater: (prev: Record<string, unknown>) => Record<string, unknown>,
 ) => void;
 
@@ -1557,12 +1557,12 @@ type SetDataFn = (
 export async function executeAction(
   actionName: string,
   params: Record<string, unknown> | undefined,
-  setData: SetDataFn,
+  setState: SetStateFn,
   data: Record<string, unknown> = {},
 ): Promise<void> {
   const handler = actionHandlers[actionName];
   if (handler) {
-    await handler(params, setData, data);
+    await handler(params, setState, data);
   } else {
     console.log("Unknown action:", actionName, params);
   }

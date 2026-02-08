@@ -21,11 +21,11 @@ export default function VisibilityPage() {
 
 function App() {
   return (
-    <DataProvider initialData={data}>
+    <StateProvider initialState={data}>
       <VisibilityProvider>
         {/* Components can now use visibility conditions */}
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }`}</Code>
 

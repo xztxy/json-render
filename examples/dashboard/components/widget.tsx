@@ -57,7 +57,7 @@ export function Widget({
   dragHandleProps,
 }: WidgetProps): React.ReactElement {
   const [prompt, setPrompt] = useState(initialPrompt || "");
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [state, setState] = useState<Record<string, unknown>>({});
   const [widgetId, setWidgetId] = useState<string | undefined>(initialId);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -65,14 +65,14 @@ export function Widget({
   const [copied, setCopied] = useState(false);
   const [editPrompt, setEditPrompt] = useState("");
   const promptRef = useRef(prompt);
-  const dataRef = useRef(data);
+  const stateRef = useRef(state);
   const editInputRef = useRef<HTMLInputElement>(null);
   const promptInputRef = useRef<HTMLInputElement>(null);
 
-  // Keep dataRef in sync
+  // Keep stateRef in sync
   useEffect(() => {
-    dataRef.current = data;
-  }, [data]);
+    stateRef.current = state;
+  }, [state]);
 
   // Auto-focus prompt input for new widgets
   useEffect(() => {
@@ -130,17 +130,17 @@ export function Widget({
       const p = text || prompt;
       if (!p.trim()) return;
       if (text) setPrompt(text);
-      await send(p, { data });
+      await send(p, { state });
       onGenerated?.();
     },
-    [prompt, send, data, onGenerated],
+    [prompt, send, state, onGenerated],
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClear = useCallback(() => {
     clear();
     setPrompt("");
-    setData({});
+    setState({});
     onCleared?.();
   }, [clear, onCleared]);
 
@@ -165,10 +165,10 @@ export function Widget({
       setIsEditing(false);
       // Pass the current spec so AI can modify it instead of replacing
       const existingSpec = spec || initialSpec;
-      await send(editPrompt, { data, previousSpec: existingSpec });
+      await send(editPrompt, { state, previousSpec: existingSpec });
       onGenerated?.();
     }
-  }, [editPrompt, send, data, spec, initialSpec, onGenerated]);
+  }, [editPrompt, send, state, spec, initialSpec, onGenerated]);
 
   const handleEditKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -196,8 +196,8 @@ export function Widget({
     onDeleted?.();
   }, [widgetId, onDeleted]);
 
-  const handleDataChange = useCallback((path: string, value: unknown) => {
-    setData((prev) => {
+  const handleStateChange = useCallback((path: string, value: unknown) => {
+    setState((prev) => {
       const next = { ...prev };
       // Convert path like "customerForm/name" to nested object
       const parts = path.split("/");
@@ -231,7 +231,7 @@ export function Widget({
     };
     if (specWithMeta.initialActions) {
       specWithMeta.initialActions.forEach(({ action, params }) => {
-        executeAction(action, params, setData);
+        executeAction(action, params, setState);
       });
       return;
     }
@@ -243,10 +243,10 @@ export function Widget({
 
     for (const el of Object.values(elements)) {
       const element = el as { type: string; props?: Record<string, unknown> };
-      if (dataComponents.includes(element.type) && element.props?.dataPath) {
-        const dataPath = element.props.dataPath as string;
+      if (dataComponents.includes(element.type) && element.props?.statePath) {
+        const statePath = element.props.statePath as string;
         // Extract resource name (e.g., "customers" from "customers.data")
-        const resource = dataPath.split(".")[0];
+        const resource = statePath.split(".")[0];
         if (!resource || actionsRun.has(resource)) continue;
         // Find a button that loads this data
         for (const btnEl of Object.values(elements)) {
@@ -266,7 +266,7 @@ export function Widget({
               executeAction(
                 action,
                 btn.props.actionParams as Record<string, unknown>,
-                setData,
+                setState,
               );
               actionsRun.add(resource);
               break;
@@ -387,9 +387,9 @@ export function Widget({
           ) : (
             <DashboardRenderer
               spec={currentSpec}
-              data={data}
-              setData={setData}
-              onDataChange={handleDataChange}
+              state={state}
+              setState={setState}
+              onStateChange={handleStateChange}
               loading={isStreaming}
             />
           )

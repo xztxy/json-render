@@ -16,7 +16,7 @@ import {
   type ActionConfirm,
   type ResolvedAction,
 } from "@json-render/core";
-import { useData } from "./data";
+import { useStateStore } from "./state";
 
 /**
  * Pending confirmation state
@@ -73,7 +73,7 @@ export function ActionProvider({
   navigate,
   children,
 }: ActionProviderProps) {
-  const { data, set } = useData();
+  const { state, set } = useStateStore();
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
@@ -89,7 +89,7 @@ export function ActionProvider({
 
   const execute = useCallback(
     async (action: Action) => {
-      const resolved = resolveAction(action, data);
+      const resolved = resolveAction(action, state);
       const handler = handlers[resolved.name];
 
       if (!handler) {
@@ -118,7 +118,7 @@ export function ActionProvider({
             await executeAction({
               action: resolved,
               handler,
-              setData: set,
+              setState: set,
               navigate,
               executeAction: async (name) => {
                 const subAction: Action = { name };
@@ -141,7 +141,7 @@ export function ActionProvider({
         await executeAction({
           action: resolved,
           handler,
-          setData: set,
+          setState: set,
           navigate,
           executeAction: async (name) => {
             const subAction: Action = { name };
@@ -156,7 +156,7 @@ export function ActionProvider({
         });
       }
     },
-    [data, handlers, set, navigate],
+    [state, handlers, set, navigate],
   );
 
   const confirm = useCallback(() => {

@@ -5,7 +5,7 @@ import {
   Renderer,
   type ComponentRegistry,
   type Spec,
-  DataProvider,
+  StateProvider,
   VisibilityProvider,
   ActionProvider,
 } from "@json-render/react";
@@ -61,7 +61,7 @@ export function PlaygroundRenderer({
   if (!spec) return null;
 
   return (
-    <DataProvider initialData={data}>
+    <StateProvider initialState={data}>
       <VisibilityProvider>
         <ActionProvider>
           <Renderer
@@ -72,6 +72,6 @@ export function PlaygroundRenderer({
           />
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }

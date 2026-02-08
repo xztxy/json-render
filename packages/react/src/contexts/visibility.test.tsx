@@ -2,14 +2,14 @@ import { describe, it, expect } from "vitest";
 import React from "react";
 import { renderHook } from "@testing-library/react";
 import { VisibilityProvider, useVisibility, useIsVisible } from "./visibility";
-import { DataProvider } from "./data";
+import { StateProvider } from "./state";
 
 const createWrapper =
   (data: Record<string, unknown> = {}, authState?: { isSignedIn: boolean }) =>
   ({ children }: { children: React.ReactNode }) => (
-    <DataProvider initialData={data} authState={authState}>
+    <StateProvider initialState={data} authState={authState}>
       <VisibilityProvider>{children}</VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 
 describe("useVisibility", () => {

@@ -60,7 +60,7 @@ const formatCurrency = (amount: number, currency = "usd"): string => {
 // Extended props type for components with data access
 type ExtendedRenderProps<P = Record<string, unknown>> =
   ComponentRenderProps<P> & {
-    data?: Record<string, unknown>;
+    state?: Record<string, unknown>;
     getValue?: (path: string) => unknown;
   };
 
@@ -739,10 +739,10 @@ export const Link: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
 // =========================================================================
 export const BarChart: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  data,
+  state,
 }) => {
   const {
-    dataPath,
+    statePath,
     xKey,
     yKey,
     colorKey,
@@ -754,8 +754,8 @@ export const BarChart: FunctionComponent<ExtendedRenderProps> = ({
 
   // Get data from path
   const chartData =
-    dataPath && data
-      ? (getNestedValue(data, String(dataPath)) as Record<string, unknown>[])
+    statePath && state
+      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
       : [];
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
@@ -780,10 +780,10 @@ export const BarChart: FunctionComponent<ExtendedRenderProps> = ({
 
 export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  data,
+  state,
 }) => {
   const {
-    dataPath,
+    statePath,
     xKey,
     yKey,
     colorKey,
@@ -794,8 +794,8 @@ export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
   } = element.props as Record<string, unknown>;
 
   const chartData =
-    dataPath && data
-      ? (getNestedValue(data, String(dataPath)) as Record<string, unknown>[])
+    statePath && state
+      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
       : [];
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
@@ -820,16 +820,16 @@ export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
 
 export const Sparkline: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  data,
+  state,
 }) => {
-  const { dataPath, xKey, yKey, showTooltip } = element.props as Record<
+  const { statePath, xKey, yKey, showTooltip } = element.props as Record<
     string,
     unknown
   >;
 
   const chartData =
-    dataPath && data
-      ? (getNestedValue(data, String(dataPath)) as Record<string, unknown>[])
+    statePath && state
+      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
       : [];
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
@@ -851,18 +851,18 @@ export const Sparkline: FunctionComponent<ExtendedRenderProps> = ({
 // =========================================================================
 export const DataTable: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  data,
+  state,
 }) => {
   const {
     title,
-    dataPath,
+    statePath,
     columns = [],
     emptyMessage,
   } = element.props as Record<string, unknown>;
 
   const tableData =
-    dataPath && data
-      ? (getNestedValue(data, String(dataPath)) as Record<string, unknown>[])
+    statePath && state
+      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
       : [];
   const cols = columns as Array<{ key: string; label: string }>;
 

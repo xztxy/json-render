@@ -129,16 +129,16 @@ function createCustomersListSpec(data: Record<string, unknown>): Spec {
 // =============================================================================
 
 const Customers = (_props: ExtensionContextValue) => {
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [data, setState] = useState<Record<string, unknown>>({});
   const [spec, setSpec] = useState<Spec | null>(null);
   const [loading, setLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
 
-  // Wrap setData for action handlers
-  const handleSetData = useCallback(
+  // Wrap setState for action handlers
+  const handleSetState = useCallback(
     (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => {
-      setData((prev) => {
+      setState((prev) => {
         const next = updater(prev);
         return next;
       });
@@ -150,11 +150,11 @@ const Customers = (_props: ExtensionContextValue) => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await executeAction("fetchCustomers", { limit: 10 }, handleSetData, {});
+      await executeAction("fetchCustomers", { limit: 10 }, handleSetState, {});
       setLoading(false);
     };
     loadData();
-  }, [handleSetData]);
+  }, [handleSetState]);
 
   // Update spec when data changes
   useEffect(() => {
@@ -225,7 +225,7 @@ const Customers = (_props: ExtensionContextValue) => {
             executeAction(
               "openDashboard",
               { page: "customers" },
-              handleSetData,
+              handleSetState,
               data,
             )
           }
@@ -261,7 +261,7 @@ const Customers = (_props: ExtensionContextValue) => {
           <StripeRenderer
             spec={spec}
             data={data}
-            setData={handleSetData}
+            setData={handleSetState}
             loading={generating}
           />
         )}

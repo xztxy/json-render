@@ -10,7 +10,7 @@ export type {
   VisibilityCondition,
   LogicExpression,
   AuthState,
-  DataModel,
+  StateModel,
   ComponentSchema,
   ValidationMode,
   PatchOp,

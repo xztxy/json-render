@@ -15,7 +15,7 @@ import {
   type ActionConfirm,
   type ResolvedAction,
 } from "@json-render/core";
-import { useData } from "./data";
+import { useStateStore } from "./state";
 
 /**
  * Pending confirmation state
@@ -72,7 +72,7 @@ export function ActionProvider({
   navigate,
   children,
 }: ActionProviderProps) {
-  const { data, get, set } = useData();
+  const { state, get, set } = useStateStore();
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
@@ -88,10 +88,10 @@ export function ActionProvider({
 
   const execute = useCallback(
     async (action: Action) => {
-      const resolved = resolveAction(action, data);
+      const resolved = resolveAction(action, state);
 
-      // Built-in: setData updates the DataProvider state directly
-      if (resolved.name === "setData" && resolved.params) {
+      // Built-in: setState updates the StateProvider state directly
+      if (resolved.name === "setState" && resolved.params) {
         const path = resolved.params.path as string;
         const value = resolved.params.value;
         if (path) {
@@ -100,7 +100,7 @@ export function ActionProvider({
         return;
       }
 
-      // Built-in: push navigates to a new screen by updating data state.
+      // Built-in: push navigates to a new screen by updating state.
       // Pushes the current screen onto /navStack and sets /currentScreen.
       if (resolved.name === "push" && resolved.params) {
         const screen = resolved.params.screen as string;
@@ -163,7 +163,7 @@ export function ActionProvider({
             await executeAction({
               action: resolved,
               handler,
-              setData: set,
+              setState: set,
               navigate,
               executeAction: async (name) => {
                 const subAction: Action = { name };
@@ -186,7 +186,7 @@ export function ActionProvider({
         await executeAction({
           action: resolved,
           handler,
-          setData: set,
+          setState: set,
           navigate,
           executeAction: async (name) => {
             const subAction: Action = { name };
@@ -201,7 +201,7 @@ export function ActionProvider({
         });
       }
     },
-    [data, handlers, get, set, navigate],
+    [state, handlers, get, set, navigate],
   );
 
   const confirm = useCallback(() => {

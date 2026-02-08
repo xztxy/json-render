@@ -96,15 +96,15 @@ function setSpecValue(newSpec: Spec, path: string, value: unknown): void {
     return;
   }
 
-  if (path === "/data") {
-    newSpec.data = value as Record<string, unknown>;
+  if (path === "/state") {
+    newSpec.state = value as Record<string, unknown>;
     return;
   }
 
-  if (path.startsWith("/data/")) {
-    if (!newSpec.data) newSpec.data = {};
-    const dataPath = path.slice("/data".length);
-    setByPath(newSpec.data as Record<string, unknown>, dataPath, value);
+  if (path.startsWith("/state/")) {
+    if (!newSpec.state) newSpec.state = {};
+    const statePath = path.slice("/state".length);
+    setByPath(newSpec.state as Record<string, unknown>, statePath, value);
     return;
   }
 
@@ -135,14 +135,14 @@ function setSpecValue(newSpec: Spec, path: string, value: unknown): void {
  * Remove a value at a spec path.
  */
 function removeSpecValue(newSpec: Spec, path: string): void {
-  if (path === "/data") {
-    newSpec.data = undefined;
+  if (path === "/state") {
+    newSpec.state = undefined;
     return;
   }
 
-  if (path.startsWith("/data/") && newSpec.data) {
-    const dataPath = path.slice("/data".length);
-    removeByPath(newSpec.data as Record<string, unknown>, dataPath);
+  if (path.startsWith("/state/") && newSpec.state) {
+    const statePath = path.slice("/state".length);
+    removeByPath(newSpec.state as Record<string, unknown>, statePath);
     return;
   }
 

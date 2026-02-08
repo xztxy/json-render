@@ -470,12 +470,12 @@ const Home = (_props: ExtensionContextValue) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentSpec, setCurrentSpec] = useState<Spec | null>(null);
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [data, setState] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
 
-  const handleSetData = useCallback(
+  const handleSetState = useCallback(
     (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => {
-      setData((prev) => updater(prev));
+      setState((prev) => updater(prev));
     },
     [],
   );
@@ -485,7 +485,7 @@ const Home = (_props: ExtensionContextValue) => {
     async function loadData() {
       setIsLoading(true);
       try {
-        await executeAction("refreshData", {}, handleSetData, {});
+        await executeAction("refreshData", {}, handleSetState, {});
       } catch (err) {
         console.error("Failed to load data:", err);
         setError("Failed to load Stripe data");
@@ -494,7 +494,7 @@ const Home = (_props: ExtensionContextValue) => {
       }
     }
     loadData();
-  }, [handleSetData]);
+  }, [handleSetState]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -638,7 +638,7 @@ const Home = (_props: ExtensionContextValue) => {
                       <StripeRenderer
                         spec={currentSpec}
                         data={data}
-                        setData={handleSetData}
+                        setData={handleSetState}
                         loading={isGenerating}
                       />
                     </Box>

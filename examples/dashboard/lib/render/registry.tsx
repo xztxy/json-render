@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { findFormValue, getByPath } from "@json-render/core";
-import { useData, defineRegistry } from "@json-render/react";
+import { useStateStore, defineRegistry } from "@json-render/react";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -148,13 +148,13 @@ export const { registry, handlers, executeAction } = defineRegistry(
       ),
 
       Input: ({ props }) => {
-        const { data, set } = useData();
+        const { state, set } = useStateStore();
         return (
           <div className="flex flex-col gap-2">
             {props.label ? <Label>{props.label}</Label> : null}
             <Input
               type={props.type ?? "text"}
-              value={(getByPath(data, props.valuePath) as string) ?? ""}
+              value={(getByPath(state, props.valuePath) as string) ?? ""}
               placeholder={props.placeholder ?? ""}
               onChange={(e) => set(props.valuePath, e.target.value)}
             />
@@ -202,9 +202,9 @@ export const { registry, handlers, executeAction } = defineRegistry(
       ),
 
       Checkbox: ({ props }) => {
-        const { data, set } = useData();
+        const { state, set } = useStateStore();
         const checked =
-          (getByPath(data, props.valuePath) as boolean) ??
+          (getByPath(state, props.valuePath) as boolean) ??
           props.defaultChecked ??
           false;
         return (
@@ -324,9 +324,9 @@ export const { registry, handlers, executeAction } = defineRegistry(
       ),
 
       RadioGroup: ({ props }) => {
-        const { data, set } = useData();
+        const { state, set } = useStateStore();
         const value =
-          (getByPath(data, props.valuePath) as string) ??
+          (getByPath(state, props.valuePath) as string) ??
           props.defaultValue ??
           "";
         return (
@@ -345,8 +345,8 @@ export const { registry, handlers, executeAction } = defineRegistry(
       },
 
       Select: ({ props }) => {
-        const { data, set } = useData();
-        const value = (getByPath(data, props.valuePath) as string) ?? "";
+        const { state, set } = useStateStore();
+        const value = (getByPath(state, props.valuePath) as string) ?? "";
         return (
           <Select value={value} onValueChange={(v) => set(props.valuePath, v)}>
             <SelectTrigger>
@@ -380,9 +380,9 @@ export const { registry, handlers, executeAction } = defineRegistry(
       },
 
       Switch: ({ props }) => {
-        const { data, set } = useData();
+        const { state, set } = useStateStore();
         const checked =
-          (getByPath(data, props.valuePath) as boolean) ??
+          (getByPath(state, props.valuePath) as boolean) ??
           props.defaultChecked ??
           false;
         return (
@@ -417,12 +417,12 @@ export const { registry, handlers, executeAction } = defineRegistry(
       ),
 
       Textarea: ({ props }) => {
-        const { data, set } = useData();
+        const { state, set } = useStateStore();
         return (
           <div className="flex flex-col gap-2">
             {props.label ? <Label>{props.label}</Label> : null}
             <Textarea
-              value={(getByPath(data, props.valuePath) as string) ?? ""}
+              value={(getByPath(state, props.valuePath) as string) ?? ""}
               placeholder={props.placeholder ?? ""}
               rows={props.rows ?? 3}
               onChange={(e) => set(props.valuePath, e.target.value)}
@@ -450,9 +450,9 @@ export const { registry, handlers, executeAction } = defineRegistry(
       ),
 
       Table: ({ props, onAction }) => {
-        const { data } = useData();
-        const path = props.dataPath.replace(/\./g, "/");
-        const rawData = getByPath(data, path);
+        const { state } = useStateStore();
+        const path = props.statePath.replace(/\./g, "/");
+        const rawData = getByPath(state, path);
 
         const items: Array<Record<string, unknown>> = Array.isArray(rawData)
           ? rawData
@@ -523,9 +523,9 @@ export const { registry, handlers, executeAction } = defineRegistry(
       },
 
       BarChart: ({ props }) => {
-        const { data } = useData();
-        const path = props.dataPath.replace(/\./g, "/");
-        const rawData = getByPath(data, path);
+        const { state } = useStateStore();
+        const path = props.statePath.replace(/\./g, "/");
+        const rawData = getByPath(state, path);
 
         const rawItems: Array<Record<string, unknown>> = Array.isArray(rawData)
           ? rawData
@@ -590,9 +590,9 @@ export const { registry, handlers, executeAction } = defineRegistry(
       },
 
       LineChart: ({ props }) => {
-        const { data } = useData();
-        const path = props.dataPath.replace(/\./g, "/");
-        const rawData = getByPath(data, path);
+        const { state } = useStateStore();
+        const path = props.statePath.replace(/\./g, "/");
+        const rawData = getByPath(state, path);
 
         const rawItems: Array<Record<string, unknown>> = Array.isArray(rawData)
           ? rawData
@@ -660,7 +660,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
     },
 
     actions: {
-      viewCustomers: async (params, setData) => {
+      viewCustomers: async (params, setState) => {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.set("limit", String(params.limit));
         if (params?.sort) queryParams.set("sort", String(params.sort));
@@ -668,25 +668,25 @@ export const { registry, handlers, executeAction } = defineRegistry(
         const url = `/api/v1/customers${queryParams.toString() ? `?${queryParams}` : ""}`;
         const res = await fetch(url);
         const customers = await res.json();
-        setData((prev) => ({ ...prev, customers }));
+        setState((prev) => ({ ...prev, customers }));
       },
 
-      refreshCustomers: async (params, setData) => {
+      refreshCustomers: async (params, setState) => {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.set("limit", String(params.limit));
         if (params?.sort) queryParams.set("sort", String(params.sort));
         const url = `/api/v1/customers${queryParams.toString() ? `?${queryParams}` : ""}`;
         const res = await fetch(url);
         const customers = await res.json();
-        setData((prev) => ({ ...prev, customers }));
+        setState((prev) => ({ ...prev, customers }));
       },
 
-      createCustomer: async (params, setData, data) => {
-        const name = findFormValue("name", params, data) as string;
+      createCustomer: async (params, setState, state) => {
+        const name = findFormValue("name", params, state) as string;
         const email =
-          (findFormValue("email", params, data) as string) ||
+          (findFormValue("email", params, state) as string) ||
           `${name?.toLowerCase().replace(/\s+/g, ".")}@example.com`;
-        const phone = findFormValue("phone", params, data) as
+        const phone = findFormValue("phone", params, state) as
           | string
           | undefined;
 
@@ -706,7 +706,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
             toast.success(`Customer "${customer.name}" created`);
             const listRes = await fetch("/api/v1/customers");
             const customers = await listRes.json();
-            setData((prev) => ({ ...prev, customers }));
+            setState((prev) => ({ ...prev, customers }));
           } else {
             toast.error(customer.error || "Failed to create customer");
           }
@@ -716,10 +716,10 @@ export const { registry, handlers, executeAction } = defineRegistry(
         }
       },
 
-      deleteCustomer: async (params, setData, data) => {
+      deleteCustomer: async (params, setState, state) => {
         const customerId =
-          findFormValue("customerId", params, data) ||
-          findFormValue("id", params, data);
+          findFormValue("customerId", params, state) ||
+          findFormValue("id", params, state);
         if (!customerId) {
           toast.error("Customer ID required");
           return;
@@ -732,7 +732,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
             toast.success("Customer deleted");
             const listRes = await fetch("/api/v1/customers");
             const customers = await listRes.json();
-            setData((prev) => ({ ...prev, customers }));
+            setState((prev) => ({ ...prev, customers }));
           } else {
             const err = await res.json();
             toast.error(err.error || "Failed to delete customer");
@@ -743,22 +743,22 @@ export const { registry, handlers, executeAction } = defineRegistry(
         }
       },
 
-      viewInvoices: async (params, setData) => {
+      viewInvoices: async (params, setState) => {
         const queryParams = new URLSearchParams();
         if (params?.status) queryParams.set("status", String(params.status));
         const url = `/api/v1/invoices${queryParams.toString() ? `?${queryParams}` : ""}`;
         const res = await fetch(url);
         const invoices = await res.json();
-        setData((prev) => ({ ...prev, invoices }));
+        setState((prev) => ({ ...prev, invoices }));
       },
 
-      refreshInvoices: async (_params, setData) => {
+      refreshInvoices: async (_params, setState) => {
         const res = await fetch("/api/v1/invoices");
         const invoices = await res.json();
-        setData((prev) => ({ ...prev, invoices }));
+        setState((prev) => ({ ...prev, invoices }));
       },
 
-      createInvoice: async (params, setData) => {
+      createInvoice: async (params, setState) => {
         if (!params?.customerId || !params?.dueDate) {
           toast.error("Customer ID and due date required");
           return;
@@ -774,7 +774,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
             toast.success("Invoice created");
             const listRes = await fetch("/api/v1/invoices");
             const invoices = await listRes.json();
-            setData((prev) => ({ ...prev, invoices }));
+            setState((prev) => ({ ...prev, invoices }));
           } else {
             toast.error(invoice.error || "Failed to create invoice");
           }
@@ -817,22 +817,22 @@ export const { registry, handlers, executeAction } = defineRegistry(
         }
       },
 
-      viewExpenses: async (params, setData) => {
+      viewExpenses: async (params, setState) => {
         const queryParams = new URLSearchParams();
         if (params?.status) queryParams.set("status", String(params.status));
         const url = `/api/v1/expenses${queryParams.toString() ? `?${queryParams}` : ""}`;
         const res = await fetch(url);
         const expenses = await res.json();
-        setData((prev) => ({ ...prev, expenses }));
+        setState((prev) => ({ ...prev, expenses }));
       },
 
-      refreshExpenses: async (_params, setData) => {
+      refreshExpenses: async (_params, setState) => {
         const res = await fetch("/api/v1/expenses");
         const expenses = await res.json();
-        setData((prev) => ({ ...prev, expenses }));
+        setState((prev) => ({ ...prev, expenses }));
       },
 
-      createExpense: async (params, setData) => {
+      createExpense: async (params, setState) => {
         if (
           !params?.vendor ||
           !params?.category ||
@@ -852,7 +852,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
             toast.success("Expense created");
             const listRes = await fetch("/api/v1/expenses");
             const expenses = await listRes.json();
-            setData((prev) => ({ ...prev, expenses }));
+            setState((prev) => ({ ...prev, expenses }));
           } else {
             toast.error(expense.error || "Failed to create expense");
           }

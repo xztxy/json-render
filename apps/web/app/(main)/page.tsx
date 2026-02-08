@@ -186,7 +186,7 @@ export const catalog = createCatalog({
     "chart": {
       "type": "Chart",
       "props": {
-        "dataPath": "analytics/salesByRegion"
+        "statePath": "analytics/salesByRegion"
       }
     }
   }
@@ -222,7 +222,7 @@ export default function Page() {
         valuePath="analytics/revenue"
         format="currency"
       />
-      <Chart data={data} dataPath="analytics/salesByRegion" />
+      <Chart data={data} statePath="analytics/salesByRegion" />
     </Card>
   );
 }`}</Code>

@@ -66,7 +66,7 @@ Standard components (Container, Row, Column, Button, TextInput, etc.) are includ
 ```tsx
 import {
   Renderer,
-  DataProvider,
+  StateProvider,
   VisibilityProvider,
   ActionProvider,
   ValidationProvider,
@@ -75,7 +75,7 @@ import { registry } from "./registry";
 
 function App({ spec }) {
   return (
-    <DataProvider initialData={{}}>
+    <StateProvider initialState={{}}>
       <VisibilityProvider>
         <ActionProvider handlers={{}}>
           <ValidationProvider>
@@ -83,7 +83,7 @@ function App({ spec }) {
           </ValidationProvider>
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }
 ```
@@ -149,7 +149,7 @@ The `Pressable` component wraps children and triggers an action on press. It's e
 {
   "type": "Pressable",
   "props": {
-    "action": "setData",
+    "action": "setState",
     "actionParams": { "path": "/activeTab", "value": "home" }
   },
   "children": ["home-tab-icon", "home-tab-label"]
@@ -158,11 +158,11 @@ The `Pressable` component wraps children and triggers an action on press. It's e
 
 ## Built-in Actions
 
-The `setData` action is handled automatically by `ActionProvider`. It updates the data model, which triggers re-evaluation of visibility conditions and dynamic prop expressions:
+The `setState` action is handled automatically by `ActionProvider`. It updates the data model, which triggers re-evaluation of visibility conditions and dynamic prop expressions:
 
 ```json
 {
-  "action": "setData",
+  "action": "setState",
   "actionParams": { "path": "/activeTab", "value": "home" }
 }
 ```
@@ -193,9 +193,9 @@ See [@json-render/core](../core/README.md) for full expression syntax.
 
 ## Tab Navigation Pattern
 
-Combine `Pressable`, `setData`, visibility conditions, and dynamic props for functional tabs:
+Combine `Pressable`, `setState`, visibility conditions, and dynamic props for functional tabs:
 
-1. Each tab button is a `Pressable` with `action: "setData"` and `actionParams: { path: "/activeTab", value: "tabName" }`
+1. Each tab button is a `Pressable` with `action: "setState"` and `actionParams: { path: "/activeTab", value: "tabName" }`
 2. Tab icons/labels use `$cond` dynamic props for active/inactive styling
 3. Tab content sections use `visible` conditions: `{ "eq": [{ "path": "/activeTab" }, "tabName"] }`
 
@@ -205,7 +205,7 @@ Combine `Pressable`, `setData`, visibility conditions, and dynamic props for fun
 const systemPrompt = catalog.prompt({
   customRules: [
     "Use SafeArea as the root element",
-    "Use Pressable + setData for interactive tabs",
+    "Use Pressable + setState for interactive tabs",
   ],
 });
 ```
@@ -214,8 +214,8 @@ const systemPrompt = catalog.prompt({
 
 | Hook | Purpose |
 |------|---------|
-| `useData()` | Access data context (`data`, `get`, `set`) |
-| `useDataValue(path)` | Get single value from data |
+| `useStateStore()` | Access data context (`data`, `get`, `set`) |
+| `useStateValue(path)` | Get single value from data |
 | `useVisibility()` | Access visibility evaluation |
 | `useIsVisible(condition)` | Check if condition is met |
 | `useActions()` | Access action context |

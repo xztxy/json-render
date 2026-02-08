@@ -207,7 +207,7 @@ function createPaymentDetailSpec(
 // =============================================================================
 
 const PaymentDetails = ({ environment }: ExtensionContextValue) => {
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [data, setState] = useState<Record<string, unknown>>({});
   const [spec, setSpec] = useState<Spec | null>(null);
   const [loading, setLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
@@ -215,9 +215,9 @@ const PaymentDetails = ({ environment }: ExtensionContextValue) => {
 
   const paymentId = environment?.objectContext?.id ?? "";
 
-  const handleSetData = useCallback(
+  const handleSetState = useCallback(
     (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => {
-      setData((prev) => updater(prev));
+      setState((prev) => updater(prev));
     },
     [],
   );
@@ -232,12 +232,12 @@ const PaymentDetails = ({ environment }: ExtensionContextValue) => {
       setLoading(true);
 
       await Promise.all([
-        executeAction("fetchPayments", { limit: 100 }, handleSetData, {}),
+        executeAction("fetchPayments", { limit: 100 }, handleSetState, {}),
         executeAction(
           "fetchRefunds",
           { paymentIntentId: paymentId, limit: 10 },
           (updater) => {
-            setData((prev) => {
+            setState((prev) => {
               const next = updater(prev);
               return { ...prev, paymentRefunds: next.refunds };
             });
@@ -249,7 +249,7 @@ const PaymentDetails = ({ environment }: ExtensionContextValue) => {
       setLoading(false);
     };
     loadData();
-  }, [paymentId, handleSetData]);
+  }, [paymentId, handleSetState]);
 
   useEffect(() => {
     if (!loading && paymentId) {
@@ -330,7 +330,7 @@ const PaymentDetails = ({ environment }: ExtensionContextValue) => {
         <Button
           type="primary"
           onPress={() =>
-            executeAction("viewPayment", { paymentId }, handleSetData, data)
+            executeAction("viewPayment", { paymentId }, handleSetState, data)
           }
         >
           View in Dashboard
@@ -362,7 +362,7 @@ const PaymentDetails = ({ environment }: ExtensionContextValue) => {
           <StripeRenderer
             spec={spec}
             data={data}
-            setData={handleSetData}
+            setData={handleSetState}
             loading={generating}
           />
         )}

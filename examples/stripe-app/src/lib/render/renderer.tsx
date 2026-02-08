@@ -3,7 +3,7 @@ import {
   Renderer,
   type ComponentRegistry,
   type Spec,
-  DataProvider,
+  StateProvider,
   VisibilityProvider,
   ActionProvider,
 } from "@json-render/react";
@@ -15,7 +15,7 @@ import { executeAction } from "./catalog/actions";
 // Types
 // =============================================================================
 
-type SetData = (
+type SetState = (
   updater: (prev: Record<string, unknown>) => Record<string, unknown>,
 ) => void;
 
@@ -25,9 +25,9 @@ export interface StripeRendererProps {
   /** Data context for components */
   data?: Record<string, unknown>;
   /** Function to update data */
-  setData?: SetData;
+  setData?: SetState;
   /** Callback when data changes */
-  onDataChange?: (path: string, value: unknown) => void;
+  onStateChange?: (path: string, value: unknown) => void;
   /** Whether the spec is currently loading/streaming */
   loading?: boolean;
 }
@@ -42,7 +42,7 @@ export interface StripeRendererProps {
  */
 function buildRegistry(
   dataRef: React.RefObject<Record<string, unknown>>,
-  setDataRef: React.RefObject<SetData | undefined>,
+  setDataRef: React.RefObject<SetState | undefined>,
   loading?: boolean,
 ): ComponentRegistry {
   const registry: ComponentRegistry = {};
@@ -60,14 +60,14 @@ function buildRegistry(
         element: renderProps.element,
         children: renderProps.children,
         onAction: (action) => {
-          const setData = setDataRef.current;
+          const setState = setDataRef.current;
           const data = dataRef.current;
-          if (setData) {
-            executeAction(action.name, action.params, setData, data);
+          if (setState) {
+            executeAction(action.name, action.params, setState, data);
           }
         },
         loading,
-        data: dataRef.current,
+        state: dataRef.current,
         getValue: (path: string) => {
           const data = dataRef.current;
           const parts = path.replace(/^\//, "").split("/");
@@ -108,7 +108,7 @@ export function StripeRenderer({
   spec,
   data = {},
   setData,
-  onDataChange,
+  onStateChange,
   loading,
 }: StripeRendererProps): ReactNode {
   // Use refs to keep registry stable while still accessing latest data/setData
@@ -126,7 +126,7 @@ export function StripeRenderer({
   if (!spec) return null;
 
   return (
-    <DataProvider initialData={data} onDataChange={onDataChange}>
+    <StateProvider initialState={data} onStateChange={onStateChange}>
       <VisibilityProvider>
         <ActionProvider>
           <Renderer
@@ -137,6 +137,6 @@ export function StripeRenderer({
           />
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }

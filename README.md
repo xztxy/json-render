@@ -214,22 +214,22 @@ Any prop value can be data-driven using expressions:
 
 Two expression forms:
 
-- **`{ "$path": "/data/key" }`** -- reads a value from the data model
+- **`{ "$path": "/state/key" }`** -- reads a value from the data model
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** -- evaluates a condition (same syntax as visibility conditions) and picks a branch
 
 ### Actions
 
-Components can trigger actions, including the built-in `setData` action:
+Components can trigger actions, including the built-in `setState` action:
 
 ```json
 {
   "type": "Pressable",
-  "props": { "action": "setData", "actionParams": { "path": "/activeTab", "value": "home" } },
+  "props": { "action": "setState", "actionParams": { "path": "/activeTab", "value": "home" } },
   "children": ["home-icon"]
 }
 ```
 
-The `setData` action updates the data model directly, which re-evaluates visibility conditions and dynamic prop expressions.
+The `setState` action updates the data model directly, which re-evaluates visibility conditions and dynamic prop expressions.
 
 ---
 

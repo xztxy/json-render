@@ -40,7 +40,7 @@ const components = collectUsedComponents(spec);
 
       <h3 className="text-lg font-semibold mt-8 mb-4">collectDataPaths</h3>
       <p className="text-sm text-muted-foreground mb-4">
-        Get all data paths referenced in props (valuePath, dataPath, bindPath,
+        Get all state paths referenced in props (valuePath, statePath, bindPath,
         etc.).
       </p>
       <Code lang="typescript">{`function collectDataPaths(spec: Spec): Set<string>

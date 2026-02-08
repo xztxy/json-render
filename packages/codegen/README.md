@@ -29,7 +29,7 @@ const components = collectUsedComponents(tree);
 // Set { 'Card', 'Metric', 'Button' }
 
 // Get all data paths referenced
-const dataPaths = collectDataPaths(tree);
+const statePaths = collectStatePaths(tree);
 // Set { 'analytics/revenue', 'user/name' }
 
 // Get all action names

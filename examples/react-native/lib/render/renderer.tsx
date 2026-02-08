@@ -1,7 +1,7 @@
 import React, { type ReactNode, useMemo } from "react";
 import {
   Renderer,
-  DataProvider,
+  StateProvider,
   VisibilityProvider,
   ActionProvider,
   ValidationProvider,
@@ -21,18 +21,18 @@ interface AppRendererProps {
 export function AppRenderer({ spec, loading }: AppRendererProps): ReactNode {
   if (!spec) return null;
 
-  // Seed the DataProvider with any initial data from the spec.
-  // Memoize so we only pick up the data from the first render of this spec
-  // (otherwise re-renders during streaming would keep resetting the data).
-  const initialData = useMemo(
-    () => spec?.data ?? {},
+  // Seed the StateProvider with any initial state from the spec.
+  // Memoize so we only pick up the state from the first render of this spec
+  // (otherwise re-renders during streaming would keep resetting the state).
+  const initialState = useMemo(
+    () => spec?.state ?? {},
     // Re-seed when the spec root changes (new generation)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [spec?.root],
   );
 
   return (
-    <DataProvider initialData={initialData}>
+    <StateProvider initialState={initialState}>
       <VisibilityProvider>
         <ActionProvider handlers={{}}>
           <ValidationProvider>
@@ -40,6 +40,6 @@ export function AppRenderer({ spec, loading }: AppRendererProps): ReactNode {
           </ValidationProvider>
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }

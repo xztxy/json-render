@@ -10,15 +10,15 @@ import {
  * Custom rules for the AI to follow when generating UIs
  */
 export const customRules = [
-  // Initial data
-  "INITIAL DATA: When the UI uses interactive components with dataPath bindings (TextInput, Checkbox, Switch, Slider), you MUST output a /data patch BEFORE the element patches to seed the data model with initial values.",
-  'Example: {"op":"add","path":"/data","value":{"todos":[{"title":"Buy milk","completed":false}],"newTodoText":""}}',
-  "The data model is the source of truth for all dataPath-bound components. Without initial data, bound components will have no starting values.",
+  // Initial state
+  "INITIAL STATE: When the UI uses interactive components with statePath bindings (TextInput, Checkbox, Switch, Slider), you MUST output a /state patch BEFORE the element patches to seed the state model with initial values.",
+  'Example: {"op":"add","path":"/state","value":{"todos":[{"title":"Buy milk","completed":false}],"newTodoText":""}}',
+  "The state model is the source of truth for all statePath-bound components. Without initial state, bound components will have no starting values.",
 
-  // Data-driven content: no duplicating values as static props
-  'DATA CONSISTENCY: When content comes from the data model, ALWAYS use { "$path": "/some/path" } dynamic props instead of hardcoding the same value in both data and props. The data model is the single source of truth.',
-  'Example: If data has todos[0].title = "Buy groceries", the Paragraph displaying it MUST use "text": { "$path": "/todos/0/title" } -- NOT "text": "Buy groceries". Hardcoding text that also exists in data causes the UI to go out of sync when data changes.',
-  "This applies to ALL display props that correspond to data fields: text, label, color, checked, value, etc. If a value lives in /data, read it with $path.",
+  // State-driven content: no duplicating values as static props
+  'STATE CONSISTENCY: When content comes from the state model, ALWAYS use { "$path": "/some/path" } dynamic props instead of hardcoding the same value in both state and props. The state model is the single source of truth.',
+  'Example: If state has todos[0].title = "Buy groceries", the Paragraph displaying it MUST use "text": { "$path": "/todos/0/title" } -- NOT "text": "Buy groceries". Hardcoding text that also exists in state causes the UI to go out of sync when state changes.',
+  "This applies to ALL display props that correspond to state fields: text, label, color, checked, value, etc. If a value lives in /state, read it with $path.",
 
   // Image URLs using Picsum (free, no API key)
   'Image props: { "src": "https://picsum.photos/WIDTH/HEIGHT?random=N" } - use Picsum for any placeholder or example images',
@@ -44,8 +44,8 @@ export const customRules = [
   'CRITICAL: The "visible" field goes on the ELEMENT object, NOT inside "props". Correct: {"type":"Column","props":{"gap":8},"visible":{"eq":[{"path":"/activeTab"},"home"]},"children":[...]}. WRONG: {"type":"Column","props":{"gap":8,"visible":{...}},"children":[...]}.',
 
   // Tab UI pattern
-  "TAB NAVIGATION PATTERN: When building a UI with multiple tabs, use Pressable + setData action + visible conditions to make tabs functional.",
-  'Each tab button should be a Pressable wrapping its icon/label children, with action "setData" and actionParams { "path": "/activeTab", "value": "tabName" }.',
+  "TAB NAVIGATION PATTERN: When building a UI with multiple tabs, use Pressable + setState action + visible conditions to make tabs functional.",
+  'Each tab button should be a Pressable wrapping its icon/label children, with action "setState" and actionParams { "path": "/activeTab", "value": "tabName" }.',
   'Each tab\'s content section should have a visible condition: { "eq": [{ "path": "/activeTab" }, "tabName"] }.',
   "The first tab's content should NOT have a visible condition (so it shows by default when no tab is selected yet). All other tabs MUST have a visible condition.",
 
@@ -59,9 +59,9 @@ export const customRules = [
   // Push/Pop screen navigation (all screens in one spec)
   'SCREEN NAVIGATION: Use Pressable with action "push" and actionParams { "screen": "screenName" } to navigate to a new screen. Use action "pop" to go back. All screens must be defined in the SAME spec.',
   'Each screen section uses a visible condition on /currentScreen: { "eq": [{ "path": "/currentScreen" }, "screenName"] }. The default/home screen should also be visible when /currentScreen is not set: { "or": [{ "eq": [{ "path": "/currentScreen" }, "home"] }, { "not": { "path": "/currentScreen" } }] }.',
-  "push automatically maintains a /navStack in the data model so pop always returns to the previous screen.",
+  "push automatically maintains a /navStack in the state model so pop always returns to the previous screen.",
   'Include a back button on pushed screens using action "pop". Example: Pressable(action:"pop") > Row > Icon(name:"chevron-back") + Label(text:"Back").',
-  "Use push/pop for drill-down flows: tapping a list item to see details, opening a profile, etc. Use setData + visible conditions for tab switching within a screen.",
+  "Use push/pop for drill-down flows: tapping a list item to see details, opening a profile, etc. Use setState + visible conditions for tab switching within a screen.",
   'Example: A list screen with items that push to detail: Pressable(action:"push", actionParams:{screen:"repo-detail"}) wrapping each list item card. The detail screen section has visible:{"eq":[{"path":"/currentScreen"},"repo-detail"]} and contains a back button with action:"pop".',
 ];
 

@@ -1,4 +1,4 @@
-import type { VisibilityCondition, DataModel, AuthState } from "./types";
+import type { VisibilityCondition, StateModel, AuthState } from "./types";
 import { getByPath } from "./types";
 import { evaluateVisibility, type VisibilityContext } from "./visibility";
 
@@ -7,9 +7,9 @@ import { evaluateVisibility, type VisibilityContext } from "./visibility";
 // =============================================================================
 
 /**
- * A prop expression that resolves to a value based on data state.
+ * A prop expression that resolves to a value based on state.
  *
- * - `{ $path: string }` reads a value from the data model
+ * - `{ $path: string }` reads a value from the state model
  * - `{ $cond, $then, $else }` conditionally picks a value
  * - Any other value is a literal (passthrough)
  */
@@ -65,9 +65,9 @@ export function resolvePropValue(
     return value;
   }
 
-  // $path: read from data model
+  // $path: read from state model
   if (isPathExpression(value)) {
-    return getByPath(ctx.dataModel, value.$path);
+    return getByPath(ctx.stateModel, value.$path);
   }
 
   // $cond/$then/$else: evaluate condition and pick branch

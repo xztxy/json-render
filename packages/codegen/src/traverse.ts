@@ -69,7 +69,7 @@ export function collectDataPaths(spec: Spec): Set<string> {
         if (
           propName.endsWith("Path") ||
           propName === "bindPath" ||
-          propName === "dataPath"
+          propName === "statePath"
         ) {
           paths.add(propValue);
         }

@@ -34,46 +34,46 @@ export default function DataBindingPage() {
 "/metrics/revenue"  -> 125000
 "/metrics/growth"   -> 0.15`}</Code>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">DataProvider</h2>
+      <h2 className="text-xl font-semibold mt-12 mb-4">StateProvider</h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Wrap your app with DataProvider to enable data binding:
+        Wrap your app with StateProvider to enable data binding:
       </p>
-      <Code lang="tsx">{`import { DataProvider } from '@json-render/react';
+      <Code lang="tsx">{`import { StateProvider } from '@json-render/react';
 
 function App() {
-  const initialData = {
+  const initialState = {
     user: { name: 'Alice' },
     form: { email: '', message: '' },
   };
 
   return (
-    <DataProvider initialData={initialData}>
+    <StateProvider initialState={initialState}>
       {/* Your UI */}
-    </DataProvider>
+    </StateProvider>
   );
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Reading Data</h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Use <code className="text-foreground">useDataValue</code> for read-only
+        Use <code className="text-foreground">useStateValue</code> for read-only
         access:
       </p>
-      <Code lang="tsx">{`import { useDataValue } from '@json-render/react';
+      <Code lang="tsx">{`import { useStateValue } from '@json-render/react';
 
 function UserGreeting() {
-  const name = useDataValue('/user/name');
+  const name = useStateValue('/user/name');
   return <h1>Hello, {name}!</h1>;
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Two-Way Binding</h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Use <code className="text-foreground">useDataBinding</code> for
+        Use <code className="text-foreground">useStateBinding</code> for
         read-write access:
       </p>
-      <Code lang="tsx">{`import { useDataBinding } from '@json-render/react';
+      <Code lang="tsx">{`import { useStateBinding } from '@json-render/react';
 
 function EmailInput() {
-  const [email, setEmail] = useDataBinding('/form/email');
+  const [email, setEmail] = useStateBinding('/form/email');
   
   return (
     <input
@@ -85,15 +85,15 @@ function EmailInput() {
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">
-        Using the Data Context
+        Using the State Context
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Access the full data context for advanced use cases:
+        Access the full state context for advanced use cases:
       </p>
-      <Code lang="tsx">{`import { useData } from '@json-render/react';
+      <Code lang="tsx">{`import { useStateStore } from '@json-render/react';
 
-function DataDebugger() {
-  const { data, setData, getValue, setValue } = useData();
+function StateDebugger() {
+  const { data, setState, getValue, setValue } = useStateStore();
   
   // Read any path
   const revenue = getValue('/metrics/revenue');
@@ -101,8 +101,8 @@ function DataDebugger() {
   // Write any path
   const updateRevenue = () => setValue('/metrics/revenue', 150000);
   
-  // Replace all data
-  const resetData = () => setData({ user: {}, form: {} });
+  // Replace all state
+  const resetState = () => setState({ user: {}, form: {} });
   
   return <pre>{JSON.stringify(data, null, 2)}</pre>;
 }`}</Code>

@@ -402,7 +402,7 @@ export const stripeCatalog = defineCatalog(schema, {
     // =========================================================================
     BarChart: {
       props: z.object({
-        dataPath: z.string(),
+        statePath: z.string(),
         xKey: z.string(),
         yKey: z.string(),
         colorKey: z.string().nullable(),
@@ -416,7 +416,7 @@ export const stripeCatalog = defineCatalog(schema, {
 
     LineChart: {
       props: z.object({
-        dataPath: z.string(),
+        statePath: z.string(),
         xKey: z.string(),
         yKey: z.string(),
         colorKey: z.string().nullable(),
@@ -430,7 +430,7 @@ export const stripeCatalog = defineCatalog(schema, {
 
     Sparkline: {
       props: z.object({
-        dataPath: z.string(),
+        statePath: z.string(),
         xKey: z.string(),
         yKey: z.string(),
         showTooltip: z.boolean().nullable(),
@@ -444,7 +444,7 @@ export const stripeCatalog = defineCatalog(schema, {
     DataTable: {
       props: z.object({
         title: z.string().nullable(),
-        dataPath: z.string(),
+        statePath: z.string(),
         columns: z.array(z.object({ key: z.string(), label: z.string() })),
         emptyMessage: z.string().nullable(),
         rowAction: z.string().nullable(),

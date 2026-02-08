@@ -41,13 +41,13 @@ export const { registry, handlers, executeAction } = defineRegistry(myCatalog, {
   },
 
   actions: {
-    submit_form: async (params, setData) => {
+    submit_form: async (params, setState) => {
       const res = await fetch('/api/submit', {
         method: 'POST',
         body: JSON.stringify(params),
       });
       const result = await res.json();
-      setData((prev) => ({ ...prev, formResult: result }));
+      setState((prev) => ({ ...prev, formResult: result }));
     },
 
     export_data: async (params) => {
@@ -135,18 +135,18 @@ const catalog = defineCatalog(schema, {
         Implementing Action Handlers
       </h3>
       <p className="text-sm text-muted-foreground mb-4">
-        Action handlers receive <code>(params, setData, data)</code> and are
+        Action handlers receive <code>(params, setState, data)</code> and are
         defined inside <code>defineRegistry</code>:
       </p>
       <Code lang="tsx">{`export const { handlers, executeAction } = defineRegistry(catalog, {
   actions: {
-    submit_form: async (params, setData) => {
+    submit_form: async (params, setState) => {
       const response = await fetch('/api/submit', {
         method: 'POST',
         body: JSON.stringify({ formId: params.formId }),
       });
       const result = await response.json();
-      setData((prev) => ({ ...prev, formResult: result }));
+      setState((prev) => ({ ...prev, formResult: result }));
     },
 
     export_data: async (params) => {
@@ -165,13 +165,13 @@ const catalog = defineCatalog(schema, {
       <p className="text-sm text-muted-foreground mb-4">
         Use hooks inside your registry components to read and write data:
       </p>
-      <Code lang="tsx">{`import { useData } from '@json-render/react';
+      <Code lang="tsx">{`import { useStateStore } from '@json-render/react';
 import { getByPath } from '@json-render/core';
 
 // Inside defineRegistry components:
 
 Metric: ({ props }) => {
-  const { data } = useData();
+  const { data } = useStateStore();
   const value = getByPath(data, props.valuePath);
 
   return (
@@ -183,7 +183,7 @@ Metric: ({ props }) => {
 },
 
 TextField: ({ props }) => {
-  const { data, set } = useData();
+  const { data, set } = useStateStore();
   const value = getByPath(data, props.valuePath) as string;
 
   return (
@@ -204,31 +204,31 @@ TextField: ({ props }) => {
       <Code lang="tsx">{`import { useMemo, useRef } from 'react';
 import {
   Renderer,
-  DataProvider,
+  StateProvider,
   VisibilityProvider,
   ActionProvider,
 } from '@json-render/react';
 import { registry, handlers } from './registry';
 
-function App({ spec, data, setData }) {
+function App({ spec, data, setState }) {
   const dataRef = useRef(data);
-  const setDataRef = useRef(setData);
+  const setStateRef = useRef(setState);
   dataRef.current = data;
-  setDataRef.current = setData;
+  setStateRef.current = setState;
 
   const actionHandlers = useMemo(
-    () => handlers(() => setDataRef.current, () => dataRef.current),
+    () => handlers(() => setStateRef.current, () => dataRef.current),
     [],
   );
 
   return (
-    <DataProvider initialData={data}>
+    <StateProvider initialState={data}>
       <VisibilityProvider>
         <ActionProvider handlers={actionHandlers}>
           <Renderer spec={spec} registry={registry} />
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }`}</Code>
 

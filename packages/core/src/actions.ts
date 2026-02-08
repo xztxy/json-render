@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DynamicValue, DataModel } from "./types";
+import type { DynamicValue, StateModel } from "./types";
 import { DynamicValueSchema, resolveDynamicValue } from "./types";
 
 /**
@@ -117,13 +117,13 @@ export interface ResolvedAction {
  */
 export function resolveAction(
   action: Action,
-  dataModel: DataModel,
+  stateModel: StateModel,
 ): ResolvedAction {
   const resolvedParams: Record<string, unknown> = {};
 
   if (action.params) {
     for (const [key, value] of Object.entries(action.params)) {
-      resolvedParams[key] = resolveDynamicValue(value, dataModel);
+      resolvedParams[key] = resolveDynamicValue(value, stateModel);
     }
   }
 
@@ -132,8 +132,8 @@ export function resolveAction(
   if (confirm) {
     confirm = {
       ...confirm,
-      message: interpolateString(confirm.message, dataModel),
-      title: interpolateString(confirm.title, dataModel),
+      message: interpolateString(confirm.message, stateModel),
+      title: interpolateString(confirm.title, stateModel),
     };
   }
 
@@ -151,10 +151,10 @@ export function resolveAction(
  */
 export function interpolateString(
   template: string,
-  dataModel: DataModel,
+  stateModel: StateModel,
 ): string {
   return template.replace(/\$\{([^}]+)\}/g, (_, path) => {
-    const value = resolveDynamicValue({ path }, dataModel);
+    const value = resolveDynamicValue({ path }, stateModel);
     return String(value ?? "");
   });
 }
@@ -167,8 +167,8 @@ export interface ActionExecutionContext {
   action: ResolvedAction;
   /** The action handler from the host */
   handler: ActionHandler;
-  /** Function to update data model */
-  setData: (path: string, value: unknown) => void;
+  /** Function to update state model */
+  setState: (path: string, value: unknown) => void;
   /** Function to navigate */
   navigate?: (path: string) => void;
   /** Function to execute another action */
@@ -181,7 +181,7 @@ export interface ActionExecutionContext {
 export async function executeAction(
   ctx: ActionExecutionContext,
 ): Promise<void> {
-  const { action, handler, setData, navigate, executeAction } = ctx;
+  const { action, handler, setState, navigate, executeAction } = ctx;
 
   try {
     await handler(action.params);
@@ -192,7 +192,7 @@ export async function executeAction(
         navigate(action.onSuccess.navigate);
       } else if ("set" in action.onSuccess) {
         for (const [path, value] of Object.entries(action.onSuccess.set)) {
-          setData(path, value);
+          setState(path, value);
         }
       } else if ("action" in action.onSuccess && executeAction) {
         await executeAction(action.onSuccess.action);
@@ -208,7 +208,7 @@ export async function executeAction(
             typeof value === "string" && value === "$error.message"
               ? (error as Error).message
               : value;
-          setData(path, resolvedValue);
+          setState(path, resolvedValue);
         }
       } else if ("action" in action.onError && executeAction) {
         await executeAction(action.onError.action);

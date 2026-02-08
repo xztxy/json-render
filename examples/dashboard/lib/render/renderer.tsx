@@ -5,7 +5,7 @@ import {
   Renderer,
   type ComponentRenderer,
   type Spec,
-  DataProvider,
+  StateProvider,
   VisibilityProvider,
   ActionProvider,
 } from "@json-render/react";
@@ -16,15 +16,15 @@ import { registry, Fallback, handlers as createHandlers } from "./registry";
 // DashboardRenderer
 // =============================================================================
 
-type SetData = (
+type SetState = (
   updater: (prev: Record<string, unknown>) => Record<string, unknown>,
 ) => void;
 
 interface DashboardRendererProps {
   spec: Spec | null;
-  data?: Record<string, unknown>;
-  setData?: SetData;
-  onDataChange?: (path: string, value: unknown) => void;
+  state?: Record<string, unknown>;
+  setState?: SetState;
+  onStateChange?: (path: string, value: unknown) => void;
   loading?: boolean;
 }
 
@@ -35,24 +35,24 @@ const fallback: ComponentRenderer = ({ element }) => (
 
 export function DashboardRenderer({
   spec,
-  data = {},
-  setData,
-  onDataChange,
+  state = {},
+  setState,
+  onStateChange,
   loading,
 }: DashboardRendererProps): ReactNode {
-  // Use refs so action handlers always see the latest data/setData
-  const dataRef = useRef(data);
-  const setDataRef = useRef(setData);
-  dataRef.current = data;
-  setDataRef.current = setData;
+  // Use refs so action handlers always see the latest state/setState
+  const stateRef = useRef(state);
+  const setStateRef = useRef(setState);
+  stateRef.current = state;
+  setStateRef.current = setState;
 
   // Create ActionProvider-compatible handlers using getters so they
-  // always read the latest data/setData from refs
+  // always read the latest state/setState from refs
   const actionHandlers = useMemo(
     () =>
       createHandlers(
-        () => setDataRef.current,
-        () => dataRef.current,
+        () => setStateRef.current,
+        () => stateRef.current,
       ),
     [],
   );
@@ -60,7 +60,7 @@ export function DashboardRenderer({
   if (!spec) return null;
 
   return (
-    <DataProvider initialData={data} onDataChange={onDataChange}>
+    <StateProvider initialState={state} onStateChange={onStateChange}>
       <VisibilityProvider>
         <ActionProvider handlers={actionHandlers}>
           <Renderer
@@ -71,6 +71,6 @@ export function DashboardRenderer({
           />
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }

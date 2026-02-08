@@ -2,7 +2,7 @@ import { z } from "zod";
 import type {
   VisibilityCondition,
   LogicExpression,
-  DataModel,
+  StateModel,
   AuthState,
   DynamicValue,
 } from "./types";
@@ -56,7 +56,7 @@ export const VisibilityConditionSchema: z.ZodType<VisibilityCondition> =
  * Context for evaluating visibility
  */
 export interface VisibilityContext {
-  dataModel: DataModel;
+  stateModel: StateModel;
   authState?: AuthState;
 }
 
@@ -67,7 +67,7 @@ export function evaluateLogicExpression(
   expr: LogicExpression,
   ctx: VisibilityContext,
 ): boolean {
-  const { dataModel } = ctx;
+  const { stateModel } = ctx;
 
   // AND expression
   if ("and" in expr) {
@@ -86,23 +86,23 @@ export function evaluateLogicExpression(
 
   // Path expression (resolve to boolean)
   if ("path" in expr) {
-    const value = resolveDynamicValue({ path: expr.path }, dataModel);
+    const value = resolveDynamicValue({ path: expr.path }, stateModel);
     return Boolean(value);
   }
 
   // Equality comparison
   if ("eq" in expr) {
     const [left, right] = expr.eq;
-    const leftValue = resolveDynamicValue(left, dataModel);
-    const rightValue = resolveDynamicValue(right, dataModel);
+    const leftValue = resolveDynamicValue(left, stateModel);
+    const rightValue = resolveDynamicValue(right, stateModel);
     return leftValue === rightValue;
   }
 
   // Not equal comparison
   if ("neq" in expr) {
     const [left, right] = expr.neq;
-    const leftValue = resolveDynamicValue(left, dataModel);
-    const rightValue = resolveDynamicValue(right, dataModel);
+    const leftValue = resolveDynamicValue(left, stateModel);
+    const rightValue = resolveDynamicValue(right, stateModel);
     return leftValue !== rightValue;
   }
 
@@ -111,11 +111,11 @@ export function evaluateLogicExpression(
     const [left, right] = expr.gt;
     const leftValue = resolveDynamicValue(
       left as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     const rightValue = resolveDynamicValue(
       right as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     if (typeof leftValue === "number" && typeof rightValue === "number") {
       return leftValue > rightValue;
@@ -128,11 +128,11 @@ export function evaluateLogicExpression(
     const [left, right] = expr.gte;
     const leftValue = resolveDynamicValue(
       left as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     const rightValue = resolveDynamicValue(
       right as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     if (typeof leftValue === "number" && typeof rightValue === "number") {
       return leftValue >= rightValue;
@@ -145,11 +145,11 @@ export function evaluateLogicExpression(
     const [left, right] = expr.lt;
     const leftValue = resolveDynamicValue(
       left as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     const rightValue = resolveDynamicValue(
       right as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     if (typeof leftValue === "number" && typeof rightValue === "number") {
       return leftValue < rightValue;
@@ -162,11 +162,11 @@ export function evaluateLogicExpression(
     const [left, right] = expr.lte;
     const leftValue = resolveDynamicValue(
       left as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     const rightValue = resolveDynamicValue(
       right as DynamicValue<number>,
-      dataModel,
+      stateModel,
     );
     if (typeof leftValue === "number" && typeof rightValue === "number") {
       return leftValue <= rightValue;
@@ -196,7 +196,7 @@ export function evaluateVisibility(
 
   // Path reference
   if ("path" in condition && !("and" in condition) && !("or" in condition)) {
-    const value = resolveDynamicValue({ path: condition.path }, ctx.dataModel);
+    const value = resolveDynamicValue({ path: condition.path }, ctx.stateModel);
     return Boolean(value);
   }
 

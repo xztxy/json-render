@@ -29,9 +29,9 @@ export async function POST(req: Request) {
 
     let fullPrompt = sanitizedPrompt;
 
-    // Add context data if provided
-    if (context?.data) {
-      fullPrompt += `\n\nAVAILABLE DATA:\n${JSON.stringify(context.data, null, 2)}`;
+    // Add context state if provided
+    if (context?.state) {
+      fullPrompt += `\n\nAVAILABLE STATE:\n${JSON.stringify(context.state, null, 2)}`;
     }
 
     // Add current spec if refining

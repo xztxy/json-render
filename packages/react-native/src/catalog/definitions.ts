@@ -117,7 +117,7 @@ export const standardComponentDefinitions = {
     }),
     slots: ["default"],
     description:
-      "Touchable wrapper that triggers an action on press. Wrap any element to make it tappable. Use with action 'setData' and actionParams { path, value } to update state for visibility-driven UIs like tabs.",
+      "Touchable wrapper that triggers an action on press. Wrap any element to make it tappable. Use with action 'setState' and actionParams { path, value } to update state for visibility-driven UIs like tabs.",
   },
 
   Divider: {
@@ -239,14 +239,14 @@ export const standardComponentDefinitions = {
     }),
     slots: [],
     description:
-      "Pressable button with label. Set variant for styling. Set action and actionParams for the handler to call on press (e.g. action:'setData', actionParams:{path:'/key', value:'val'}).",
+      "Pressable button with label. Set variant for styling. Set action and actionParams for the handler to call on press (e.g. action:'setState', actionParams:{path:'/key', value:'val'}).",
   },
 
   TextInput: {
     props: z.object({
       placeholder: z.string().nullable(),
       value: z.string().nullable(),
-      dataPath: z.string().nullable(),
+      statePath: z.string().nullable(),
       secureTextEntry: z.boolean().nullable(),
       keyboardType: z
         .enum(["default", "email-address", "numeric", "phone-pad", "url"])
@@ -258,30 +258,30 @@ export const standardComponentDefinitions = {
     }),
     slots: [],
     description:
-      "Text input field. Use dataPath to bind to the data model for two-way binding. The value typed by the user is stored at the dataPath.",
+      "Text input field. Use statePath to bind to the state model for two-way binding. The value typed by the user is stored at the statePath.",
   },
 
   Switch: {
     props: z.object({
       value: z.boolean().nullable(),
-      dataPath: z.string().nullable(),
+      statePath: z.string().nullable(),
       label: z.string().nullable(),
       disabled: z.boolean().nullable(),
     }),
     slots: [],
-    description: "Toggle switch. Use dataPath to bind to the data model.",
+    description: "Toggle switch. Use statePath to bind to the state model.",
   },
 
   Checkbox: {
     props: z.object({
       checked: z.boolean().nullable(),
-      dataPath: z.string().nullable(),
+      statePath: z.string().nullable(),
       label: z.string().nullable(),
       disabled: z.boolean().nullable(),
     }),
     slots: [],
     description:
-      "Checkbox for boolean selections. Use dataPath to bind to the data model.",
+      "Checkbox for boolean selections. Use statePath to bind to the state model.",
   },
 
   Slider: {
@@ -290,20 +290,20 @@ export const standardComponentDefinitions = {
       max: z.number().nullable(),
       step: z.number().nullable(),
       value: z.number().nullable(),
-      dataPath: z.string().nullable(),
+      statePath: z.string().nullable(),
       label: z.string().nullable(),
       color: z.string().nullable(),
     }),
     slots: [],
     description:
-      "Range slider for numeric values. Use dataPath to bind to the data model.",
+      "Range slider for numeric values. Use statePath to bind to the state model.",
   },
 
   SearchBar: {
     props: z.object({
       placeholder: z.string().nullable(),
       value: z.string().nullable(),
-      dataPath: z.string().nullable(),
+      statePath: z.string().nullable(),
       action: z.string().nullable(),
     }),
     slots: [],
@@ -372,11 +372,11 @@ export const standardComponentDefinitions = {
       visible: z.boolean(),
       title: z.string().nullable(),
       animationType: z.enum(["slide", "fade", "none"]).nullable(),
-      dataPath: z.string().nullable(),
+      statePath: z.string().nullable(),
     }),
     slots: ["default"],
     description:
-      "Modal overlay dialog. Use dataPath to bind visibility to the data model.",
+      "Modal overlay dialog. Use statePath to bind visibility to the state model.",
   },
 };
 
@@ -438,12 +438,12 @@ export const standardActionDefinitions = {
     description: "Open a URL in the default browser using Linking.openURL().",
   },
 
-  setData: {
+  setState: {
     params: z.object({
       path: z.string(),
       value: z.unknown(),
     }),
-    description: "Update a value in the data model at the given path.",
+    description: "Update a value in the state model at the given path.",
   },
 
   refresh: {

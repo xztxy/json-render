@@ -173,8 +173,8 @@ const SurfaceUpdate = z.object({
   components: z.array(A2UIComponent),
 });
 
-// Data model update message
-const DataModelUpdate = z.object({
+// State model update message
+const StateModelUpdate = z.object({
   surfaceId: z.string().optional(),
   path: z.string().optional(),
   contents: z.array(z.object({
@@ -196,7 +196,7 @@ const BeginRendering = z.object({
 // Complete A2UI message schema
 export const A2UIMessage = z.object({
   surfaceUpdate: SurfaceUpdate.optional(),
-  dataModelUpdate: DataModelUpdate.optional(),
+  dataModelUpdate: StateModelUpdate.optional(),
   beginRendering: BeginRendering.optional(),
   deleteSurface: z.object({ surfaceId: z.string() }).optional(),
 });`}</Code>

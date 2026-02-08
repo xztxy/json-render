@@ -548,25 +548,25 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push(`{"op":"add","path":"/root","value":"card-1"}
 {"op":"add","path":"/elements/card-1","value":{"type":"Card","props":{"title":"Dashboard"},"children":["metric-1","chart-1"]}}
 {"op":"add","path":"/elements/metric-1","value":{"type":"Metric","props":{"label":"Revenue","valuePath":"analytics.revenue","format":"currency"},"children":[]}}
-{"op":"add","path":"/elements/chart-1","value":{"type":"Chart","props":{"type":"bar","dataPath":"analytics.salesByRegion"},"children":[]}}`);
+{"op":"add","path":"/elements/chart-1","value":{"type":"Chart","props":{"type":"bar","statePath":"analytics.salesByRegion"},"children":[]}}`);
   lines.push("");
 
-  // Initial data section
-  lines.push("INITIAL DATA:");
+  // Initial state section
+  lines.push("INITIAL STATE:");
   lines.push(
-    "Specs can include an optional /data field to seed the data model. Components with dataPath read from and write to this data.",
+    "Specs can include an optional /state field to seed the state model. Components with statePath read from and write to this state.",
   );
   lines.push(
-    "When your UI uses dataPath bindings (e.g. TextInput, Checkbox, Switch), you SHOULD provide initial data so those components have starting values.",
+    "When your UI uses statePath bindings (e.g. TextInput, Checkbox, Switch), you SHOULD provide initial state so those components have starting values.",
   );
   lines.push(
-    'Output initial data as a patch: {"op":"add","path":"/data","value":{"todos":[{"title":"Buy milk","completed":false}],"newTodoText":""}}',
+    'Output initial state as a patch: {"op":"add","path":"/state","value":{"todos":[{"title":"Buy milk","completed":false}],"newTodoText":""}}',
   );
   lines.push(
-    "Output the /data patch BEFORE element patches so the data model is populated before components render.",
+    "Output the /state patch BEFORE element patches so the state model is populated before components render.",
   );
   lines.push(
-    'When content comes from the data model, use { "$path": "/some/path" } dynamic props to display it instead of hardcoding the same value in both data and props. The data model is the single source of truth.',
+    'When content comes from the state model, use { "$path": "/some/path" } dynamic props to display it instead of hardcoding the same value in both state and props. The state model is the single source of truth.',
   );
   lines.push("");
 
@@ -615,36 +615,36 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     'Correct: {"type":"Column","props":{"gap":8},"visible":{"eq":[{"path":"/tab"},"home"]},"children":[...]}',
   );
   lines.push(
-    '- `{ "eq": [{ "path": "/dataPath" }, "value"] }` - visible when data at path equals value',
+    '- `{ "eq": [{ "path": "/statePath" }, "value"] }` - visible when state at path equals value',
   );
   lines.push(
-    '- `{ "neq": [{ "path": "/dataPath" }, "value"] }` - visible when data at path does not equal value',
+    '- `{ "neq": [{ "path": "/statePath" }, "value"] }` - visible when state at path does not equal value',
   );
-  lines.push('- `{ "path": "/dataPath" }` - visible when path is truthy');
+  lines.push('- `{ "path": "/statePath" }` - visible when path is truthy');
   lines.push(
     '- `{ "and": [...] }`, `{ "or": [...] }`, `{ "not": {...} }` - combine conditions',
   );
   lines.push("- `true` / `false` - always visible/hidden");
   lines.push("");
   lines.push(
-    "Use the Pressable component with action 'setData' to update data state and drive visibility.",
+    "Use the Pressable component with action 'setState' to update state and drive visibility.",
   );
   lines.push(
-    'Example: A Pressable with actionParams { "path": "/activeTab", "value": "home" } sets data, then a container with visible: { "eq": [{ "path": "/activeTab" }, "home"] } shows only when that tab is active.',
+    'Example: A Pressable with actionParams { "path": "/activeTab", "value": "home" } sets state, then a container with visible: { "eq": [{ "path": "/activeTab" }, "home"] } shows only when that tab is active.',
   );
   lines.push("");
 
   // Dynamic prop expressions
   lines.push("DYNAMIC PROPS:");
   lines.push(
-    "Any prop value can be a dynamic expression that resolves based on data state. Two forms are supported:",
+    "Any prop value can be a dynamic expression that resolves based on state. Two forms are supported:",
   );
   lines.push("");
   lines.push(
-    '1. Data binding: `{ "$path": "/dataPath" }` - resolves to the value at that data path.',
+    '1. State binding: `{ "$path": "/statePath" }` - resolves to the value at that state path.',
   );
   lines.push(
-    '   Example: `"color": { "$path": "/theme/primary" }` reads the color from data.',
+    '   Example: `"color": { "$path": "/theme/primary" }` reads the color from state.',
   );
   lines.push("");
   lines.push(

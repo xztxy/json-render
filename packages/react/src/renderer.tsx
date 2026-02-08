@@ -15,13 +15,13 @@ import type {
   Components,
   Actions,
   ActionFn,
-  SetData,
-  DataModel,
+  SetState,
+  StateModel,
 } from "./catalog-types";
 import { useIsVisible, useVisibility } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
-import { useData } from "./contexts/data";
-import { DataProvider } from "./contexts/data";
+import { useStateStore } from "./contexts/state";
+import { StateProvider } from "./contexts/state";
 import { VisibilityProvider } from "./contexts/visibility";
 import { ActionProvider } from "./contexts/actions";
 import { ValidationProvider } from "./contexts/validation";
@@ -170,8 +170,8 @@ export function Renderer({ spec, registry, loading, fallback }: RendererProps) {
 export interface JSONUIProviderProps {
   /** Component registry */
   registry: ComponentRegistry;
-  /** Initial data model */
-  initialData?: Record<string, unknown>;
+  /** Initial state model */
+  initialState?: Record<string, unknown>;
   /** Auth state */
   authState?: { isSignedIn: boolean; user?: Record<string, unknown> };
   /** Action handlers */
@@ -186,8 +186,8 @@ export interface JSONUIProviderProps {
     string,
     (value: unknown, args?: Record<string, unknown>) => boolean
   >;
-  /** Callback when data changes */
-  onDataChange?: (path: string, value: unknown) => void;
+  /** Callback when state changes */
+  onStateChange?: (path: string, value: unknown) => void;
   children: ReactNode;
 }
 
@@ -196,19 +196,19 @@ export interface JSONUIProviderProps {
  */
 export function JSONUIProvider({
   registry,
-  initialData,
+  initialState,
   authState,
   actionHandlers,
   navigate,
   validationFunctions,
-  onDataChange,
+  onStateChange,
   children,
 }: JSONUIProviderProps) {
   return (
-    <DataProvider
-      initialData={initialData}
+    <StateProvider
+      initialState={initialState}
       authState={authState}
-      onDataChange={onDataChange}
+      onStateChange={onStateChange}
     >
       <VisibilityProvider>
         <ActionProvider handlers={actionHandlers} navigate={navigate}>
@@ -218,7 +218,7 @@ export function JSONUIProvider({
           </ValidationProvider>
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }
 
@@ -268,22 +268,22 @@ export interface DefineRegistryResult {
   registry: ComponentRegistry;
   /**
    * Create ActionProvider-compatible handlers.
-   * Accepts getter functions so handlers always read the latest data/setData
+   * Accepts getter functions so handlers always read the latest state/setState
    * (e.g. from React refs).
    */
   handlers: (
-    getSetData: () => SetData | undefined,
-    getData: () => DataModel,
+    getSetState: () => SetState | undefined,
+    getState: () => StateModel,
   ) => Record<string, (params: Record<string, unknown>) => Promise<void>>;
   /**
    * Execute an action by name imperatively
-   * (for use outside the React tree, e.g. initial data loading).
+   * (for use outside the React tree, e.g. initial state loading).
    */
   executeAction: (
     actionName: string,
     params: Record<string, unknown> | undefined,
-    setData: SetData,
-    data?: DataModel,
+    setState: SetState,
+    state?: StateModel,
   ) => Promise<void>;
 }
 
@@ -304,7 +304,7 @@ export interface DefineRegistryResult {
  * // Actions only
  * const { handlers, executeAction } = defineRegistry(catalog, {
  *   actions: {
- *     viewCustomers: async (params, setData) => { ... },
+ *     viewCustomers: async (params, setState) => { ... },
  *   },
  * });
  *
@@ -350,8 +350,8 @@ export function defineRegistry<C extends Catalog>(
     : [];
 
   const handlers = (
-    getSetData: () => SetData | undefined,
-    getData: () => DataModel,
+    getSetState: () => SetState | undefined,
+    getState: () => StateModel,
   ): Record<string, (params: Record<string, unknown>) => Promise<void>> => {
     const result: Record<
       string,
@@ -359,10 +359,10 @@ export function defineRegistry<C extends Catalog>(
     > = {};
     for (const [name, actionFn] of actionMap) {
       result[name] = async (params) => {
-        const setData = getSetData();
-        const data = getData();
-        if (setData) {
-          await actionFn(params, setData, data);
+        const setState = getSetState();
+        const state = getState();
+        if (setState) {
+          await actionFn(params, setState, state);
         }
       };
     }
@@ -372,12 +372,12 @@ export function defineRegistry<C extends Catalog>(
   const executeAction = async (
     actionName: string,
     params: Record<string, unknown> | undefined,
-    setData: SetData,
-    data: DataModel = {},
+    setState: SetState,
+    state: StateModel = {},
   ): Promise<void> => {
     const entry = actionMap.find(([name]) => name === actionName);
     if (entry) {
-      await entry[1](params, setData, data);
+      await entry[1](params, setState, state);
     } else {
       console.warn(`Unknown action: ${actionName}`);
     }
@@ -397,8 +397,8 @@ type DefineRegistryComponentFn = (ctx: {
 /** @internal */
 type DefineRegistryActionFn = (
   params: Record<string, unknown> | undefined,
-  setData: SetData,
-  data: DataModel,
+  setState: SetState,
+  state: StateModel,
 ) => Promise<void>;
 
 // ============================================================================
@@ -411,12 +411,12 @@ type DefineRegistryActionFn = (
 export interface CreateRendererProps {
   /** The spec to render (AI-generated JSON) */
   spec: Spec | null;
-  /** Data context for dynamic values */
-  data?: Record<string, unknown>;
+  /** State context for dynamic values */
+  state?: Record<string, unknown>;
   /** Action handler */
   onAction?: (actionName: string, params?: Record<string, unknown>) => void;
-  /** Callback when data changes (e.g., from form inputs) */
-  onDataChange?: (path: string, value: unknown) => void;
+  /** Callback when state changes (e.g., from form inputs) */
+  onStateChange?: (path: string, value: unknown) => void;
   /** Whether the spec is currently loading/streaming */
   loading?: boolean;
   /** Auth state for visibility conditions */
@@ -451,7 +451,7 @@ export type ComponentMap<
  * });
  *
  * // Usage
- * <DashboardRenderer spec={aiGeneratedSpec} data={data} />
+ * <DashboardRenderer spec={aiGeneratedSpec} state={state} />
  * ```
  */
 export function createRenderer<
@@ -468,9 +468,9 @@ export function createRenderer<
   // Return the renderer component
   return function CatalogRenderer({
     spec,
-    data,
+    state,
     onAction,
-    onDataChange,
+    onStateChange,
     loading,
     authState,
     fallback,
@@ -490,10 +490,10 @@ export function createRenderer<
       : undefined;
 
     return (
-      <DataProvider
-        initialData={data}
+      <StateProvider
+        initialState={state}
         authState={authState}
-        onDataChange={onDataChange}
+        onStateChange={onStateChange}
       >
         <VisibilityProvider>
           <ActionProvider handlers={actionHandlers}>
@@ -508,7 +508,7 @@ export function createRenderer<
             </ValidationProvider>
           </ActionProvider>
         </VisibilityProvider>
-      </DataProvider>
+      </StateProvider>
     );
   };
 }

@@ -14,10 +14,10 @@ export default function ReactApiPage() {
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Providers</h2>
 
-      <h3 className="text-lg font-semibold mt-8 mb-4">DataProvider</h3>
-      <Code lang="tsx">{`<DataProvider initialData={object}>
+      <h3 className="text-lg font-semibold mt-8 mb-4">StateProvider</h3>
+      <Code lang="tsx">{`<StateProvider initialState={object}>
   {children}
-</DataProvider>`}</Code>
+</StateProvider>`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">ActionProvider</h3>
       <Code lang="tsx">{`<ActionProvider handlers={Record<string, ActionHandler>}>
@@ -105,19 +105,19 @@ type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;`}</Co
   onError?: (error: Error) => void,    // Called when an error occurs
 });`}</Code>
 
-      <h3 className="text-lg font-semibold mt-8 mb-4">useData</h3>
+      <h3 className="text-lg font-semibold mt-8 mb-4">useStateStore</h3>
       <Code lang="typescript">{`const {
   data,      // Record<string, unknown>
-  setData,   // (data: object) => void
+  setState,   // (data: object) => void
   getValue,  // (path: string) => unknown
   setValue,  // (path: string, value: unknown) => void
-} = useData();`}</Code>
+} = useStateStore();`}</Code>
 
-      <h3 className="text-lg font-semibold mt-8 mb-4">useDataValue</h3>
-      <Code lang="typescript">{`const value = useDataValue(path: string);`}</Code>
+      <h3 className="text-lg font-semibold mt-8 mb-4">useStateValue</h3>
+      <Code lang="typescript">{`const value = useStateValue(path: string);`}</Code>
 
-      <h3 className="text-lg font-semibold mt-8 mb-4">useDataBinding</h3>
-      <Code lang="typescript">{`const [value, setValue] = useDataBinding(path: string);`}</Code>
+      <h3 className="text-lg font-semibold mt-8 mb-4">useStateBinding</h3>
+      <Code lang="typescript">{`const [value, setValue] = useStateBinding(path: string);`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">useActions</h3>
       <Code lang="typescript">{`const { dispatch } = useActions();

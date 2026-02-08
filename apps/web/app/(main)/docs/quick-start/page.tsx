@@ -132,7 +132,7 @@ export async function POST(req: Request) {
       <Code lang="tsx">{`// app/page.tsx
 'use client';
 
-import { Renderer, DataProvider, ActionProvider, VisibilityProvider, useUIStream } from '@json-render/react';
+import { Renderer, StateProvider, ActionProvider, VisibilityProvider, useUIStream } from '@json-render/react';
 import { registry } from '@/lib/registry';
 
 export default function Page() {
@@ -147,7 +147,7 @@ export default function Page() {
   };
 
   return (
-    <DataProvider initialData={{}}>
+    <StateProvider initialState={{}}>
       <VisibilityProvider>
         <ActionProvider handlers={{
           submit: (params) => console.log('Submit:', params),
@@ -169,7 +169,7 @@ export default function Page() {
           </div>
         </ActionProvider>
       </VisibilityProvider>
-    </DataProvider>
+    </StateProvider>
   );
 }`}</Code>
 

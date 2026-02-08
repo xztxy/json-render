@@ -8,20 +8,20 @@ import type {
 } from "@json-render/core";
 
 // =============================================================================
-// Data Types
+// State Types
 // =============================================================================
 
 /**
- * Data setter function for updating application state
+ * State setter function for updating application state
  */
-export type SetData = (
+export type SetState = (
   updater: (prev: Record<string, unknown>) => Record<string, unknown>,
 ) => void;
 
 /**
- * Data model type (generic record)
+ * State model type (generic record)
  */
-export type DataModel = Record<string, unknown>;
+export type StateModel = Record<string, unknown>;
 
 // =============================================================================
 // Component Types
@@ -83,9 +83,9 @@ export type Components<C extends Catalog> = {
 /**
  * Action handler function type
  * @example
- * const viewCustomers: ActionFn<typeof catalog, 'viewCustomers'> = async (params, setData) => {
+ * const viewCustomers: ActionFn<typeof catalog, 'viewCustomers'> = async (params, setState) => {
  *   const data = await fetch('/api/customers');
- *   setData(prev => ({ ...prev, customers: data }));
+ *   setState(prev => ({ ...prev, customers: data }));
  * };
  */
 export type ActionFn<
@@ -93,16 +93,16 @@ export type ActionFn<
   K extends keyof InferCatalogActions<C>,
 > = (
   params: InferActionParams<C, K> | undefined,
-  setData: SetData,
-  data: DataModel,
+  setState: SetState,
+  state: StateModel,
 ) => Promise<void>;
 
 /**
  * Registry of all action handlers for a catalog
  * @example
  * const actions: Actions<typeof myCatalog> = {
- *   viewCustomers: async (params, setData) => { ... },
- *   createCustomer: async (params, setData) => { ... },
+ *   viewCustomers: async (params, setState) => { ... },
+ *   createCustomer: async (params, setState) => { ... },
  * };
  */
 export type Actions<C extends Catalog> = {

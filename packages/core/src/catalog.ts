@@ -261,7 +261,7 @@ export function generateCatalogPrompt<
   lines.push("");
   lines.push("Components can have a `visible` property:");
   lines.push("- `true` / `false` - Always visible/hidden");
-  lines.push('- `{ "path": "/data/path" }` - Visible when path is truthy');
+  lines.push('- `{ "path": "/state/path" }` - Visible when path is truthy');
   lines.push('- `{ "auth": "signedIn" }` - Visible when user is signed in');
   lines.push('- `{ "and": [...] }` - All conditions must be true');
   lines.push('- `{ "or": [...] }` - Any condition must be true');

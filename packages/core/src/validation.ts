@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DynamicValue, DataModel, LogicExpression } from "./types";
+import type { DynamicValue, StateModel, LogicExpression } from "./types";
 import { DynamicValueSchema, resolveDynamicValue } from "./types";
 import { LogicExpressionSchema, evaluateLogicExpression } from "./visibility";
 
@@ -195,7 +195,7 @@ export interface ValidationContext {
   /** Current value to validate */
   value: unknown;
   /** Full data model for resolving paths */
-  dataModel: DataModel;
+  stateModel: StateModel;
   /** Custom validation functions from catalog */
   customFunctions?: Record<string, ValidationFunction>;
 }
@@ -207,13 +207,13 @@ export function runValidationCheck(
   check: ValidationCheck,
   ctx: ValidationContext,
 ): ValidationCheckResult {
-  const { value, dataModel, customFunctions } = ctx;
+  const { value, stateModel, customFunctions } = ctx;
 
   // Resolve args
   const resolvedArgs: Record<string, unknown> = {};
   if (check.args) {
     for (const [key, argValue] of Object.entries(check.args)) {
-      resolvedArgs[key] = resolveDynamicValue(argValue, dataModel);
+      resolvedArgs[key] = resolveDynamicValue(argValue, stateModel);
     }
   }
 
@@ -252,7 +252,7 @@ export function runValidation(
   // Check if validation is enabled
   if (config.enabled) {
     const enabled = evaluateLogicExpression(config.enabled, {
-      dataModel: ctx.dataModel,
+      stateModel: ctx.stateModel,
       authState: ctx.authState,
     });
     if (!enabled) {

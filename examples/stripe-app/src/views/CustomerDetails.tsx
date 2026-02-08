@@ -283,7 +283,7 @@ function createCustomerDetailSpec(
 // =============================================================================
 
 const CustomerDetails = ({ environment }: ExtensionContextValue) => {
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [data, setState] = useState<Record<string, unknown>>({});
   const [spec, setSpec] = useState<Spec | null>(null);
   const [loading, setLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
@@ -292,10 +292,10 @@ const CustomerDetails = ({ environment }: ExtensionContextValue) => {
   // Get customer ID from context
   const customerId = environment?.objectContext?.id ?? "";
 
-  // Wrap setData for action handlers
-  const handleSetData = useCallback(
+  // Wrap setState for action handlers
+  const handleSetState = useCallback(
     (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => {
-      setData((prev) => updater(prev));
+      setState((prev) => updater(prev));
     },
     [],
   );
@@ -315,14 +315,14 @@ const CustomerDetails = ({ environment }: ExtensionContextValue) => {
         executeAction(
           "fetchCustomers",
           { email: null, limit: 100 },
-          handleSetData,
+          handleSetState,
           {},
         ),
         executeAction(
           "fetchPayments",
           { customerId, limit: 10 },
           (updater) => {
-            setData((prev) => {
+            setState((prev) => {
               const next = updater(prev);
               return { ...prev, customerPayments: next.payments };
             });
@@ -333,7 +333,7 @@ const CustomerDetails = ({ environment }: ExtensionContextValue) => {
           "fetchSubscriptions",
           { customerId, limit: 10 },
           (updater) => {
-            setData((prev) => {
+            setState((prev) => {
               const next = updater(prev);
               return { ...prev, customerSubscriptions: next.subscriptions };
             });
@@ -344,7 +344,7 @@ const CustomerDetails = ({ environment }: ExtensionContextValue) => {
           "fetchInvoices",
           { customerId, limit: 10 },
           (updater) => {
-            setData((prev) => {
+            setState((prev) => {
               const next = updater(prev);
               return { ...prev, customerInvoices: next.invoices };
             });
@@ -356,7 +356,7 @@ const CustomerDetails = ({ environment }: ExtensionContextValue) => {
       setLoading(false);
     };
     loadData();
-  }, [customerId, handleSetData]);
+  }, [customerId, handleSetState]);
 
   // Update spec when data changes
   useEffect(() => {
@@ -439,7 +439,7 @@ const CustomerDetails = ({ environment }: ExtensionContextValue) => {
         <Button
           type="primary"
           onPress={() =>
-            executeAction("viewCustomer", { customerId }, handleSetData, data)
+            executeAction("viewCustomer", { customerId }, handleSetState, data)
           }
         >
           View in Dashboard
@@ -473,7 +473,7 @@ const CustomerDetails = ({ environment }: ExtensionContextValue) => {
           <StripeRenderer
             spec={spec}
             data={data}
-            setData={handleSetData}
+            setData={handleSetState}
             loading={generating}
           />
         )}
