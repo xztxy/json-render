@@ -72,7 +72,7 @@ export function ActionProvider({
   navigate,
   children,
 }: ActionProviderProps) {
-  const { data, set } = useData();
+  const { data, get, set } = useData();
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
@@ -96,6 +96,41 @@ export function ActionProvider({
         const value = resolved.params.value;
         if (path) {
           set(path, value);
+        }
+        return;
+      }
+
+      // Built-in: push navigates to a new screen by updating data state.
+      // Pushes the current screen onto /navStack and sets /currentScreen.
+      if (resolved.name === "push" && resolved.params) {
+        const screen = resolved.params.screen as string;
+        if (screen) {
+          const currentScreen = get("/currentScreen") as string | undefined;
+          const navStack = (get("/navStack") as string[] | undefined) ?? [];
+          if (currentScreen) {
+            set("/navStack", [...navStack, currentScreen]);
+          } else {
+            // No current screen set yet — push a sentinel so pop returns here
+            set("/navStack", [...navStack, ""]);
+          }
+          set("/currentScreen", screen);
+        }
+        return;
+      }
+
+      // Built-in: pop navigates back to the previous screen.
+      // Pops the last entry from /navStack and restores /currentScreen.
+      if (resolved.name === "pop") {
+        const navStack = (get("/navStack") as string[] | undefined) ?? [];
+        if (navStack.length > 0) {
+          const previousScreen = navStack[navStack.length - 1];
+          set("/navStack", navStack.slice(0, -1));
+          if (previousScreen) {
+            set("/currentScreen", previousScreen);
+          } else {
+            // Sentinel empty string = clear currentScreen (return to default)
+            set("/currentScreen", undefined);
+          }
         }
         return;
       }
@@ -166,7 +201,7 @@ export function ActionProvider({
         });
       }
     },
-    [data, handlers, set, navigate],
+    [data, handlers, get, set, navigate],
   );
 
   const confirm = useCallback(() => {

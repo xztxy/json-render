@@ -45,6 +45,14 @@ export const customRules = [
   '  - For the icon color: { "$cond": { "eq": [{ "path": "/activeTab" }, "thisTabName"] }, "$then": "#007AFF", "$else": "#8E8E93" }',
   "  - For labels, use $cond on the color prop similarly.",
   '  - For the FIRST/DEFAULT tab, use { "$cond": { "or": [{ "eq": [{ "path": "/activeTab" }, "thisTabName"] }, { "not": { "path": "/activeTab" } }] }, "$then": "#007AFF", "$else": "#8E8E93" } so it appears active before any tab is tapped.',
+
+  // Push/Pop screen navigation (all screens in one spec)
+  'SCREEN NAVIGATION: Use Pressable with action "push" and actionParams { "screen": "screenName" } to navigate to a new screen. Use action "pop" to go back. All screens must be defined in the SAME spec.',
+  'Each screen section uses a visible condition on /currentScreen: { "eq": [{ "path": "/currentScreen" }, "screenName"] }. The default/home screen should also be visible when /currentScreen is not set: { "or": [{ "eq": [{ "path": "/currentScreen" }, "home"] }, { "not": { "path": "/currentScreen" } }] }.',
+  "push automatically maintains a /navStack in the data model so pop always returns to the previous screen.",
+  'Include a back button on pushed screens using action "pop". Example: Pressable(action:"pop") > Row > Icon(name:"chevron-back") + Label(text:"Back").',
+  "Use push/pop for drill-down flows: tapping a list item to see details, opening a profile, etc. Use setData + visible conditions for tab switching within a screen.",
+  'Example: A list screen with items that push to detail: Pressable(action:"push", actionParams:{screen:"repo-detail"}) wrapping each list item card. The detail screen section has visible:{"eq":[{"path":"/currentScreen"},"repo-detail"]} and contains a back button with action:"pop".',
 ];
 
 /**
