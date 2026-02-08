@@ -133,15 +133,14 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 { "action": "setState", "actionParams": { "path": "/activeTab", "value": "home" } }
 ```
 
-## Contexts
+## Providers
 
-| Context | Purpose |
-|---------|---------|
-| `StateContext` | Provide data for binding |
-| `ActionsContext` | Provide action handlers |
-| `ValidationContext` | Form validation state |
-| `VisibilityContext` | Conditional rendering |
-| `RepeatScopeContext` | Repeat/iteration scope for lists |
+| Provider | Purpose |
+|----------|---------|
+| `StateProvider` | Share state across components (JSON Pointer paths) |
+| `ActionProvider` | Handle actions dispatched from components |
+| `VisibilityProvider` | Enable conditional rendering based on state |
+| `ValidationProvider` | Form field validation |
 
 ## Key Exports
 

@@ -80,15 +80,14 @@ The React schema uses an element tree format:
 }
 ```
 
-## Contexts
+## Providers
 
-| Context | Purpose |
-|---------|---------|
-| `StateContext` | Provide data for binding |
-| `ActionsContext` | Provide action handlers |
-| `ValidationContext` | Form validation state |
-| `VisibilityContext` | Conditional rendering |
-| `RepeatScopeContext` | Repeat/iteration scope for lists |
+| Provider | Purpose |
+|----------|---------|
+| `StateProvider` | Share state across components (JSON Pointer paths) |
+| `ActionProvider` | Handle actions dispatched from components |
+| `VisibilityProvider` | Enable conditional rendering based on state |
+| `ValidationProvider` | Form field validation |
 
 ## Dynamic Prop Expressions
 
