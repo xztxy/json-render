@@ -19,6 +19,69 @@ import {
 import { useStateStore } from "./state";
 
 /**
+ * Generate a unique ID for use with the "$id" token.
+ * Combines a timestamp with a random suffix for uniqueness.
+ */
+let idCounter = 0;
+function generateUniqueId(): string {
+  idCounter += 1;
+  return `${Date.now()}-${idCounter}`;
+}
+
+/**
+ * Deep-resolve dynamic value references within an object.
+ *
+ * Supported tokens:
+ * - `{ path: "/statePath" }` - read a value from state
+ * - `"$id"` (string) or `{ "$id": true }` - generate a unique ID
+ *
+ * This allows pushState values to contain references to current state
+ * and auto-generated IDs.
+ */
+function deepResolveValue(
+  value: unknown,
+  get: (path: string) => unknown,
+): unknown {
+  if (value === null || value === undefined) return value;
+
+  // "$id" string token -> generate unique ID
+  if (value === "$id") {
+    return generateUniqueId();
+  }
+
+  if (typeof value === "object" && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj);
+
+    // { path: "/foo" } -> read from state (single-key object with "path")
+    if (keys.length === 1 && typeof obj.path === "string") {
+      return get(obj.path as string);
+    }
+
+    // { "$id": true } -> generate unique ID (single-key object)
+    if (keys.length === 1 && "$id" in obj) {
+      return generateUniqueId();
+    }
+  }
+
+  // Recurse into arrays
+  if (Array.isArray(value)) {
+    return value.map((item) => deepResolveValue(item, get));
+  }
+
+  // Recurse into plain objects
+  if (typeof value === "object") {
+    const resolved: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      resolved[key] = deepResolveValue(val, get);
+    }
+    return resolved;
+  }
+
+  return value;
+}
+
+/**
  * Pending confirmation state
  */
 export interface PendingConfirmation {
@@ -73,7 +136,7 @@ export function ActionProvider({
   navigate,
   children,
 }: ActionProviderProps) {
-  const { state, set } = useStateStore();
+  const { state, get, set } = useStateStore();
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
@@ -90,6 +153,84 @@ export function ActionProvider({
   const execute = useCallback(
     async (binding: ActionBinding) => {
       const resolved = resolveAction(binding, state);
+
+      // Built-in: setState updates the StateProvider state directly
+      if (resolved.action === "setState" && resolved.params) {
+        const path = resolved.params.path as string;
+        const value = resolved.params.value;
+        if (path) {
+          set(path, value);
+        }
+        return;
+      }
+
+      // Built-in: pushState appends an item to an array in state.
+      // Supports dynamic values inside the value object via { path: "/..." } syntax.
+      if (resolved.action === "pushState" && resolved.params) {
+        const path = resolved.params.path as string;
+        const rawValue = resolved.params.value;
+        if (path) {
+          const resolvedValue = deepResolveValue(rawValue, get);
+          const arr = (get(path) as unknown[] | undefined) ?? [];
+          set(path, [...arr, resolvedValue]);
+          // Optionally clear a path after pushing (e.g. clear the input)
+          const clearPath = resolved.params.clearPath as string | undefined;
+          if (clearPath) {
+            set(clearPath, "");
+          }
+        }
+        return;
+      }
+
+      // Built-in: removeState removes an item from an array in state by index.
+      if (resolved.action === "removeState" && resolved.params) {
+        const path = resolved.params.path as string;
+        const index = resolved.params.index as number;
+        if (path !== undefined && index !== undefined) {
+          const arr = (get(path) as unknown[] | undefined) ?? [];
+          set(
+            path,
+            arr.filter((_, i) => i !== index),
+          );
+        }
+        return;
+      }
+
+      // Built-in: push navigates to a new screen by updating state.
+      // Pushes the current screen onto /navStack and sets /currentScreen.
+      if (resolved.action === "push" && resolved.params) {
+        const screen = resolved.params.screen as string;
+        if (screen) {
+          const currentScreen = get("/currentScreen") as string | undefined;
+          const navStack = (get("/navStack") as string[] | undefined) ?? [];
+          if (currentScreen) {
+            set("/navStack", [...navStack, currentScreen]);
+          } else {
+            // No current screen set yet -- push a sentinel so pop returns here
+            set("/navStack", [...navStack, ""]);
+          }
+          set("/currentScreen", screen);
+        }
+        return;
+      }
+
+      // Built-in: pop navigates back to the previous screen.
+      // Pops the last entry from /navStack and restores /currentScreen.
+      if (resolved.action === "pop") {
+        const navStack = (get("/navStack") as string[] | undefined) ?? [];
+        if (navStack.length > 0) {
+          const previousScreen = navStack[navStack.length - 1];
+          set("/navStack", navStack.slice(0, -1));
+          if (previousScreen) {
+            set("/currentScreen", previousScreen);
+          } else {
+            // Sentinel empty string = clear currentScreen (return to default)
+            set("/currentScreen", undefined);
+          }
+        }
+        return;
+      }
+
       const handler = handlers[resolved.action];
 
       if (!handler) {
@@ -156,7 +297,7 @@ export function ActionProvider({
         });
       }
     },
-    [state, handlers, set, navigate],
+    [state, handlers, get, set, navigate],
   );
 
   const confirm = useCallback(() => {

@@ -138,6 +138,21 @@ function ElementRenderer({
   // Evaluate visibility (after token rewriting so paths are absolute)
   const isVisible = useIsVisible(effectiveElement.visible);
 
+  // Create emit function that resolves events to action bindings.
+  // Must be called before any early return to satisfy Rules of Hooks.
+  const onBindings = effectiveElement.on;
+  const emit = useCallback(
+    (eventName: string) => {
+      const binding = onBindings?.[eventName];
+      if (!binding) return;
+      const bindings = Array.isArray(binding) ? binding : [binding];
+      for (const b of bindings) {
+        execute(b);
+      }
+    },
+    [onBindings, execute],
+  );
+
   // Don't render if not visible
   if (!isVisible) {
     return null;
@@ -192,20 +207,6 @@ function ElementRenderer({
         />
       );
     })
-  );
-
-  // Create emit function that resolves events to action bindings
-  const onBindings = resolvedElement.on;
-  const emit = useCallback(
-    (eventName: string) => {
-      const binding = onBindings?.[eventName];
-      if (!binding) return;
-      const bindings = Array.isArray(binding) ? binding : [binding];
-      for (const b of bindings) {
-        execute(b);
-      }
-    },
-    [onBindings, execute],
   );
 
   return (
