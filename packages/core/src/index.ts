@@ -130,6 +130,11 @@ export type {
 
 export { defineSchema, defineCatalog } from "./schema";
 
+// User Prompt Builder
+export type { UserPromptOptions } from "./prompt";
+
+export { buildUserPrompt } from "./prompt";
+
 // Legacy Catalog (for backwards compatibility during migration)
 export type {
   ComponentDefinition,
