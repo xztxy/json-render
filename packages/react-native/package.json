@@ -1,12 +1,12 @@
 {
-  "name": "@json-render/react",
+  "name": "@json-render/react-native",
   "version": "0.4.3",
   "license": "Apache-2.0",
-  "description": "React renderer for @json-render/core. JSON becomes React components.",
+  "description": "React Native renderer for @json-render/core. JSON becomes React Native components.",
   "keywords": [
     "json",
     "ui",
-    "react",
+    "react-native",
     "ai",
     "generative-ui",
     "llm",
@@ -17,7 +17,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vercel-labs/json-render.git",
-    "directory": "packages/react"
+    "directory": "packages/react-native"
   },
   "homepage": "https://github.com/vercel-labs/json-render#readme",
   "bugs": {
@@ -39,6 +39,11 @@
       "types": "./dist/schema.d.ts",
       "import": "./dist/schema.mjs",
       "require": "./dist/schema.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog/index.d.ts",
+      "import": "./dist/catalog/index.mjs",
+      "require": "./dist/catalog/index.js"
     }
   },
   "files": [
@@ -47,6 +52,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "check-types": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -55,10 +61,14 @@
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/react": "19.2.3",
+    "react-native": "0.83.1",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "zod": "^4.0.0"
   },
   "peerDependencies": {
-    "react": "^19.2.3"
+    "react": "^19.0.0",
+    "react-native": ">=0.71.0",
+    "zod": "^4.0.0"
   }
 }
