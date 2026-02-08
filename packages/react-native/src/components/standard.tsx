@@ -174,23 +174,11 @@ function SpacerComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function PressableComponent({
-  element,
-  children,
-  onAction,
-}: ComponentRenderProps) {
-  const p = element.props as {
-    action: string;
-    actionParams?: Record<string, unknown>;
-  };
-
+function PressableComponent({ children, emit }: ComponentRenderProps) {
   return (
     <Pressable
-      onPress={() => {
-        if (p.action) {
-          onAction?.({ name: p.action, params: p.actionParams });
-        }
-      }}
+      onPress={() => emit?.("press")}
+      onLongPress={() => emit?.("longPress")}
       style={({ pressed }) => ({
         opacity: pressed ? 0.7 : 1,
       })}
@@ -433,19 +421,20 @@ function BadgeComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function ChipComponent({ element, onAction }: ComponentRenderProps) {
+function ChipComponent({ element, emit }: ComponentRenderProps) {
   const p = element.props as {
     label: string;
     selected?: boolean;
-    onRemove?: string;
     backgroundColor?: string;
   };
 
   const bgColor = p.selected ? "#6366f1" : (p.backgroundColor ?? "#f3f4f6");
   const textColor = p.selected ? "#ffffff" : "#374151";
+  const hasRemove = !!element.on?.remove;
 
   return (
-    <View
+    <Pressable
+      onPress={() => emit?.("press")}
       style={{
         flexDirection: "row",
         alignItems: "center",
@@ -457,17 +446,14 @@ function ChipComponent({ element, onAction }: ComponentRenderProps) {
       }}
     >
       <Text style={{ fontSize: 14, color: textColor }}>{p.label}</Text>
-      {p.onRemove && (
-        <Pressable
-          onPress={() => onAction?.({ name: p.onRemove! })}
-          style={{ marginLeft: 4 }}
-        >
+      {hasRemove && (
+        <Pressable onPress={() => emit?.("remove")} style={{ marginLeft: 4 }}>
           <Text style={{ fontSize: 14, color: textColor, fontWeight: "700" }}>
             x
           </Text>
         </Pressable>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -495,15 +481,13 @@ const buttonSizeStyles: Record<
   lg: { paddingH: 24, paddingV: 14, fontSize: 17 },
 };
 
-function ButtonComponent({ element, onAction }: ComponentRenderProps) {
+function ButtonComponent({ element, emit }: ComponentRenderProps) {
   const p = element.props as {
     label: string;
     variant?: "primary" | "secondary" | "danger" | "outline" | "ghost";
     size?: "sm" | "md" | "lg";
     disabled?: boolean;
     loading?: boolean;
-    action?: string;
-    actionParams?: Record<string, unknown>;
   };
 
   const variant = buttonVariantStyles[p.variant ?? "primary"] ?? {
@@ -520,11 +504,7 @@ function ButtonComponent({ element, onAction }: ComponentRenderProps) {
   return (
     <Pressable
       disabled={disabled}
-      onPress={() => {
-        if (p.action) {
-          onAction?.({ name: p.action, params: p.actionParams });
-        }
-      }}
+      onPress={() => emit?.("press")}
       style={({ pressed }) => ({
         backgroundColor: variant.bg,
         paddingHorizontal: size.paddingH,
@@ -738,12 +718,11 @@ function SliderComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function SearchBarComponent({ element, onAction }: ComponentRenderProps) {
+function SearchBarComponent({ element, emit }: ComponentRenderProps) {
   const p = element.props as {
     placeholder?: string;
     value?: string;
     statePath?: string;
-    action?: string;
   };
 
   return (
@@ -763,11 +742,7 @@ function SearchBarComponent({ element, onAction }: ComponentRenderProps) {
         placeholder={p.placeholder ?? "Search..."}
         value={p.value ?? undefined}
         returnKeyType="search"
-        onSubmitEditing={() => {
-          if (p.action) {
-            onAction?.({ name: p.action });
-          }
-        }}
+        onSubmitEditing={() => emit?.("submit")}
         style={{
           flex: 1,
           paddingVertical: 10,
@@ -888,15 +863,16 @@ function CardComponent({ element, children }: ComponentRenderProps) {
   );
 }
 
-function ListItemComponent({ element, onAction }: ComponentRenderProps) {
+function ListItemComponent({ element, emit }: ComponentRenderProps) {
   const p = element.props as {
     title: string;
     subtitle?: string;
     leading?: string;
     trailing?: string;
     showChevron?: boolean;
-    action?: string;
   };
+
+  const hasPress = !!element.on?.press;
 
   const content = (
     <View
@@ -941,10 +917,10 @@ function ListItemComponent({ element, onAction }: ComponentRenderProps) {
     </View>
   );
 
-  if (p.action) {
+  if (hasPress) {
     return (
       <Pressable
-        onPress={() => onAction?.({ name: p.action! })}
+        onPress={() => emit?.("press")}
         style={({ pressed }) => ({
           opacity: pressed ? 0.7 : 1,
           backgroundColor: pressed ? "#f9fafb" : "transparent",

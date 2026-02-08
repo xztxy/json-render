@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { ActionBinding } from "./actions";
 
 /**
  * Dynamic value - can be a literal or a path reference to state model
@@ -61,6 +62,8 @@ export interface UIElement<
   children?: string[];
   /** Visibility condition */
   visible?: VisibilityCondition;
+  /** Event bindings — maps event names to action bindings */
+  on?: Record<string, ActionBinding | ActionBinding[]>;
 }
 
 /**

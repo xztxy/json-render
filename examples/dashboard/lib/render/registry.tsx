@@ -132,16 +132,11 @@ export const { registry, handlers, executeAction } = defineRegistry(
         </AccordionItem>
       ),
 
-      Button: ({ props, onAction, loading }) => (
+      Button: ({ props, emit, loading }) => (
         <Button
           variant={props.variant ?? "default"}
           disabled={loading || (props.disabled ?? false)}
-          onClick={() =>
-            onAction?.({
-              name: props.action,
-              params: props.actionParams ?? undefined,
-            })
-          }
+          onClick={() => emit?.("press")}
         >
           {loading ? "..." : props.label}
         </Button>
@@ -162,14 +157,11 @@ export const { registry, handlers, executeAction } = defineRegistry(
         );
       },
 
-      Form: ({ props, children, onAction }) => (
+      Form: ({ props, children, emit }) => (
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onAction?.({
-              name: props.submitAction,
-              params: props.submitActionParams ?? undefined,
-            });
+            emit?.("submit");
           }}
           className="flex flex-col gap-4"
         >
@@ -255,26 +247,14 @@ export const { registry, handlers, executeAction } = defineRegistry(
         </Drawer>
       ),
 
-      DropdownMenu: ({ props, onAction }) => (
+      DropdownMenu: ({ props }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">{props.trigger}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {props.items.map((item, i) => (
-              <DropdownMenuItem
-                key={i}
-                onClick={() =>
-                  item.action
-                    ? onAction?.({
-                        name: item.action,
-                        params: item.actionParams ?? undefined,
-                      })
-                    : undefined
-                }
-              >
-                {item.label}
-              </DropdownMenuItem>
+              <DropdownMenuItem key={i}>{item.label}</DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -449,7 +429,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
         </p>
       ),
 
-      Table: ({ props, onAction }) => {
+      Table: ({ props }) => {
         const { state } = useStateStore();
         const path = props.statePath.replace(/\./g, "/");
         const rawData = getByPath(state, path);
@@ -502,12 +482,6 @@ export const { registry, handlers, executeAction } = defineRegistry(
                             key={rowAction.action}
                             variant={rowAction.variant ?? "ghost"}
                             size="sm"
-                            onClick={() =>
-                              onAction?.({
-                                name: rowAction.action,
-                                params: { id: item.id as string },
-                              })
-                            }
                           >
                             {rowAction.label}
                           </Button>

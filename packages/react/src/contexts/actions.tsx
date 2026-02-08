@@ -11,7 +11,7 @@ import React, {
 import {
   resolveAction,
   executeAction,
-  type Action,
+  type ActionBinding,
   type ActionHandler,
   type ActionConfirm,
   type ResolvedAction,
@@ -42,8 +42,8 @@ export interface ActionContextValue {
   loadingActions: Set<string>;
   /** Pending confirmation dialog */
   pendingConfirmation: PendingConfirmation | null;
-  /** Execute an action */
-  execute: (action: Action) => Promise<void>;
+  /** Execute an action binding */
+  execute: (binding: ActionBinding) => Promise<void>;
   /** Confirm the pending action */
   confirm: () => void;
   /** Cancel the pending action */
@@ -88,12 +88,12 @@ export function ActionProvider({
   );
 
   const execute = useCallback(
-    async (action: Action) => {
-      const resolved = resolveAction(action, state);
-      const handler = handlers[resolved.name];
+    async (binding: ActionBinding) => {
+      const resolved = resolveAction(binding, state);
+      const handler = handlers[resolved.action];
 
       if (!handler) {
-        console.warn(`No handler registered for action: ${resolved.name}`);
+        console.warn(`No handler registered for action: ${resolved.action}`);
         return;
       }
 
@@ -113,7 +113,7 @@ export function ActionProvider({
             },
           });
         }).then(async () => {
-          setLoadingActions((prev) => new Set(prev).add(resolved.name));
+          setLoadingActions((prev) => new Set(prev).add(resolved.action));
           try {
             await executeAction({
               action: resolved,
@@ -121,14 +121,14 @@ export function ActionProvider({
               setState: set,
               navigate,
               executeAction: async (name) => {
-                const subAction: Action = { name };
-                await execute(subAction);
+                const subBinding: ActionBinding = { action: name };
+                await execute(subBinding);
               },
             });
           } finally {
             setLoadingActions((prev) => {
               const next = new Set(prev);
-              next.delete(resolved.name);
+              next.delete(resolved.action);
               return next;
             });
           }
@@ -136,7 +136,7 @@ export function ActionProvider({
       }
 
       // Execute immediately
-      setLoadingActions((prev) => new Set(prev).add(resolved.name));
+      setLoadingActions((prev) => new Set(prev).add(resolved.action));
       try {
         await executeAction({
           action: resolved,
@@ -144,14 +144,14 @@ export function ActionProvider({
           setState: set,
           navigate,
           executeAction: async (name) => {
-            const subAction: Action = { name };
-            await execute(subAction);
+            const subBinding: ActionBinding = { action: name };
+            await execute(subBinding);
           },
         });
       } finally {
         setLoadingActions((prev) => {
           const next = new Set(prev);
-          next.delete(resolved.name);
+          next.delete(resolved.action);
           return next;
         });
       }
@@ -205,16 +205,16 @@ export function useActions(): ActionContextValue {
 }
 
 /**
- * Hook to execute an action
+ * Hook to execute an action binding
  */
-export function useAction(action: Action): {
+export function useAction(binding: ActionBinding): {
   execute: () => Promise<void>;
   isLoading: boolean;
 } {
   const { execute, loadingActions } = useActions();
-  const isLoading = loadingActions.has(action.name);
+  const isLoading = loadingActions.has(binding.action);
 
-  const executeAction = useCallback(() => execute(action), [execute, action]);
+  const executeAction = useCallback(() => execute(binding), [execute, binding]);
 
   return { execute: executeAction, isLoading };
 }

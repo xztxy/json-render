@@ -51,21 +51,12 @@ function buildRegistry(
     registry[name] = (renderProps: {
       element: { type: string; props: Record<string, unknown> };
       children?: ReactNode;
-      onAction?: (action: {
-        name: string;
-        params?: Record<string, unknown>;
-      }) => void;
+      emit?: (event: string) => void;
     }) =>
       Component({
         element: renderProps.element,
         children: renderProps.children,
-        onAction: (action) => {
-          const setState = setDataRef.current;
-          const data = dataRef.current;
-          if (setState) {
-            executeAction(action.name, action.params, setState, data);
-          }
-        },
+        emit: renderProps.emit,
         loading,
         state: dataRef.current,
         getValue: (path: string) => {

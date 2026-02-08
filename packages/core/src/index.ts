@@ -56,6 +56,8 @@ export { resolvePropValue, resolveElementProps } from "./props";
 
 // Actions
 export type {
+  ActionBinding,
+  /** @deprecated Use ActionBinding instead */
   Action,
   ActionConfirm,
   ActionOnSuccess,
@@ -67,6 +69,8 @@ export type {
 } from "./actions";
 
 export {
+  ActionBindingSchema,
+  /** @deprecated Use ActionBindingSchema instead */
   ActionSchema,
   ActionConfirmSchema,
   ActionOnSuccessSchema,
@@ -74,6 +78,8 @@ export {
   resolveAction,
   executeAction,
   interpolateString,
+  actionBinding,
+  /** @deprecated Use actionBinding instead */
   action,
 } from "./actions";
 

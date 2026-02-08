@@ -1,10 +1,15 @@
 "use client";
 
-import React, { type ComponentType, type ReactNode, useMemo } from "react";
+import React, {
+  type ComponentType,
+  type ReactNode,
+  useCallback,
+  useMemo,
+} from "react";
 import type {
   UIElement,
   Spec,
-  Action,
+  ActionBinding,
   Catalog,
   SchemaDefinition,
   LegacyCatalog,
@@ -35,8 +40,8 @@ export interface ComponentRenderProps<P = Record<string, unknown>> {
   element: UIElement<string, P>;
   /** Rendered children */
   children?: ReactNode;
-  /** Execute an action */
-  onAction?: (action: Action) => void;
+  /** Emit a named event. The renderer resolves the event to action binding(s) from the element's `on` field. */
+  emit?: (event: string) => void;
   /** Whether the parent is loading */
   loading?: boolean;
 }
@@ -133,8 +138,22 @@ function ElementRenderer({
     );
   });
 
+  // Create emit function that resolves events to action bindings
+  const onBindings = resolvedElement.on;
+  const emit = useCallback(
+    (eventName: string) => {
+      const binding = onBindings?.[eventName];
+      if (!binding) return;
+      const bindings = Array.isArray(binding) ? binding : [binding];
+      for (const b of bindings) {
+        execute(b);
+      }
+    },
+    [onBindings, execute],
+  );
+
   return (
-    <Component element={resolvedElement} onAction={execute} loading={loading}>
+    <Component element={resolvedElement} emit={emit} loading={loading}>
       {children}
     </Component>
   );
@@ -329,13 +348,13 @@ export function defineRegistry<C extends Catalog>(
       registry[name] = ({
         element,
         children,
-        onAction,
+        emit,
         loading,
       }: ComponentRenderProps) => {
         return (componentFn as DefineRegistryComponentFn)({
           props: element.props,
           children,
-          onAction,
+          emit,
           loading,
         });
       };
@@ -390,7 +409,7 @@ export function defineRegistry<C extends Catalog>(
 type DefineRegistryComponentFn = (ctx: {
   props: unknown;
   children?: React.ReactNode;
-  onAction?: (action: Action) => void;
+  emit?: (event: string) => void;
   loading?: boolean;
 }) => React.ReactNode;
 

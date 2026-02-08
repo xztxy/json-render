@@ -29,11 +29,16 @@ export type ActionOnError =
   | { action: string };
 
 /**
- * Rich action definition
+ * Action binding — maps an event to an action invocation.
+ *
+ * Used inside the `on` field of a UIElement:
+ * ```json
+ * { "on": { "press": { "action": "setState", "params": { "path": "/x", "value": 1 } } } }
+ * ```
  */
-export interface Action {
+export interface ActionBinding {
   /** Action name (must be in catalog) */
-  name: string;
+  action: string;
   /** Parameters to pass to the action handler */
   params?: Record<string, DynamicValue>;
   /** Confirmation dialog before execution */
@@ -43,6 +48,11 @@ export interface Action {
   /** Handler after failed execution */
   onError?: ActionOnError;
 }
+
+/**
+ * @deprecated Use ActionBinding instead
+ */
+export type Action = ActionBinding;
 
 /**
  * Schema for action confirmation
@@ -73,15 +83,20 @@ export const ActionOnErrorSchema = z.union([
 ]);
 
 /**
- * Full action schema
+ * Full action binding schema
  */
-export const ActionSchema = z.object({
-  name: z.string(),
+export const ActionBindingSchema = z.object({
+  action: z.string(),
   params: z.record(z.string(), DynamicValueSchema).optional(),
   confirm: ActionConfirmSchema.optional(),
   onSuccess: ActionOnSuccessSchema.optional(),
   onError: ActionOnErrorSchema.optional(),
 });
+
+/**
+ * @deprecated Use ActionBindingSchema instead
+ */
+export const ActionSchema = ActionBindingSchema;
 
 /**
  * Action handler function signature
@@ -105,7 +120,7 @@ export interface ActionDefinition<TParams = Record<string, unknown>> {
  * Resolved action with all dynamic values resolved
  */
 export interface ResolvedAction {
-  name: string;
+  action: string;
   params: Record<string, unknown>;
   confirm?: ActionConfirm;
   onSuccess?: ActionOnSuccess;
@@ -113,22 +128,22 @@ export interface ResolvedAction {
 }
 
 /**
- * Resolve all dynamic values in an action
+ * Resolve all dynamic values in an action binding
  */
 export function resolveAction(
-  action: Action,
+  binding: ActionBinding,
   stateModel: StateModel,
 ): ResolvedAction {
   const resolvedParams: Record<string, unknown> = {};
 
-  if (action.params) {
-    for (const [key, value] of Object.entries(action.params)) {
+  if (binding.params) {
+    for (const [key, value] of Object.entries(binding.params)) {
       resolvedParams[key] = resolveDynamicValue(value, stateModel);
     }
   }
 
   // Interpolate confirmation message if present
-  let confirm = action.confirm;
+  let confirm = binding.confirm;
   if (confirm) {
     confirm = {
       ...confirm,
@@ -138,11 +153,11 @@ export function resolveAction(
   }
 
   return {
-    name: action.name,
+    action: binding.action,
     params: resolvedParams,
     confirm,
-    onSuccess: action.onSuccess,
-    onError: action.onError,
+    onSuccess: binding.onSuccess,
+    onError: binding.onError,
   };
 }
 
@@ -220,34 +235,42 @@ export async function executeAction(
 }
 
 /**
- * Helper to create actions
+ * Helper to create action bindings
  */
-export const action = {
-  /** Create a simple action */
-  simple: (name: string, params?: Record<string, DynamicValue>): Action => ({
-    name,
+export const actionBinding = {
+  /** Create a simple action binding */
+  simple: (
+    actionName: string,
+    params?: Record<string, DynamicValue>,
+  ): ActionBinding => ({
+    action: actionName,
     params,
   }),
 
-  /** Create an action with confirmation */
+  /** Create an action binding with confirmation */
   withConfirm: (
-    name: string,
+    actionName: string,
     confirm: ActionConfirm,
     params?: Record<string, DynamicValue>,
-  ): Action => ({
-    name,
+  ): ActionBinding => ({
+    action: actionName,
     params,
     confirm,
   }),
 
-  /** Create an action with success handler */
+  /** Create an action binding with success handler */
   withSuccess: (
-    name: string,
+    actionName: string,
     onSuccess: ActionOnSuccess,
     params?: Record<string, DynamicValue>,
-  ): Action => ({
-    name,
+  ): ActionBinding => ({
+    action: actionName,
     params,
     onSuccess,
   }),
 };
+
+/**
+ * @deprecated Use actionBinding instead
+ */
+export const action = actionBinding;

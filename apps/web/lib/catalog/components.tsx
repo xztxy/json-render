@@ -37,10 +37,7 @@ export type InferProps<K extends keyof CatalogComponents> =
 export interface ComponentContext<K extends keyof CatalogComponents> {
   props: InferProps<K>;
   children?: ReactNode;
-  onAction?: (action: {
-    name: string;
-    params?: Record<string, unknown>;
-  }) => void;
+  emit?: (event: string) => void;
   loading?: boolean;
 }
 
@@ -253,7 +250,7 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
   },
 
   // Actions
-  Button: ({ props, onAction, loading }) => {
+  Button: ({ props, emit, loading }) => {
     const variant =
       props.variant === "danger"
         ? "destructive"
@@ -265,28 +262,18 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
       <Button
         variant={variant}
         disabled={loading}
-        onClick={() =>
-          onAction?.({
-            name: props.action ?? "buttonClick",
-            params: props.actionParams ?? { message: props.label },
-          })
-        }
+        onClick={() => emit?.("press")}
       >
         {loading ? "..." : props.label}
       </Button>
     );
   },
 
-  Link: ({ props, onAction }) => (
+  Link: ({ props, emit }) => (
     <Button
       variant="link"
       className="h-auto p-0"
-      onClick={() =>
-        onAction?.({
-          name: "linkClick",
-          params: { href: props.href },
-        })
-      }
+      onClick={() => emit?.("press")}
     >
       {props.label}
     </Button>

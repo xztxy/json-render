@@ -121,13 +121,11 @@ export const standardComponentDefinitions = {
   },
 
   Pressable: {
-    props: z.object({
-      action: z.string(),
-      actionParams: z.record(z.string(), z.unknown()).nullable(),
-    }),
+    props: z.object({}),
+    events: ["press", "longPress"],
     slots: ["default"],
     description:
-      "Touchable wrapper that triggers an action on press. Wrap any element to make it tappable. Use with action 'setState' and actionParams { path, value } to update state for visibility-driven UIs like tabs.",
+      "Touchable wrapper that triggers events on press. Wrap any element to make it tappable. Bind on.press to setState to update state for visibility-driven UIs like tabs.",
   },
 
   Divider: {
@@ -223,12 +221,12 @@ export const standardComponentDefinitions = {
     props: z.object({
       label: z.string(),
       selected: z.boolean().nullable(),
-      onRemove: z.string().nullable(),
       backgroundColor: z.string().nullable(),
     }),
+    events: ["press", "remove"],
     slots: [],
     description:
-      "Removable tag or filter chip. Use for multi-select filters and tags.",
+      "Tag or filter chip. Bind on.remove for removable chips, on.press for selectable chips.",
   },
 
   // ==========================================================================
@@ -244,12 +242,11 @@ export const standardComponentDefinitions = {
       size: z.enum(["sm", "md", "lg"]).nullable(),
       disabled: z.boolean().nullable(),
       loading: z.boolean().nullable(),
-      action: z.string().nullable(),
-      actionParams: z.record(z.string(), z.unknown()).nullable(),
     }),
+    events: ["press"],
     slots: [],
     description:
-      "Pressable button with label. Set variant for styling. Set action and actionParams for the handler to call on press (e.g. action:'setState', actionParams:{path:'/key', value:'val'}).",
+      "Pressable button with label. Set variant for styling. Bind on.press for the handler to call on press.",
   },
 
   TextInput: {
@@ -266,6 +263,7 @@ export const standardComponentDefinitions = {
       label: z.string().nullable(),
       flex: z.number().nullable(),
     }),
+    events: ["submit", "focus", "blur"],
     slots: [],
     description:
       "Text input field. Use statePath to bind to the state model for two-way binding. The value typed by the user is stored at the statePath.",
@@ -278,6 +276,7 @@ export const standardComponentDefinitions = {
       label: z.string().nullable(),
       disabled: z.boolean().nullable(),
     }),
+    events: ["change"],
     slots: [],
     description: "Toggle switch. Use statePath to bind to the state model.",
   },
@@ -289,6 +288,7 @@ export const standardComponentDefinitions = {
       label: z.string().nullable(),
       disabled: z.boolean().nullable(),
     }),
+    events: ["change"],
     slots: [],
     description:
       "Checkbox for boolean selections. Use statePath to bind to the state model.",
@@ -314,11 +314,11 @@ export const standardComponentDefinitions = {
       placeholder: z.string().nullable(),
       value: z.string().nullable(),
       statePath: z.string().nullable(),
-      action: z.string().nullable(),
     }),
+    events: ["submit"],
     slots: [],
     description:
-      "Search input with icon. Set action to trigger search on submit.",
+      "Search input with icon. Bind on.submit to trigger search on submit.",
   },
 
   // ==========================================================================
@@ -370,11 +370,11 @@ export const standardComponentDefinitions = {
       leading: z.string().nullable(),
       trailing: z.string().nullable(),
       showChevron: z.boolean().nullable(),
-      action: z.string().nullable(),
     }),
+    events: ["press"],
     slots: [],
     description:
-      "List row with title, subtitle, and optional leading/trailing text. Set action for press handler.",
+      "List row with title, subtitle, and optional leading/trailing text. Bind on.press for the press handler.",
   },
 
   Modal: {
@@ -494,6 +494,7 @@ export const standardActionDefinitions = {
 export type ComponentDefinition = {
   props: z.ZodType;
   slots: string[];
+  events?: string[];
   description: string;
 };
 

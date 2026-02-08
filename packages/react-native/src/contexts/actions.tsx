@@ -10,7 +10,7 @@ import { Modal, View, Text, Pressable, StyleSheet } from "react-native";
 import {
   resolveAction,
   executeAction,
-  type Action,
+  type ActionBinding,
   type ActionHandler,
   type ActionConfirm,
   type ResolvedAction,
@@ -104,8 +104,8 @@ export interface ActionContextValue {
   loadingActions: Set<string>;
   /** Pending confirmation dialog */
   pendingConfirmation: PendingConfirmation | null;
-  /** Execute an action */
-  execute: (action: Action) => Promise<void>;
+  /** Execute an action binding */
+  execute: (binding: ActionBinding) => Promise<void>;
   /** Confirm the pending action */
   confirm: () => void;
   /** Cancel the pending action */
@@ -150,11 +150,11 @@ export function ActionProvider({
   );
 
   const execute = useCallback(
-    async (action: Action) => {
-      const resolved = resolveAction(action, state);
+    async (binding: ActionBinding) => {
+      const resolved = resolveAction(binding, state);
 
       // Built-in: setState updates the StateProvider state directly
-      if (resolved.name === "setState" && resolved.params) {
+      if (resolved.action === "setState" && resolved.params) {
         const path = resolved.params.path as string;
         const value = resolved.params.value;
         if (path) {
@@ -165,7 +165,7 @@ export function ActionProvider({
 
       // Built-in: pushState appends an item to an array in state.
       // Supports dynamic values inside the value object via { path: "/..." } syntax.
-      if (resolved.name === "pushState" && resolved.params) {
+      if (resolved.action === "pushState" && resolved.params) {
         const path = resolved.params.path as string;
         const rawValue = resolved.params.value;
         if (path) {
@@ -182,7 +182,7 @@ export function ActionProvider({
       }
 
       // Built-in: removeState removes an item from an array in state by index.
-      if (resolved.name === "removeState" && resolved.params) {
+      if (resolved.action === "removeState" && resolved.params) {
         const path = resolved.params.path as string;
         const index = resolved.params.index as number;
         if (path !== undefined && index !== undefined) {
@@ -197,7 +197,7 @@ export function ActionProvider({
 
       // Built-in: push navigates to a new screen by updating state.
       // Pushes the current screen onto /navStack and sets /currentScreen.
-      if (resolved.name === "push" && resolved.params) {
+      if (resolved.action === "push" && resolved.params) {
         const screen = resolved.params.screen as string;
         if (screen) {
           const currentScreen = get("/currentScreen") as string | undefined;
@@ -205,7 +205,7 @@ export function ActionProvider({
           if (currentScreen) {
             set("/navStack", [...navStack, currentScreen]);
           } else {
-            // No current screen set yet — push a sentinel so pop returns here
+            // No current screen set yet -- push a sentinel so pop returns here
             set("/navStack", [...navStack, ""]);
           }
           set("/currentScreen", screen);
@@ -215,7 +215,7 @@ export function ActionProvider({
 
       // Built-in: pop navigates back to the previous screen.
       // Pops the last entry from /navStack and restores /currentScreen.
-      if (resolved.name === "pop") {
+      if (resolved.action === "pop") {
         const navStack = (get("/navStack") as string[] | undefined) ?? [];
         if (navStack.length > 0) {
           const previousScreen = navStack[navStack.length - 1];
@@ -230,10 +230,10 @@ export function ActionProvider({
         return;
       }
 
-      const handler = handlers[resolved.name];
+      const handler = handlers[resolved.action];
 
       if (!handler) {
-        console.warn(`No handler registered for action: ${resolved.name}`);
+        console.warn(`No handler registered for action: ${resolved.action}`);
         return;
       }
 
@@ -253,7 +253,7 @@ export function ActionProvider({
             },
           });
         }).then(async () => {
-          setLoadingActions((prev) => new Set(prev).add(resolved.name));
+          setLoadingActions((prev) => new Set(prev).add(resolved.action));
           try {
             await executeAction({
               action: resolved,
@@ -261,14 +261,14 @@ export function ActionProvider({
               setState: set,
               navigate,
               executeAction: async (name) => {
-                const subAction: Action = { name };
-                await execute(subAction);
+                const subBinding: ActionBinding = { action: name };
+                await execute(subBinding);
               },
             });
           } finally {
             setLoadingActions((prev) => {
               const next = new Set(prev);
-              next.delete(resolved.name);
+              next.delete(resolved.action);
               return next;
             });
           }
@@ -276,7 +276,7 @@ export function ActionProvider({
       }
 
       // Execute immediately
-      setLoadingActions((prev) => new Set(prev).add(resolved.name));
+      setLoadingActions((prev) => new Set(prev).add(resolved.action));
       try {
         await executeAction({
           action: resolved,
@@ -284,14 +284,14 @@ export function ActionProvider({
           setState: set,
           navigate,
           executeAction: async (name) => {
-            const subAction: Action = { name };
-            await execute(subAction);
+            const subBinding: ActionBinding = { action: name };
+            await execute(subBinding);
           },
         });
       } finally {
         setLoadingActions((prev) => {
           const next = new Set(prev);
-          next.delete(resolved.name);
+          next.delete(resolved.action);
           return next;
         });
       }
@@ -345,16 +345,16 @@ export function useActions(): ActionContextValue {
 }
 
 /**
- * Hook to execute an action
+ * Hook to execute an action binding
  */
-export function useAction(action: Action): {
+export function useAction(binding: ActionBinding): {
   execute: () => Promise<void>;
   isLoading: boolean;
 } {
   const { execute, loadingActions } = useActions();
-  const isLoading = loadingActions.has(action.name);
+  const isLoading = loadingActions.has(binding.action);
 
-  const executeAction = useCallback(() => execute(action), [execute, action]);
+  const executeAction = useCallback(() => execute(binding), [execute, binding]);
 
   return { execute: executeAction, isLoading };
 }

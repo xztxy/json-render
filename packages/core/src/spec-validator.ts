@@ -26,7 +26,8 @@ export interface SpecIssue {
     | "missing_child"
     | "visible_in_props"
     | "orphaned_element"
-    | "empty_spec";
+    | "empty_spec"
+    | "on_in_props";
 }
 
 /**
@@ -129,6 +130,16 @@ export function validateSpec(
         code: "visible_in_props",
       });
     }
+
+    // 3c. `on` inside props (should be a top-level field)
+    if (props && "on" in props && props.on !== undefined) {
+      issues.push({
+        severity: "error",
+        message: `Element "${key}" has "on" inside "props". It should be a top-level field on the element (sibling of type/props/children).`,
+        elementKey: key,
+        code: "on_in_props",
+      });
+    }
   }
 
   // 4. Orphaned elements (optional)
@@ -183,19 +194,32 @@ export function autoFixSpec(spec: Spec): {
 
   for (const [key, element] of Object.entries(spec.elements)) {
     const props = element.props as Record<string, unknown> | undefined;
+    let fixed = element;
 
     if (props && "visible" in props && props.visible !== undefined) {
       // Move visible from props to element level
-      const { visible, ...restProps } = props;
-      fixedElements[key] = {
-        ...element,
+      const { visible, ...restProps } = fixed.props as Record<string, unknown>;
+      fixed = {
+        ...fixed,
         props: restProps,
         visible: visible as UIElement["visible"],
       };
       fixes.push(`Moved "visible" from props to element level on "${key}".`);
-    } else {
-      fixedElements[key] = element;
     }
+
+    const fixedProps = fixed.props as Record<string, unknown> | undefined;
+    if (fixedProps && "on" in fixedProps && fixedProps.on !== undefined) {
+      // Move on from props to element level
+      const { on, ...restProps } = fixedProps;
+      fixed = {
+        ...fixed,
+        props: restProps,
+        on: on as UIElement["on"],
+      };
+      fixes.push(`Moved "on" from props to element level on "${key}".`);
+    }
+
+    fixedElements[key] = fixed;
   }
 
   return {

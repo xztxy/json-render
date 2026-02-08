@@ -28,18 +28,10 @@ export type StateModel = Record<string, unknown>;
 // =============================================================================
 
 /**
- * Action trigger for component callbacks
- */
-export interface ActionTrigger {
-  name: string;
-  params?: Record<string, unknown>;
-}
-
-/**
  * Context passed to component render functions
  * @example
  * const Button: ComponentFn<typeof catalog, 'Button'> = (ctx) => {
- *   return <button onClick={() => ctx.onAction?.({ name: ctx.props.action })}>{ctx.props.label}</button>
+ *   return <button onClick={() => ctx.emit?.("press")}>{ctx.props.label}</button>
  * }
  */
 export interface ComponentContext<
@@ -48,15 +40,16 @@ export interface ComponentContext<
 > {
   props: InferComponentProps<C, K>;
   children?: ReactNode;
-  onAction?: (action: ActionTrigger) => void;
+  /** Emit a named event. The renderer resolves the event to an action binding from the element's `on` field. */
+  emit?: (event: string) => void;
   loading?: boolean;
 }
 
 /**
  * Component render function type for React
  * @example
- * const Button: ComponentFn<typeof catalog, 'Button'> = ({ props, onAction }) => (
- *   <button onClick={() => onAction?.({ name: props.action })}>{props.label}</button>
+ * const Button: ComponentFn<typeof catalog, 'Button'> = ({ props, emit }) => (
+ *   <button onClick={() => emit?.("press")}>{props.label}</button>
  * );
  */
 export type ComponentFn<

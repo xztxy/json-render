@@ -54,7 +54,6 @@ export type { Spec } from "@json-render/core";
 export type {
   SetState,
   StateModel,
-  ActionTrigger,
   ComponentContext,
   ComponentFn,
   Components,

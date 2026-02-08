@@ -31,10 +31,11 @@ function buildRegistry(loading?: boolean): ComponentRegistry {
     registry[name] = (renderProps: {
       element: { props: Record<string, unknown>; type: string };
       children?: ReactNode;
+      emit?: (event: string) => void;
     }) => (
       <Component
         props={renderProps.element.props as never}
-        onAction={(a) => executeAction(a.name, a.params)}
+        emit={renderProps.emit}
         loading={loading}
       >
         {renderProps.children}

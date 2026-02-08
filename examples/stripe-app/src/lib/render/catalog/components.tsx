@@ -64,6 +64,9 @@ type ExtendedRenderProps<P = Record<string, unknown>> =
     getValue?: (path: string) => unknown;
   };
 
+// NOTE: All interactive components use `emit` to fire named events.
+// The renderer resolves events to action bindings from the element's `on` field.
+
 // =========================================================================
 // Layout Components
 // =========================================================================
@@ -326,16 +329,10 @@ export const Banner: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
 // =========================================================================
 export const List: FunctionComponent<ExtendedRenderProps> = ({
   children,
-  onAction,
+  emit,
 }) => {
   return (
-    <UIList
-      onAction={
-        onAction
-          ? (id) => onAction({ name: "listItemAction", params: { id } })
-          : undefined
-      }
-    >
+    <UIList onAction={emit ? (id) => emit("select") : undefined}>
       {children}
     </UIList>
   );
@@ -396,7 +393,7 @@ export const TaskList: FunctionComponent<ExtendedRenderProps> = ({
 
 export const TaskListItem: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  onAction,
+  emit,
 }) => {
   const {
     title,
@@ -407,11 +404,7 @@ export const TaskListItem: FunctionComponent<ExtendedRenderProps> = ({
     <UITaskListItem
       title={String(title || "")}
       status={status as "not-started" | "in-progress" | "blocked" | "complete"}
-      onPress={
-        action && onAction
-          ? () => onAction({ name: String(action) })
-          : undefined
-      }
+      onPress={action && emit ? () => emit("press") : undefined}
     />
   );
 };
@@ -422,7 +415,7 @@ export const TaskListItem: FunctionComponent<ExtendedRenderProps> = ({
 export const Menu: FunctionComponent<ExtendedRenderProps> = ({
   element,
   children,
-  onAction,
+  emit,
 }) => {
   const { triggerLabel } = element.props as Record<string, unknown>;
   return (
@@ -430,11 +423,7 @@ export const Menu: FunctionComponent<ExtendedRenderProps> = ({
       trigger={
         <UIButton type="secondary">{String(triggerLabel || "Menu")}</UIButton>
       }
-      onAction={
-        onAction
-          ? (id) => onAction({ name: "menuAction", params: { id } })
-          : undefined
-      }
+      onAction={emit ? (id) => emit("select") : undefined}
     >
       {children}
     </UIMenu>
@@ -443,7 +432,7 @@ export const Menu: FunctionComponent<ExtendedRenderProps> = ({
 
 export const MenuItem: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  onAction,
+  emit,
 }) => {
   const { label, id, disabled, action } = element.props as Record<
     string,
@@ -453,11 +442,7 @@ export const MenuItem: FunctionComponent<ExtendedRenderProps> = ({
     <UIMenuItem
       id={String(id || "")}
       disabled={Boolean(disabled) || undefined}
-      onAction={
-        action && onAction
-          ? () => onAction({ name: String(action) })
-          : undefined
-      }
+      onAction={action && emit ? () => emit("select") : undefined}
     >
       {String(label || "")}
     </UIMenuItem>
@@ -675,7 +660,7 @@ export const DateField: FunctionComponent<ExtendedRenderProps> = ({
 // =========================================================================
 export const Button: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  onAction,
+  emit,
 }) => {
   const {
     label,
@@ -695,15 +680,7 @@ export const Button: FunctionComponent<ExtendedRenderProps> = ({
       disabled={Boolean(disabled) || undefined}
       pending={Boolean(pending) || undefined}
       href={href ? String(href) : undefined}
-      onPress={
-        action && onAction
-          ? () =>
-              onAction({
-                name: String(action),
-                params: actionParams as Record<string, unknown>,
-              })
-          : undefined
-      }
+      onPress={action && emit ? () => emit("press") : undefined}
     >
       {String(label || "")}
     </UIButton>
@@ -917,7 +894,7 @@ export const DataTable: FunctionComponent<ExtendedRenderProps> = ({
 // =========================================================================
 export const CustomerCard: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  onAction,
+  emit,
 }) => {
   const {
     name,
@@ -945,17 +922,8 @@ export const CustomerCard: FunctionComponent<ExtendedRenderProps> = ({
         </UIBadge>
       </Box>
       <Box css={{ color: "secondary" }}>{String(email || "")}</Box>
-      {customerId && onAction && (
-        <UIButton
-          type="secondary"
-          size="small"
-          onPress={() =>
-            onAction({
-              name: "viewCustomer",
-              params: { customerId: String(customerId) },
-            })
-          }
-        >
+      {customerId && emit && (
+        <UIButton type="secondary" size="small" onPress={() => emit("press")}>
           View Details
         </UIButton>
       )}
@@ -965,7 +933,7 @@ export const CustomerCard: FunctionComponent<ExtendedRenderProps> = ({
 
 export const PaymentCard: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  onAction,
+  emit,
 }) => {
   const {
     amount,
@@ -1007,29 +975,15 @@ export const PaymentCard: FunctionComponent<ExtendedRenderProps> = ({
       {description && (
         <Box css={{ color: "secondary" }}>{String(description)}</Box>
       )}
-      {paymentId && onAction && (
+      {paymentId && emit && (
         <Box css={{ stack: "x", gap: "small" }}>
-          <UIButton
-            type="secondary"
-            size="small"
-            onPress={() =>
-              onAction({
-                name: "viewPayment",
-                params: { paymentId: String(paymentId) },
-              })
-            }
-          >
+          <UIButton type="secondary" size="small" onPress={() => emit("press")}>
             View
           </UIButton>
           <UIButton
             type="destructive"
             size="small"
-            onPress={() =>
-              onAction({
-                name: "refundPayment",
-                params: { paymentId: String(paymentId) },
-              })
-            }
+            onPress={() => emit("press")}
           >
             Refund
           </UIButton>
@@ -1096,7 +1050,7 @@ export const SubscriptionCard: FunctionComponent<ExtendedRenderProps> = ({
 
 export const InvoiceCard: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  onAction,
+  emit,
 }) => {
   const {
     invoiceNumber,
@@ -1147,17 +1101,8 @@ export const InvoiceCard: FunctionComponent<ExtendedRenderProps> = ({
           Due: {String(dueDate)}
         </Box>
       )}
-      {status === "open" && onAction && (
-        <UIButton
-          type="primary"
-          size="small"
-          onPress={() =>
-            onAction({
-              name: "sendInvoice",
-              params: { invoiceId: String(invoiceNumber) },
-            })
-          }
-        >
+      {status === "open" && emit && (
+        <UIButton type="primary" size="small" onPress={() => emit("press")}>
           Send Invoice
         </UIButton>
       )}
@@ -1303,7 +1248,7 @@ export const BalanceCard: FunctionComponent<ExtendedRenderProps> = ({
 // =========================================================================
 export const Chip: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  onAction,
+  emit,
 }) => {
   const { label, value, removable, action } = element.props as Record<
     string,
@@ -1313,11 +1258,7 @@ export const Chip: FunctionComponent<ExtendedRenderProps> = ({
     <UIChip
       label={String(label || "")}
       value={value ? String(value) : undefined}
-      onClose={
-        removable && action && onAction
-          ? () => onAction({ name: String(action) })
-          : undefined
-      }
+      onClose={removable && action && emit ? () => emit("remove") : undefined}
     />
   );
 };

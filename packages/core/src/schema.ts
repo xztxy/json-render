@@ -593,7 +593,10 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     'Values inside pushState can contain { "path": "/statePath" } references to read current state (e.g. the text from an input field).',
   );
   lines.push(
-    'Use "$id" inside a pushState value to auto-generate a unique ID. Example: { path: "/todos", value: { id: "$id", title: { path: "/newTodoText" }, completed: false }, clearPath: "/newTodoText" }.',
+    'Use "$id" inside a pushState value to auto-generate a unique ID.',
+  );
+  lines.push(
+    'Example: on: { "press": { "action": "pushState", "params": { "path": "/todos", "value": { "id": "$id", "title": { "path": "/newTodoText" }, "completed": false }, "clearPath": "/newTodoText" } } }',
   );
   lines.push(
     'Use action "removeState" to remove items from arrays by index. Params: { path: "/arrayPath", index: N }. Inside a Repeat, use "$index" for the current item index.',
@@ -611,7 +614,12 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   const components = (catalog.data as Record<string, unknown>).components as
     | Record<
         string,
-        { props?: z.ZodType; description?: string; slots?: string[] }
+        {
+          props?: z.ZodType;
+          description?: string;
+          slots?: string[];
+          events?: string[];
+        }
       >
     | undefined;
 
@@ -623,8 +631,12 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
       const propsStr = def.props ? formatZodType(def.props) : "{}";
       const hasChildren = def.slots && def.slots.length > 0;
       const childrenStr = hasChildren ? " [accepts children]" : "";
+      const eventsStr =
+        def.events && def.events.length > 0
+          ? ` [events: ${def.events.join(", ")}]`
+          : "";
       const descStr = def.description ? ` - ${def.description}` : "";
-      lines.push(`- ${name}: ${propsStr}${descStr}${childrenStr}`);
+      lines.push(`- ${name}: ${propsStr}${descStr}${childrenStr}${eventsStr}`);
     }
     lines.push("");
   }
@@ -642,6 +654,28 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     }
     lines.push("");
   }
+
+  // Events section
+  lines.push("EVENTS (the `on` field):");
+  lines.push(
+    "Elements can have an optional `on` field to bind events to actions. The `on` field is a top-level field on the element (sibling of type/props/children), NOT inside props.",
+  );
+  lines.push(
+    'Each key in `on` is an event name (from the component\'s supported events), and the value is an action binding: `{ "action": "<actionName>", "params": { ... } }`.',
+  );
+  lines.push("");
+  lines.push("Example:");
+  lines.push(
+    '  {"type":"Button","props":{"label":"Save"},"on":{"press":{"action":"setState","params":{"path":"/saved","value":true}}},"children":[]}',
+  );
+  lines.push("");
+  lines.push(
+    'Action params can use dynamic path references to read from state: { "path": "/statePath" }.',
+  );
+  lines.push(
+    "IMPORTANT: Do NOT put action/actionParams inside props. Always use the `on` field for event bindings.",
+  );
+  lines.push("");
 
   // Visibility conditions
   lines.push("VISIBILITY CONDITIONS:");
@@ -664,10 +698,10 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push("- `true` / `false` - always visible/hidden");
   lines.push("");
   lines.push(
-    "Use the Pressable component with action 'setState' to update state and drive visibility.",
+    "Use the Pressable component with on.press bound to setState to update state and drive visibility.",
   );
   lines.push(
-    'Example: A Pressable with actionParams { "path": "/activeTab", "value": "home" } sets state, then a container with visible: { "eq": [{ "path": "/activeTab" }, "home"] } shows only when that tab is active.',
+    'Example: A Pressable with on: { "press": { "action": "setState", "params": { "path": "/activeTab", "value": "home" } } } sets state, then a container with visible: { "eq": [{ "path": "/activeTab" }, "home"] } shows only when that tab is active.',
   );
   lines.push("");
 
