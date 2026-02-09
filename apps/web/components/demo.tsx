@@ -1025,7 +1025,13 @@ Open [http://localhost:3000](http://localhost:3000) to view.
     setMode("interactive");
     setPhase("complete");
     setUserPrompt(prompt);
-    setTimeout(() => inputRef.current?.focus(), 0);
+    setTimeout(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(prompt.length, prompt.length);
+      }
+    }, 0);
   }, []);
 
   return (
