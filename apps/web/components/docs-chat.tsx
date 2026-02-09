@@ -12,22 +12,40 @@ export function DocsChat() {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, setMessages } = useChat({ transport });
 
   const isLoading = status === "streaming" || status === "submitted";
 
-  // Auto-open when there are messages
+  // Auto-open when new messages arrive
+  const prevMessageCount = useRef(0);
   useEffect(() => {
-    if (messages.length > 0 && !open) {
+    if (messages.length > prevMessageCount.current) {
       setOpen(true);
     }
-  }, [messages.length, open]);
+    prevMessageCount.current = messages.length;
+  }, [messages.length]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Close message area when clicking outside
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +57,7 @@ export function DocsChat() {
   const handleClear = () => {
     setMessages([]);
     setOpen(false);
+    inputRef.current?.focus();
   };
 
   const getTextFromParts = (
@@ -54,11 +73,14 @@ export function DocsChat() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-      <div className="max-w-2xl mx-auto px-4 pb-4 pointer-events-auto">
+      <div
+        ref={containerRef}
+        className="max-w-2xl mx-auto px-4 pb-4 [&>*]:pointer-events-auto"
+      >
         {/* Messages panel */}
         {open && messages.length > 0 && (
-          <div className="mb-2 bg-background border border-border rounded-lg shadow-lg max-h-[60vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-border">
+          <div className="mb-2 bg-background border border-border rounded-lg shadow-lg max-h-[60vh] flex flex-col">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0">
               <span className="text-xs font-medium text-muted-foreground">
                 Docs Assistant
               </span>
@@ -70,27 +92,18 @@ export function DocsChat() {
                 Clear
               </button>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 overflow-y-auto">
               {messages.map((message) => {
                 const text = getTextFromParts(message.parts);
                 if (!text) return null;
                 return (
                   <div key={message.id}>
-                    <div
-                      className={`text-xs font-medium mb-1 ${
-                        message.role === "user"
-                          ? "text-foreground"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {message.role === "user" ? "You" : "Assistant"}
-                    </div>
                     {message.role === "assistant" ? (
                       <div className="text-sm text-foreground/90 leading-relaxed prose prose-sm dark:prose-invert max-w-none">
                         <Streamdown>{text}</Streamdown>
                       </div>
                     ) : (
-                      <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                      <div className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                         {text}
                       </div>
                     )}
@@ -100,13 +113,8 @@ export function DocsChat() {
               {isLoading &&
                 messages.length > 0 &&
                 messages[messages.length - 1]?.role === "user" && (
-                  <div>
-                    <div className="text-xs font-medium mb-1 text-muted-foreground">
-                      Assistant
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Searching docs...
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    Searching docs...
                   </div>
                 )}
               <div ref={messagesEndRef} />
@@ -117,35 +125,30 @@ export function DocsChat() {
         {/* Input bar */}
         <form
           onSubmit={handleSubmit}
-          className="flex items-center gap-2 bg-background border border-border rounded-lg shadow-lg px-4 py-3"
+          onClick={() => inputRef.current?.focus()}
+          className="flex items-center gap-2 bg-background border border-border rounded-lg shadow-lg px-4 py-3 cursor-text"
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-muted-foreground shrink-0"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about the docs..."
-            disabled={isLoading}
+            onFocus={() => {
+              if (messages.length > 0) setOpen(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setOpen(false);
+                inputRef.current?.blur();
+              }
+            }}
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+            className="bg-primary text-primary-foreground rounded-md p-1 hover:bg-primary/90 transition-colors disabled:opacity-30"
             aria-label="Send message"
           >
             <svg
@@ -158,8 +161,8 @@ export function DocsChat() {
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              <line x1="12" y1="19" x2="12" y2="5" />
+              <polyline points="5 12 12 5 19 12" />
             </svg>
           </button>
         </form>

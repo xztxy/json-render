@@ -22,7 +22,7 @@ When answering questions:
 - Always base your answers on the actual documentation content
 - Be concise and accurate
 - If the docs don't cover a topic, say so honestly
-- Reference which documentation page(s) you found the answer in`;
+- Do NOT include source references or file paths in your response`;
 
 async function loadDocsFiles(): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
