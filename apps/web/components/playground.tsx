@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { flushSync } from "react-dom";
 import { useUIStream, type TokenUsage } from "@json-render/react";
 import type { Spec } from "@json-render/core";
 import { collectUsedComponents, serializeProps } from "@json-render/codegen";
@@ -313,17 +314,23 @@ ${jsx}
               {EXAMPLE_PROMPTS.map((prompt) => (
                 <button
                   key={prompt}
-                  onClick={() => {
-                    setInputValue(prompt);
-                    setTimeout(() => {
-                      if (inputRef.current) {
-                        inputRef.current.focus();
-                        inputRef.current.setSelectionRange(
-                          prompt.length,
-                          prompt.length,
-                        );
-                      }
-                    }, 0);
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    flushSync(() => setInputValue(prompt));
+                    // chatPane is rendered in both desktop and mobile layouts,
+                    // so inputRef may point to the hidden instance. Find the
+                    // textarea in the same layout container as the clicked button.
+                    const container = (e.currentTarget as HTMLElement).closest(
+                      ".h-full.flex.flex-col",
+                    );
+                    const el =
+                      container?.querySelector<HTMLTextAreaElement>(
+                        "textarea",
+                      ) ?? inputRef.current;
+                    if (el) {
+                      el.focus();
+                      el.setSelectionRange(prompt.length, prompt.length);
+                    }
                   }}
                   className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                 >
@@ -394,6 +401,7 @@ ${jsx}
           placeholder="Describe changes..."
           className="w-full bg-background text-base sm:text-sm resize-none outline-none placeholder:text-muted-foreground/50"
           rows={2}
+          autoFocus
         />
         <div className="flex justify-between items-center mt-2">
           {versions.length > 0 ? (
