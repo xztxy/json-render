@@ -1,27 +1,15 @@
-import Link from "next/link";
-import { Code } from "@/components/code";
+export const metadata = { title: "Quick Start" }
 
-import { PAGE_TITLES } from "@/lib/page-titles";
+# Quick Start
 
-export const metadata = {
-  title: PAGE_TITLES["docs/quick-start"],
-};
+Get up and running with json-render in 5 minutes.
 
-export default function QuickStartPage() {
-  return (
-    <article>
-      <h1 className="text-3xl font-bold mb-4">Quick Start</h1>
-      <p className="text-muted-foreground mb-8">
-        Get up and running with json-render in 5 minutes.
-      </p>
+## 1. Define your catalog
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        1. Define your catalog
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Create a catalog that defines what components AI can use:
-      </p>
-      <Code lang="typescript">{`// lib/catalog.ts
+Create a catalog that defines what components AI can use:
+
+```typescript
+// lib/catalog.ts
 import { defineCatalog } from '@json-render/core';
 import { schema } from '@json-render/react';
 import { z } from 'zod';
@@ -60,19 +48,15 @@ export const catalog = defineCatalog(schema, {
       description: "Navigate to a URL",
     },
   },
-});`}</Code>
+});
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        2. Define your components
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Use <code className="text-foreground">defineRegistry</code> to map
-        catalog types to React components. Each component receives type-safe{" "}
-        <code className="text-foreground">props</code>,{" "}
-        <code className="text-foreground">children</code>, and{" "}
-        <code className="text-foreground">onAction</code>:
-      </p>
-      <Code lang="tsx">{`// lib/registry.tsx
+## 2. Define your components
+
+Use `defineRegistry` to map catalog types to React components. Each component receives type-safe `props`, `children`, and `onAction`:
+
+```tsx
+// lib/registry.tsx
 import { defineRegistry } from '@json-render/react';
 import { catalog } from './catalog';
 
@@ -99,15 +83,15 @@ export const { registry } = defineRegistry(catalog, {
       <p>{props.content}</p>
     ),
   },
-});`}</Code>
+});
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        3. Create an API route
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Set up a streaming API route for AI generation:
-      </p>
-      <Code lang="typescript">{`// app/api/generate/route.ts
+## 3. Create an API route
+
+Set up a streaming API route for AI generation:
+
+```typescript
+// app/api/generate/route.ts
 import { streamText } from 'ai';
 import { catalog } from '@/lib/catalog';
 
@@ -124,14 +108,15 @@ export async function POST(req: Request) {
   });
 
   return result.toTextStreamResponse();
-}`}</Code>
+}
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">4. Render the UI</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Use providers and the <code className="text-foreground">Renderer</code>{" "}
-        with your registry to display AI-generated UI:
-      </p>
-      <Code lang="tsx">{`// app/page.tsx
+## 4. Render the UI
+
+Use providers and the `Renderer` with your registry to display AI-generated UI:
+
+```tsx
+// app/page.tsx
 'use client';
 
 import { Renderer, StateProvider, ActionProvider, VisibilityProvider, useUIStream } from '@json-render/react';
@@ -173,50 +158,12 @@ export default function Page() {
       </VisibilityProvider>
     </StateProvider>
   );
-}`}</Code>
-
-      <h2 className="text-xl font-semibold mt-12 mb-4">Next steps</h2>
-      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2">
-        <li>
-          Learn about{" "}
-          <Link
-            href="/docs/catalog"
-            className="text-foreground hover:underline"
-          >
-            catalogs
-          </Link>{" "}
-          in depth
-        </li>
-        <li>
-          Explore{" "}
-          <Link
-            href="/docs/data-binding"
-            className="text-foreground hover:underline"
-          >
-            data binding
-          </Link>{" "}
-          for dynamic values
-        </li>
-        <li>
-          Add{" "}
-          <Link
-            href="/docs/actions"
-            className="text-foreground hover:underline"
-          >
-            actions
-          </Link>{" "}
-          for interactivity
-        </li>
-        <li>
-          Implement{" "}
-          <Link
-            href="/docs/visibility"
-            className="text-foreground hover:underline"
-          >
-            conditional visibility
-          </Link>
-        </li>
-      </ul>
-    </article>
-  );
 }
+```
+
+## Next steps
+
+- Learn about [catalogs](/docs/catalog) in depth
+- Explore [data binding](/docs/data-binding) for dynamic values
+- Add [actions](/docs/actions) for interactivity
+- Implement [conditional visibility](/docs/visibility)

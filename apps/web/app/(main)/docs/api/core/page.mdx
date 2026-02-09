@@ -1,0 +1,440 @@
+export const metadata = { title: "@json-render/core API" }
+
+# @json-render/core
+
+Core types, schemas, and utilities.
+
+## defineCatalog
+
+Creates a type-safe catalog definition with schema validation.
+
+```typescript
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react';
+
+function defineCatalog<T extends ZodType>(
+  s: T,
+  config: CatalogConfig
+): Catalog
+
+// Use the React schema for standard UI specs
+const catalog = defineCatalog(schema, {
+  components: {...},
+  actions: {...},
+});
+```
+
+### CatalogConfig
+
+```typescript
+interface CatalogConfig {
+  components: Record<string, ComponentDefinition>;
+  actions?: Record<string, ActionDefinition>;
+  functions?: Record<string, FunctionDefinition>;
+}
+
+interface ComponentDefinition {
+  props: ZodObject;         // Use .nullable() for optional props
+  slots?: string[];         // Named slots (e.g., ["default"])
+  description?: string;     // Help AI understand usage
+}
+
+interface ActionDefinition {
+  params?: ZodObject;
+  description?: string;
+}
+
+interface FunctionDefinition {
+  description?: string;
+}
+```
+
+### Catalog Instance
+
+The returned catalog provides methods for AI prompt generation, validation, and schema export:
+
+```typescript
+interface Catalog {
+  // Data
+  readonly data: CatalogConfig;         // The catalog configuration
+  readonly componentNames: string[];    // List of component names
+  readonly actionNames: string[];       // List of action names
+
+  // AI Prompt Generation
+  prompt(options?: PromptOptions): string;
+
+  // Validation
+  validate(spec: unknown): SpecValidationResult;
+  zodSchema(): z.ZodType;               // Get the Zod schema for specs
+
+  // Export
+  jsonSchema(): object;                 // Export as JSON Schema
+}
+
+interface PromptOptions {
+  system?: string;        // Custom system message intro
+  customRules?: string[]; // Additional rules to append
+}
+
+interface SpecValidationResult<T> {
+  success: boolean;
+  data?: T;               // Validated spec (if success)
+  error?: z.ZodError;     // Validation errors (if failed)
+}
+```
+
+### Catalog Methods
+
+```typescript
+// Generate AI system prompt
+const systemPrompt = catalog.prompt({
+  customRules: ["Always use Card as root element"],
+});
+
+// Validate a spec from AI
+const result = catalog.validate(aiOutput);
+if (result.success) {
+  render(result.data);
+} else {
+  console.error(result.error);
+}
+
+// Get Zod schema for custom validation
+const schema = catalog.zodSchema();
+const parsed = schema.safeParse(aiOutput);
+
+// Export as JSON Schema (for structured outputs)
+const jsonSchema = catalog.jsonSchema();
+```
+
+## Schema System
+
+json-render uses a flexible schema system that defines both the AI output format (spec) and what catalogs must provide. Each renderer package provides its own schema (e.g., @json-render/react exports `schema`).
+
+### schema
+
+The schema for flat UI element trees. This is exported from @json-render/react.
+
+```typescript
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react';
+
+// schema defines:
+// - Spec shape: { root: string, elements: Record<string, UIElement> }
+// - Catalog shape: { components: {...}, actions: {...} }
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({ title: z.string() }),
+      slots: ["default"],
+      description: "Container card",
+    },
+  },
+  actions: {
+    submit: {
+      params: z.object({ formId: z.string() }),
+      description: "Submit a form",
+    },
+  },
+});
+```
+
+### defineSchema
+
+Create custom schemas for different output formats (e.g., page-based, block-based).
+
+```typescript
+import { defineSchema } from '@json-render/core';
+
+const mySchema = defineSchema((s) => ({
+  // What the AI outputs (spec)
+  spec: s.object({
+    title: s.string(),
+    blocks: s.array(s.object({
+      type: s.ref("catalog.blocks"),
+      content: s.any(),
+    })),
+  }),
+
+  // What the catalog must provide
+  catalog: s.object({
+    blocks: s.map({
+      props: s.zod(),
+      description: s.string(),
+    }),
+  }),
+}));
+```
+
+### Schema Builder API
+
+The schema builder provides these methods:
+
+```typescript
+// Primitive types
+s.string()           // String value
+s.number()           // Number value
+s.boolean()          // Boolean value
+s.any()              // Any value
+
+// Compound types
+s.array(item)        // Array of items
+s.object({ ... })    // Object with shape
+s.record(value)      // Record/map with value type
+
+// Catalog references (for type safety)
+s.ref("catalog.components")      // Reference to catalog key (becomes enum)
+s.propsOf("catalog.components")  // Props schema from catalog entry
+
+// Catalog definitions
+s.map({ props: s.zod(), ... })   // Map of named entries with shared shape
+s.zod()                          // Placeholder for user-provided Zod schema
+
+// Modifiers
+s.optional()         // Mark field as optional
+```
+
+## Zod Schemas
+
+Pre-built Zod schemas for common json-render types:
+
+### Dynamic Value Schemas
+
+```typescript
+import {
+  DynamicValueSchema,    // string | number | boolean | null | { path: string }
+  DynamicStringSchema,   // string | { path: string }
+  DynamicNumberSchema,   // number | { path: string }
+  DynamicBooleanSchema,  // boolean | { path: string }
+} from '@json-render/core';
+
+// Dynamic values can be literals or data path references
+type DynamicValue<T> = T | { path: string };
+
+// Example: a prop that can be a literal or bound to data
+const schema = z.object({
+  label: DynamicStringSchema,  // "Hello" or { path: "/user/name" }
+});
+```
+
+### Visibility & Logic Schemas
+
+```typescript
+import {
+  VisibilityConditionSchema,  // Full visibility condition
+  LogicExpressionSchema,      // Logic operators (and, or, not, eq, gt, etc.)
+} from '@json-render/core';
+
+// Use in component props that need conditional rendering
+const schema = z.object({
+  visible: VisibilityConditionSchema.optional(),
+});
+```
+
+### Action Schemas
+
+```typescript
+import {
+  ActionSchema,           // Full action definition
+  ActionConfirmSchema,    // Confirmation dialog config
+  ActionOnSuccessSchema,  // Success handler config
+  ActionOnErrorSchema,    // Error handler config
+} from '@json-render/core';
+```
+
+### Validation Schemas
+
+```typescript
+import {
+  ValidationCheckSchema,   // Single validation check
+  ValidationConfigSchema,  // Full validation config with checks array
+} from '@json-render/core';
+```
+
+## SpecStream
+
+SpecStream is json-render's streaming format for progressively building specs from JSONL patches.
+
+### createSpecStreamCompiler
+
+Create a streaming compiler that incrementally builds a spec:
+
+```typescript
+import { createSpecStreamCompiler } from '@json-render/core';
+
+const compiler = createSpecStreamCompiler<MySpec>();
+
+// Process streaming chunks
+const { result, newPatches } = compiler.push(chunk);
+
+// Get final result
+const spec = compiler.getResult();
+
+// Reset for reuse
+compiler.reset();
+```
+
+### compileSpecStream
+
+Compile an entire SpecStream string at once:
+
+```typescript
+import { compileSpecStream } from '@json-render/core';
+
+const jsonl = `{"op":"add","path":"/root","value":{}}
+{"op":"add","path":"/root/type","value":"Card"}`;
+
+const spec = compileSpecStream<MySpec>(jsonl);
+```
+
+### Low-Level Utilities
+
+```typescript
+import {
+  parseSpecStreamLine,
+  applySpecStreamPatch,
+} from '@json-render/core';
+
+// Parse a single line
+const patch = parseSpecStreamLine('{"op":"add","path":"/root","value":{}}');
+
+// Apply patch to object (mutates in place)
+const obj = {};
+applySpecStreamPatch(obj, patch);
+```
+
+### SpecStream Types
+
+Fully compliant with [RFC 6902](https://datatracker.ietf.org/doc/html/rfc6902):
+
+```typescript
+interface SpecStreamLine {
+  op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
+  path: string;
+  value?: unknown;  // Required for add, replace, test
+  from?: string;    // Required for move, copy
+}
+
+interface SpecStreamCompiler<T> {
+  push(chunk: string): { result: T; newPatches: SpecStreamLine[] };
+  getResult(): T;
+  getPatches(): SpecStreamLine[];
+  reset(): void;
+}
+```
+
+## Utility Functions
+
+### Path Utilities
+
+```typescript
+import { getByPath, setByPath } from '@json-render/core';
+
+// Get value by JSON Pointer path
+const value = getByPath(data, '/user/name');  // "Alice"
+
+// Set value by path (mutates object)
+setByPath(data, '/user/email', 'alice@example.com');
+```
+
+### resolveDynamicValue
+
+```typescript
+import { resolveDynamicValue } from '@json-render/core';
+
+// Resolve a dynamic value against data
+const name = resolveDynamicValue("Hello", data);        // "Hello"
+const name2 = resolveDynamicValue({ path: "/user/name" }, data);  // "Alice"
+```
+
+### findFormValue
+
+```typescript
+import { findFormValue } from '@json-render/core';
+
+// Find form values regardless of path format
+// Checks: params.name, params["form.name"], data["form.name"], data.form.name
+const value = findFormValue("name", params, data);
+```
+
+## evaluateVisibility
+
+Evaluates a visibility condition against data and auth state.
+
+```typescript
+function evaluateVisibility(
+  condition: VisibilityCondition | undefined,
+  data: Record<string, unknown>,
+  auth?: AuthState
+): boolean
+
+type VisibilityCondition =
+  | { path: string }
+  | { auth: 'signedIn' | 'signedOut' | string }
+  | { and: VisibilityCondition[] }
+  | { or: VisibilityCondition[] }
+  | { not: VisibilityCondition }
+  | { eq: [DynamicValue, DynamicValue] }
+  | { gt: [DynamicValue, DynamicValue] }
+  | { gte: [DynamicValue, DynamicValue] }
+  | { lt: [DynamicValue, DynamicValue] }
+  | { lte: [DynamicValue, DynamicValue] };
+```
+
+## Types
+
+### UIElement
+
+```typescript
+interface UIElement {
+  key: string;
+  type: string;
+  props: Record<string, unknown>;
+  children?: string[];          // Keys of child elements
+  visible?: VisibilityCondition;
+  validation?: ValidationSchema;
+}
+```
+
+### Spec (Element Tree)
+
+```typescript
+interface Spec {
+  root: string | null;         // Key of root element
+  elements: Record<string, UIElement>;
+}
+```
+
+Elements are stored as a flat map with string keys. The tree structure is built by following the `children` arrays.
+
+### Action
+
+```typescript
+interface Action {
+  name: string;
+  params?: Record<string, unknown>;
+  confirm?: {
+    title: string;
+    message: string;
+    variant?: 'default' | 'danger';
+  };
+  onSuccess?: { set: Record<string, unknown> };
+  onError?: { set: Record<string, unknown> };
+}
+```
+
+### ValidationSchema
+
+```typescript
+interface ValidationSchema {
+  checks: ValidationCheck[];
+  validateOn?: 'change' | 'blur' | 'submit';
+}
+
+interface ValidationCheck {
+  fn: string;
+  args?: Record<string, unknown>;
+  message: string;
+}
+```

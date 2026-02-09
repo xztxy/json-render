@@ -1,39 +1,19 @@
-import Link from "next/link";
-import { Code } from "@/components/code";
+export const metadata = { title: "Custom Schema & Renderer" }
 
-import { PAGE_TITLES } from "@/lib/page-titles";
+# Custom Schema & Renderer
 
-export const metadata = {
-  title: PAGE_TITLES["docs/custom-schema"],
-};
+Build your own schema and renderer with `@json-render/core`.
 
-export default function CustomSchemaPage() {
-  return (
-    <article>
-      <h1 className="text-3xl font-bold mb-4">Custom Schema & Renderer</h1>
-      <p className="text-muted-foreground mb-8">
-        Build your own schema and renderer with{" "}
-        <code className="text-foreground">@json-render/core</code>.
-      </p>
+## Overview
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Overview</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        <code className="text-foreground">@json-render/core</code> is
-        schema-agnostic. While{" "}
-        <code className="text-foreground">@json-render/react</code> provides a
-        ready-to-use schema and renderer, you can create your own to match any
-        JSON structure - whether it&apos;s a domain-specific format, an existing
-        protocol, or something entirely custom.
-      </p>
+`@json-render/core` is schema-agnostic. While `@json-render/react` provides a ready-to-use schema and renderer, you can create your own to match any JSON structure - whether it's a domain-specific format, an existing protocol, or something entirely custom.
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        1. Define Your Schema
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Start by defining the JSON structure your system will use. Here&apos;s
-        an example of a simple dashboard schema:
-      </p>
-      <Code lang="json">{`{
+## 1. Define Your Schema
+
+Start by defining the JSON structure your system will use. Here's an example of a simple dashboard schema:
+
+```json
+{
   "layout": "grid",
   "columns": 2,
   "widgets": [
@@ -56,15 +36,15 @@ export default function CustomSchemaPage() {
       "dataKey": "orders"
     }
   ]
-}`}</Code>
+}
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        2. Create the Catalog
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Define a catalog that describes your components and validates props:
-      </p>
-      <Code lang="typescript">{`import { createCatalog } from '@json-render/core';
+## 2. Create the Catalog
+
+Define a catalog that describes your components and validates props:
+
+```typescript
+import { createCatalog } from '@json-render/core';
 import { z } from 'zod';
 
 export const dashboardCatalog = createCatalog({
@@ -104,15 +84,15 @@ export const dashboardCatalog = createCatalog({
       }),
     },
   },
-});`}</Code>
+});
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        3. Define the Root Schema
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Create a schema for the overall document structure:
-      </p>
-      <Code lang="typescript">{`import { z } from 'zod';
+## 3. Define the Root Schema
+
+Create a schema for the overall document structure:
+
+```typescript
+import { z } from 'zod';
 
 const WidgetSchema = z.object({
   type: z.string(),
@@ -127,15 +107,15 @@ export const DashboardSchema = z.object({
 });
 
 export type Dashboard = z.infer<typeof DashboardSchema>;
-export type Widget = z.infer<typeof WidgetSchema>;`}</Code>
+export type Widget = z.infer<typeof WidgetSchema>;
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        4. Build the Renderer
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Create a renderer that maps your schema to React components:
-      </p>
-      <Code lang="tsx">{`import React from 'react';
+## 4. Build the Renderer
+
+Create a renderer that maps your schema to React components:
+
+```tsx
+import React from 'react';
 import { dashboardCatalog } from './catalog';
 import type { Dashboard, Widget } from './schema';
 
@@ -146,7 +126,7 @@ const widgetComponents: Record<string, React.FC<any>> = {
       <p className="text-sm text-muted-foreground">{title}</p>
       <p className="text-2xl font-bold">{value}</p>
       {trend && (
-        <p className={\`text-sm \${trend === 'up' ? 'text-green-500' : 'text-red-500'}\`}>
+        <p className={`text-sm ${trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
           {trend === 'up' ? '+' : '-'}{change}
         </p>
       )}
@@ -206,7 +186,7 @@ export function DashboardRenderer({
   data?: Record<string, any>;
 }) {
   const layoutClass = {
-    grid: \`grid gap-4 \${spec.columns ? \`grid-cols-\${spec.columns}\` : 'grid-cols-2'}\`,
+    grid: `grid gap-4 ${spec.columns ? `grid-cols-${spec.columns}` : 'grid-cols-2'}`,
     stack: 'flex flex-col gap-4',
     tabs: 'space-y-4',
   }[spec.layout];
@@ -216,7 +196,7 @@ export function DashboardRenderer({
       {spec.widgets.map((widget, index) => {
         const Component = widgetComponents[widget.type];
         if (!Component) {
-          console.warn(\`Unknown widget type: \${widget.type}\`);
+          console.warn(`Unknown widget type: ${widget.type}`);
           return null;
         }
 
@@ -233,15 +213,15 @@ export function DashboardRenderer({
       })}
     </div>
   );
-}`}</Code>
+}
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        5. Generate LLM Prompts
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Use the catalog to generate system prompts for AI:
-      </p>
-      <Code lang="typescript">{`const systemPrompt = dashboardCatalog.prompt({
+## 5. Generate LLM Prompts
+
+Use the catalog to generate system prompts for AI:
+
+```typescript
+const systemPrompt = dashboardCatalog.prompt({
   customRules: [
     'Use metric widgets for single KPI values',
     'Use chart widgets for time-series data',
@@ -255,13 +235,15 @@ const response = await generateText({
   model: 'gpt-4',
   system: systemPrompt,
   prompt: 'Create a sales dashboard with revenue, orders, and a chart',
-});`}</Code>
+});
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">6. Validate Specs</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Validate incoming specs against your schema:
-      </p>
-      <Code lang="typescript">{`import { validate } from '@json-render/core';
+## 6. Validate Specs
+
+Validate incoming specs against your schema:
+
+```typescript
+import { validate } from '@json-render/core';
 
 function validateDashboard(spec: unknown) {
   // Validate root structure
@@ -278,15 +260,18 @@ function validateDashboard(spec: unknown) {
       dashboardCatalog
     );
     if (!result.valid) {
-      errors.push(...result.errors.map(e => \`\${widget.type}: \${e}\`));
+      errors.push(...result.errors.map(e => `${widget.type}: ${e}`));
     }
   }
 
   return { valid: errors.length === 0, errors };
-}`}</Code>
+}
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Usage Example</h2>
-      <Code lang="tsx">{`'use client';
+## Usage Example
+
+```tsx
+'use client';
 
 import { useState } from 'react';
 import { DashboardRenderer } from './renderer';
@@ -315,23 +300,9 @@ export function MyDashboard() {
   const [spec, setSpec] = useState(initialSpec);
 
   return <DashboardRenderer spec={spec} data={data} />;
-}`}</Code>
-
-      <h2 className="text-xl font-semibold mt-12 mb-4">Next</h2>
-      <p className="text-sm text-muted-foreground">
-        See how to integrate with{" "}
-        <Link href="/docs/a2ui" className="text-foreground hover:underline">
-          A2UI
-        </Link>{" "}
-        or{" "}
-        <Link
-          href="/docs/adaptive-cards"
-          className="text-foreground hover:underline"
-        >
-          Adaptive Cards
-        </Link>{" "}
-        protocols.
-      </p>
-    </article>
-  );
 }
+```
+
+## Next
+
+See how to integrate with [A2UI](/docs/a2ui) or [Adaptive Cards](/docs/adaptive-cards) protocols.

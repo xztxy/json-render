@@ -1,5 +1,6 @@
 import { DocsMobileNav } from "@/components/docs-mobile-nav";
 import { DocsSidebar } from "@/components/docs-sidebar";
+import { CopyPageButton } from "@/components/copy-page-button";
 
 export default function DocsLayout({
   children,
@@ -16,7 +17,12 @@ export default function DocsLayout({
         </aside>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 max-w-2xl">{children}</div>
+        <div className="flex-1 min-w-0 max-w-2xl">
+          <div className="flex justify-end mb-4">
+            <CopyPageButton />
+          </div>
+          <article>{children}</article>
+        </div>
       </div>
     </>
   );

@@ -1,0 +1,210 @@
+export const metadata = { title: "Registry" }
+
+# Registry
+
+Register React components and action handlers to bring your catalog to life.
+
+## defineRegistry
+
+Use `defineRegistry` to create a type-safe registry from your catalog. Pass your components, actions, or both in a single call:
+
+```tsx
+import { defineRegistry } from '@json-render/react';
+import { myCatalog } from './catalog';
+
+export const { registry, handlers, executeAction } = defineRegistry(myCatalog, {
+  components: {
+    Card: ({ props, children }) => (
+      <div className="card">
+        <h2>{props.title}</h2>
+        {props.description && <p>{props.description}</p>}
+        {children}
+      </div>
+    ),
+
+    Button: ({ props, onAction }) => (
+      <button onClick={() => onAction?.({ name: props.action })}>
+        {props.label}
+      </button>
+    ),
+  },
+
+  actions: {
+    submit_form: async (params, setState) => {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+      const result = await res.json();
+      setState((prev) => ({ ...prev, formResult: result }));
+    },
+
+    export_data: async (params) => {
+      const blob = await generateExport(params.format);
+      downloadBlob(blob, `export.${params.format}`);
+    },
+  },
+});
+```
+
+The returned object contains:
+
+- `registry` - component registry for `<Renderer />`
+- `handlers` - factory for ActionProvider-compatible handlers
+- `executeAction` - imperative action dispatch (for use outside the React tree)
+
+## Component Props
+
+Each component in the registry receives a `ComponentContext` object:
+
+```typescript
+interface ComponentContext {
+  props: T;                    // Type-safe props from your catalog
+  children?: React.ReactNode;  // Rendered children (for slot components)
+  onAction?: (action: ActionTrigger) => void;  // Dispatch an action
+  loading?: boolean;           // Whether the renderer is in a loading state
+}
+```
+
+Props are automatically inferred from your catalog, so `props.title` is typed as `string` if your catalog defines it that way.
+
+## Action Handlers
+
+Instead of AI generating arbitrary code, it declares *intent* by name. Your application provides the implementation. This is a core guardrail.
+
+### Defining Actions
+
+Define available actions in your catalog:
+
+```typescript
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react';
+import { z } from 'zod';
+
+const catalog = defineCatalog(schema, {
+  components: { /* ... */ },
+  actions: {
+    submit_form: {
+      params: z.object({
+        formId: z.string(),
+      }),
+      description: 'Submit a form',
+    },
+    export_data: {
+      params: z.object({
+        format: z.enum(['csv', 'pdf', 'json']),
+      }),
+    },
+    navigate: {
+      params: z.object({
+        url: z.string(),
+      }),
+    },
+  },
+});
+```
+
+### Implementing Action Handlers
+
+Action handlers receive `(params, setState, data)` and are defined inside `defineRegistry`:
+
+```tsx
+export const { handlers, executeAction } = defineRegistry(catalog, {
+  actions: {
+    submit_form: async (params, setState) => {
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        body: JSON.stringify({ formId: params.formId }),
+      });
+      const result = await response.json();
+      setState((prev) => ({ ...prev, formResult: result }));
+    },
+
+    export_data: async (params) => {
+      const blob = await generateExport(params.format);
+      downloadBlob(blob, `export.${params.format}`);
+    },
+
+    navigate: (params) => {
+      window.location.href = params.url;
+    },
+  },
+});
+```
+
+## Using Data Binding
+
+Use hooks inside your registry components to read and write data:
+
+```tsx
+import { useStateStore } from '@json-render/react';
+import { getByPath } from '@json-render/core';
+
+// Inside defineRegistry components:
+
+Metric: ({ props }) => {
+  const { data } = useStateStore();
+  const value = getByPath(data, props.valuePath);
+
+  return (
+    <div className="metric">
+      <span className="label">{props.label}</span>
+      <span className="value">{formatValue(value)}</span>
+    </div>
+  );
+},
+
+TextField: ({ props }) => {
+  const { data, set } = useStateStore();
+  const value = getByPath(data, props.valuePath) as string;
+
+  return (
+    <input
+      value={value || ''}
+      onChange={(e) => set(props.valuePath, e.target.value)}
+      placeholder={props.placeholder}
+    />
+  );
+},
+```
+
+## Using the Renderer
+
+Wire everything together with providers and the `<Renderer />` component:
+
+```tsx
+import { useMemo, useRef } from 'react';
+import {
+  Renderer,
+  StateProvider,
+  VisibilityProvider,
+  ActionProvider,
+} from '@json-render/react';
+import { registry, handlers } from './registry';
+
+function App({ spec, data, setState }) {
+  const dataRef = useRef(data);
+  const setStateRef = useRef(setState);
+  dataRef.current = data;
+  setStateRef.current = setState;
+
+  const actionHandlers = useMemo(
+    () => handlers(() => setStateRef.current, () => dataRef.current),
+    [],
+  );
+
+  return (
+    <StateProvider initialState={data}>
+      <VisibilityProvider>
+        <ActionProvider handlers={actionHandlers}>
+          <Renderer spec={spec} registry={registry} />
+        </ActionProvider>
+      </VisibilityProvider>
+    </StateProvider>
+  );
+}
+```
+
+## Next
+
+Learn about [data binding](/docs/data-binding) for dynamic values.

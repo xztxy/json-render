@@ -1,51 +1,25 @@
-import Link from "next/link";
-import { Code } from "@/components/code";
+export const metadata = { title: "A2UI Integration" }
 
-import { PAGE_TITLES } from "@/lib/page-titles";
+# A2UI Integration
 
-export const metadata = {
-  title: PAGE_TITLES["docs/a2ui"],
-};
+Use `@json-render/core` to support [A2UI](https://a2ui.org) natively.
 
-export default function A2UIPage() {
-  return (
-    <article>
-      <h1 className="text-3xl font-bold mb-4">A2UI Integration</h1>
-      <p className="text-muted-foreground mb-8">
-        Use <code className="text-foreground">@json-render/core</code> to
-        support{" "}
-        <a
-          href="https://a2ui.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-foreground hover:underline"
-        >
-          A2UI
-        </a>{" "}
-        natively.
-      </p>
+<div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 mb-8">
+  <p className="text-sm text-amber-700 dark:text-amber-300">
+    <strong>Concept:</strong> This page demonstrates how json-render can support A2UI. The examples are illustrative and may require adaptation for production use.
+  </p>
+</div>
 
-      <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 mb-8">
-        <p className="text-sm text-amber-700 dark:text-amber-300">
-          <strong>Concept:</strong> This page demonstrates how json-render can
-          support A2UI. The examples are illustrative and may require adaptation
-          for production use.
-        </p>
-      </div>
+## Native A2UI Support
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Native A2UI Support</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        <code className="text-foreground">@json-render/core</code> is
-        schema-agnostic. Define a catalog that matches A2UI&apos;s format and
-        build a renderer that understands it - no conversion layer needed.
-      </p>
+`@json-render/core` is schema-agnostic. Define a catalog that matches A2UI's format and build a renderer that understands it - no conversion layer needed.
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Example A2UI Message</h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        A2UI uses an adjacency list model - a flat list of components with ID
-        references. This makes it easy to patch individual components:
-      </p>
-      <Code lang="json">{`{
+## Example A2UI Message
+
+A2UI uses an adjacency list model - a flat list of components with ID references. This makes it easy to patch individual components:
+
+```json
+{
   "surfaceUpdate": {
     "surfaceId": "main",
     "components": [
@@ -85,12 +59,13 @@ export default function A2UIPage() {
       }
     ]
   }
-}`}</Code>
+}
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        Define the A2UI Catalog
-      </h2>
-      <Code lang="typescript">{`import { createCatalog } from '@json-render/core';
+## Define the A2UI Catalog
+
+```typescript
+import { createCatalog } from '@json-render/core';
 import { z } from 'zod';
 
 // A2UI BoundValue schema
@@ -153,15 +128,15 @@ export const a2uiCatalog = createCatalog({
     },
     // Add more A2UI standard components...
   },
-});`}</Code>
+});
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        Define the A2UI Schema
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Define the schema for A2UI message types:
-      </p>
-      <Code lang="typescript">{`import { z } from 'zod';
+## Define the A2UI Schema
+
+Define the schema for A2UI message types:
+
+```typescript
+import { z } from 'zod';
 
 // Component instance in the adjacency list
 const A2UIComponent = z.object({
@@ -201,15 +176,15 @@ export const A2UIMessage = z.object({
   dataModelUpdate: StateModelUpdate.optional(),
   beginRendering: BeginRendering.optional(),
   deleteSurface: z.object({ surfaceId: z.string() }).optional(),
-});`}</Code>
+});
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">
-        Build an A2UI Renderer
-      </h2>
-      <p className="text-sm text-muted-foreground mb-4">
-        Create a renderer that processes the A2UI adjacency list format:
-      </p>
-      <Code lang="tsx">{`import { a2uiCatalog } from './catalog';
+## Build an A2UI Renderer
+
+Create a renderer that processes the A2UI adjacency list format:
+
+```tsx
+import { a2uiCatalog } from './catalog';
 
 // Component registry
 const components = {
@@ -241,7 +216,7 @@ export function renderA2UI(
     if (!bound) return undefined;
     if (bound.literalString) return bound.literalString;
     if (bound.path) {
-      const parts = bound.path.replace(/^\\//, '').split('/');
+      const parts = bound.path.replace(/^\//, '').split('/');
       let value = dataModel;
       for (const p of parts) value = value?.[p];
       return value;
@@ -274,10 +249,13 @@ export function renderA2UI(
   }
 
   return render(rootId);
-}`}</Code>
+}
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Usage</h2>
-      <Code lang="tsx">{`const [components] = useState(() => new Map());
+## Usage
+
+```tsx
+const [components] = useState(() => new Map());
 const [dataModel, setDataModel] = useState({});
 const [rootId, setRootId] = useState<string | null>(null);
 
@@ -297,19 +275,9 @@ function handleMessage(msg: any) {
 }
 
 // Render
-{rootId && renderA2UI(components, dataModel, rootId, handleAction)}`}</Code>
+{rootId && renderA2UI(components, dataModel, rootId, handleAction)}
+```
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Next</h2>
-      <p className="text-sm text-muted-foreground">
-        Learn about{" "}
-        <Link
-          href="/docs/adaptive-cards"
-          className="text-foreground hover:underline"
-        >
-          Adaptive Cards integration
-        </Link>{" "}
-        for another UI protocol.
-      </p>
-    </article>
-  );
-}
+## Next
+
+Learn about [Adaptive Cards integration](/docs/adaptive-cards) for another UI protocol.

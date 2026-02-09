@@ -1,0 +1,141 @@
+export const metadata = { title: "Visibility" }
+
+# Visibility
+
+Conditionally show or hide components based on data, auth, or logic.
+
+## VisibilityProvider
+
+Wrap your app with VisibilityProvider to enable conditional rendering:
+
+```tsx
+import { VisibilityProvider } from '@json-render/react';
+
+function App() {
+  return (
+    <StateProvider initialState={data}>
+      <VisibilityProvider>
+        {/* Components can now use visibility conditions */}
+      </VisibilityProvider>
+    </StateProvider>
+  );
+}
+```
+
+## Path-Based Visibility
+
+Show/hide based on data values:
+
+```json
+{
+  "type": "Alert",
+  "props": { "message": "Form has errors" },
+  "visible": { "path": "/form/hasErrors" }
+}
+
+// Visible when /form/hasErrors is truthy
+```
+
+## Auth-Based Visibility
+
+Show/hide based on authentication state:
+
+```json
+{
+  "type": "AdminPanel",
+  "visible": { "auth": "signedIn" }
+}
+
+// Options: "signedIn", "signedOut", "admin", etc.
+```
+
+## Logic Expressions
+
+Combine conditions with logic operators:
+
+```json
+// AND - all conditions must be true
+{
+  "type": "SubmitButton",
+  "visible": {
+    "and": [
+      { "path": "/form/isValid" },
+      { "path": "/form/hasChanges" }
+    ]
+  }
+}
+
+// OR - any condition must be true
+{
+  "type": "HelpText",
+  "visible": {
+    "or": [
+      { "path": "/user/isNew" },
+      { "path": "/settings/showHelp" }
+    ]
+  }
+}
+
+// NOT - invert a condition
+{
+  "type": "WelcomeBanner",
+  "visible": {
+    "not": { "path": "/user/hasSeenWelcome" }
+  }
+}
+```
+
+## Comparison Operators
+
+```json
+// Equal
+{
+  "visible": {
+    "eq": [{ "path": "/user/role" }, "admin"]
+  }
+}
+
+// Greater than
+{
+  "visible": {
+    "gt": [{ "path": "/cart/total" }, 100]
+  }
+}
+
+// Available: eq, ne, gt, gte, lt, lte
+```
+
+## Complex Example
+
+```json
+{
+  "type": "RefundButton",
+  "props": { "label": "Process Refund" },
+  "visible": {
+    "and": [
+      { "auth": "signedIn" },
+      { "eq": [{ "path": "/user/role" }, "support"] },
+      { "gt": [{ "path": "/order/amount" }, 0] },
+      { "not": { "path": "/order/isRefunded" } }
+    ]
+  }
+}
+```
+
+## Using in Components
+
+```tsx
+import { useIsVisible } from '@json-render/react';
+
+// The Renderer handles visibility automatically, but you can also use the hook
+function ConditionalContent({ condition, children }) {
+  const isVisible = useIsVisible(condition);
+  
+  if (!isVisible) return null;
+  return <div>{children}</div>;
+}
+```
+
+## Next
+
+Learn about [form validation](/docs/validation).

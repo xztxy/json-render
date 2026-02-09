@@ -1,0 +1,28 @@
+export const metadata = { title: "Installation" }
+
+# Installation
+
+Install the core package plus your renderer of choice.
+
+## For React UI
+
+<PackageInstall packages="@json-render/core @json-render/react" />
+
+## For Remotion Video
+
+<PackageInstall packages="@json-render/core @json-render/remotion remotion @remotion/player" />
+
+## Peer Dependencies
+
+json-render requires the following peer dependencies:
+
+- `react` ^19.0.0
+- `zod` ^4.0.0
+
+<PackageInstall packages="react zod" />
+
+## For AI Integration
+
+To use json-render with AI models, you'll also need the Vercel AI SDK:
+
+<PackageInstall packages="ai" />

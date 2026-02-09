@@ -1,0 +1,124 @@
+export const metadata = { title: "Data Binding" }
+
+# Data Binding
+
+Connect UI components to your application data using JSON Pointer paths.
+
+## JSON Pointer Paths
+
+json-render uses JSON Pointer (RFC 6901) for data paths:
+
+```json
+// Given this data:
+{
+  "user": {
+    "name": "Alice",
+    "email": "alice@example.com"
+  },
+  "metrics": {
+    "revenue": 125000,
+    "growth": 0.15
+  }
+}
+
+// These paths access:
+"/user/name"        -> "Alice"
+"/metrics/revenue"  -> 125000
+"/metrics/growth"   -> 0.15
+```
+
+## StateProvider
+
+Wrap your app with StateProvider to enable data binding:
+
+```tsx
+import { StateProvider } from '@json-render/react';
+
+function App() {
+  const initialState = {
+    user: { name: 'Alice' },
+    form: { email: '', message: '' },
+  };
+
+  return (
+    <StateProvider initialState={initialState}>
+      {/* Your UI */}
+    </StateProvider>
+  );
+}
+```
+
+## Reading Data
+
+Use `useStateValue` for read-only access:
+
+```tsx
+import { useStateValue } from '@json-render/react';
+
+function UserGreeting() {
+  const name = useStateValue('/user/name');
+  return <h1>Hello, {name}!</h1>;
+}
+```
+
+## Two-Way Binding
+
+Use `useStateBinding` for read-write access:
+
+```tsx
+import { useStateBinding } from '@json-render/react';
+
+function EmailInput() {
+  const [email, setEmail] = useStateBinding('/form/email');
+  
+  return (
+    <input
+      type="email"
+      value={email || ''}
+      onChange={(e) => setEmail(e.target.value)}
+    />
+  );
+}
+```
+
+## Using the State Context
+
+Access the full state context for advanced use cases:
+
+```tsx
+import { useStateStore } from '@json-render/react';
+
+function StateDebugger() {
+  const { data, setState, getValue, setValue } = useStateStore();
+  
+  // Read any path
+  const revenue = getValue('/metrics/revenue');
+  
+  // Write any path
+  const updateRevenue = () => setValue('/metrics/revenue', 150000);
+  
+  // Replace all state
+  const resetState = () => setState({ user: {}, form: {} });
+  
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
+}
+```
+
+## In JSON UI Trees
+
+AI can reference data paths in component props:
+
+```json
+{
+  "type": "Metric",
+  "props": {
+    "label": "Total Revenue",
+    "valuePath": "/metrics/revenue",
+    "format": "currency"
+  }
+}
+```
+
+## Next
+
+Learn about [actions](/docs/actions) for user interactions.

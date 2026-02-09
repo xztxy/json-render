@@ -1,0 +1,169 @@
+export const metadata = { title: "@json-render/react API" }
+
+# @json-render/react
+
+React components, providers, and hooks.
+
+## Providers
+
+### StateProvider
+
+```tsx
+<StateProvider initialState={object}>
+  {children}
+</StateProvider>
+```
+
+### ActionProvider
+
+```tsx
+<ActionProvider handlers={Record<string, ActionHandler>}>
+  {children}
+</ActionProvider>
+
+type ActionHandler = (params: Record<string, unknown>) => void | Promise<void>;
+```
+
+### VisibilityProvider
+
+```tsx
+<VisibilityProvider auth={AuthState}>
+  {children}
+</VisibilityProvider>
+
+interface AuthState {
+  isSignedIn: boolean;
+  roles?: string[];
+}
+```
+
+### ValidationProvider
+
+```tsx
+<ValidationProvider functions={Record<string, ValidatorFn>}>
+  {children}
+</ValidationProvider>
+
+type ValidatorFn = (value: unknown, args?: object) => boolean | Promise<boolean>;
+```
+
+## defineRegistry
+
+Create a type-safe component registry from a catalog. Components receive `props`, `children`, `onAction`, and `loading` with catalog-inferred types.
+
+```tsx
+import { defineRegistry } from '@json-render/react';
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) => <div>{props.title}{children}</div>,
+    Button: ({ props, onAction }) => (
+      <button onClick={() => onAction?.({ name: props.action })}>
+        {props.label}
+      </button>
+    ),
+  },
+});
+
+// Pass to <Renderer>
+<Renderer spec={spec} registry={registry} />
+```
+
+## Components
+
+### Renderer
+
+```tsx
+<Renderer
+  spec={Spec}           // The UI spec to render
+  registry={Registry}   // Component registry (from defineRegistry)
+  loading={boolean}     // Optional loading state
+  fallback={Component}  // Optional fallback for unknown types
+/>
+
+type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;
+```
+
+### Component Props (via defineRegistry)
+
+```tsx
+interface ComponentContext<P> {
+  props: P;                    // Typed props from catalog
+  children?: React.ReactNode;  // Rendered children (for slot components)
+  onAction?: (action: { name: string; params?: object }) => void;
+  loading?: boolean;
+}
+```
+
+## Hooks
+
+### useUIStream
+
+```typescript
+const {
+  spec,         // Spec | null - current UI state
+  isStreaming,  // boolean - true while streaming
+  error,        // Error | null
+  send,         // (prompt: string, context?: Record<string, unknown>) => Promise<void>
+  clear,        // () => void - reset spec and error
+} = useUIStream({
+  api: string,                         // API endpoint URL
+  onComplete?: (spec: Spec) => void,   // Called when streaming completes
+  onError?: (error: Error) => void,    // Called when an error occurs
+});
+```
+
+### useStateStore
+
+```typescript
+const {
+  data,      // Record<string, unknown>
+  setState,   // (data: object) => void
+  getValue,  // (path: string) => unknown
+  setValue,  // (path: string, value: unknown) => void
+} = useStateStore();
+```
+
+### useStateValue
+
+```typescript
+const value = useStateValue(path: string);
+```
+
+### useStateBinding
+
+```typescript
+const [value, setValue] = useStateBinding(path: string);
+```
+
+### useActions
+
+```typescript
+const { dispatch } = useActions();
+// dispatch(actionName: string, params: object)
+```
+
+### useAction
+
+```typescript
+const submitForm = useAction('submit_form');
+// submitForm(params: object)
+```
+
+### useIsVisible
+
+```typescript
+const isVisible = useIsVisible(condition?: VisibilityCondition);
+```
+
+### useFieldValidation
+
+```typescript
+const {
+  value,     // unknown
+  setValue,  // (value: unknown) => void
+  errors,    // string[]
+  validate,  // () => Promise<boolean>
+  isValid,   // boolean
+} = useFieldValidation(path: string, checks: ValidationCheck[]);
+```

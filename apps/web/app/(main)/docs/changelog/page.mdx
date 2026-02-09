@@ -1,0 +1,166 @@
+export const metadata = { title: "Changelog" }
+
+# Changelog
+
+Notable changes and updates to json-render.
+
+## v0.4.0
+
+February 2026
+
+### New: Custom Schema System
+
+Create custom output formats with `defineSchema`. Each renderer now defines its own schema, enabling completely different spec formats for different use cases.
+
+```typescript
+import { defineSchema } from "@json-render/core";
+
+const mySchema = defineSchema((s) => ({
+  spec: s.object({
+    pages: s.array(s.object({
+      title: s.string(),
+      blocks: s.array(s.ref("catalog.blocks")),
+    })),
+  }),
+  catalog: s.object({
+    blocks: s.map({ props: s.zod(), description: s.string() }),
+  }),
+}), {
+  promptTemplate: myPromptTemplate,
+});
+```
+
+### New: Component Slots
+
+Components can now define which slots they accept. Use `["default"]` for regular children, or named slots like `["header", "footer"]` for more complex layouts.
+
+```typescript
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: {
+      props: z.object({ title: z.string() }),
+      slots: ["default"],  // accepts children
+      description: "A card container",
+    },
+    Layout: {
+      props: z.object({}),
+      slots: ["header", "content", "footer"],  // named slots
+      description: "Page layout with header, content, footer",
+    },
+  },
+});
+```
+
+### New: AI Prompt Generation
+
+Catalogs now generate AI system prompts automatically with `catalog.prompt()`. The prompt includes all component definitions, props schemas, and action descriptions - ensuring the AI only generates valid specs.
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+
+const catalog = defineCatalog(schema, {
+  components: { /* ... */ },
+  actions: { /* ... */ },
+});
+
+// Generate system prompt for AI
+const systemPrompt = catalog.prompt();
+
+// Use with any AI SDK
+const result = await streamText({
+  model: "claude-haiku-4.5",
+  system: systemPrompt,
+  prompt: userMessage,
+});
+```
+
+### New: @json-render/remotion
+
+Generate AI-powered videos with Remotion. Define video catalogs, stream timeline specs, and render with the Remotion Player.
+
+```tsx
+import { Player } from "@remotion/player";
+import { Renderer, schema, standardComponentDefinitions } from "@json-render/remotion";
+
+const catalog = defineCatalog(schema, {
+  components: standardComponentDefinitions,
+  transitions: standardTransitionDefinitions,
+});
+
+<Player
+  component={Renderer}
+  inputProps={{ spec }}
+  durationInFrames={spec.composition.durationInFrames}
+  fps={spec.composition.fps}
+  compositionWidth={spec.composition.width}
+  compositionHeight={spec.composition.height}
+/>
+```
+
+Includes 10 standard video components (TitleCard, TypingText, SplitScreen, etc.), 7 transition types, and the ClipWrapper utility for custom components.
+
+### New: SpecStream
+
+SpecStream is json-render's streaming format for progressively building specs from JSONL patches. The new compiler API makes it easy to process streaming AI responses.
+
+```typescript
+import { createSpecStreamCompiler } from "@json-render/core";
+
+const compiler = createSpecStreamCompiler<MySpec>();
+
+// Process streaming chunks
+const { result, newPatches } = compiler.push(chunk);
+setSpec(result); // Update UI with partial result
+```
+
+### Improved: Dashboard Example
+
+The dashboard example is now a full-featured accounting dashboard with:
+
+- Persistent SQLite database with Drizzle ORM
+- RESTful API for customers, invoices, expenses, accounts
+- Draggable widget reordering
+- AI-powered widget generation with streaming
+- Real data binding to database records
+
+### Improved: Documentation
+
+- Interactive playground for testing specs
+- New guides: Custom Schema, Streaming, Code Export
+- Full API reference for all packages
+- Integration guides: A2UI, AG-UI, Adaptive Cards, OpenAPI
+
+### Breaking Changes
+
+- `UITree` type renamed to `Spec`
+- Schema is now imported from renderer packages (`@json-render/react`) not core
+- `defineCatalog` now requires a schema as first argument
+
+---
+
+## v0.3.0
+
+January 2026
+
+Internal release with codegen foundations.
+
+- Added `@json-render/codegen` package (spec traversal and JSX serialization)
+- Configurable AI model via environment variables
+- Documentation improvements and bug fixes
+
+*Note: Only @json-render/core was published to npm for this release.*
+
+---
+
+## v0.2.0
+
+January 2026
+
+Initial public release.
+
+- Core catalog and spec types
+- React renderer with contexts for data, actions, visibility
+- AI prompt generation from catalogs
+- Basic streaming support
+- Dashboard example application
