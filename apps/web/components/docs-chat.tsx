@@ -5,6 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Streamdown } from "streamdown";
 
+const STORAGE_KEY = "docs-chat-messages";
 const transport = new DefaultChatTransport({ api: "/api/docs-chat" });
 
 export function DocsChat() {
@@ -13,10 +14,43 @@ export function DocsChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const restoredRef = useRef(false);
 
   const { messages, sendMessage, status, setMessages } = useChat({ transport });
 
   const isLoading = status === "streaming" || status === "submitted";
+
+  // Restore messages from sessionStorage on mount
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [setMessages]);
+
+  // Save completed messages to sessionStorage
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    if (isLoading) return;
+    if (messages.length === 0) {
+      sessionStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch {
+      // ignore quota errors
+    }
+  }, [messages, isLoading]);
 
   // Auto-open when new messages arrive
   const prevMessageCount = useRef(0);
@@ -56,6 +90,7 @@ export function DocsChat() {
 
   const handleClear = () => {
     setMessages([]);
+    sessionStorage.removeItem(STORAGE_KEY);
     setOpen(false);
     inputRef.current?.focus();
   };
