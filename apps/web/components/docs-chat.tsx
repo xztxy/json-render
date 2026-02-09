@@ -11,7 +11,7 @@ export function DocsChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, setMessages } = useChat({ transport });
@@ -126,14 +126,18 @@ export function DocsChat() {
         <form
           onSubmit={handleSubmit}
           onClick={() => inputRef.current?.focus()}
-          className="flex items-center gap-2 bg-background border border-border rounded-lg shadow-lg px-4 py-3 cursor-text"
+          className="flex items-end gap-2 bg-background border border-border rounded-lg shadow-lg px-4 py-3 cursor-text"
         >
-          <input
+          <textarea
             ref={inputRef}
-            type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
             placeholder="Ask about the docs..."
+            rows={1}
             onFocus={() => {
               if (messages.length > 0) setOpen(true);
             }}
@@ -142,8 +146,12 @@ export function DocsChat() {
                 setOpen(false);
                 inputRef.current?.blur();
               }
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
             }}
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none disabled:opacity-50 resize-none max-h-32 leading-relaxed"
           />
           <button
             type="submit"

@@ -89,7 +89,7 @@ export async function POST(req: Request) {
   const { tools } = await createBashTool({ files: docsFiles });
 
   const result = streamText({
-    model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
+    model: DEFAULT_MODEL,
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
