@@ -15,6 +15,7 @@ import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
 import { PlaygroundRenderer } from "@/lib/renderer";
+import { playgroundCatalog } from "@/lib/catalog";
 
 const SIMULATION_PROMPT = "Create a contact form with name, email, and message";
 
@@ -137,7 +138,7 @@ const SIMULATION_STAGES: SimulationStage[] = [
 
 type Mode = "simulation" | "interactive";
 type Phase = "typing" | "streaming" | "complete";
-type Tab = "stream" | "json";
+type Tab = "stream" | "json" | "catalog";
 type RenderView = "dynamic" | "static";
 
 interface DemoProps {
@@ -179,6 +180,92 @@ export function Demo({
     new Set(),
   );
   const inputRef = useRef<HTMLInputElement>(null);
+  const [catalogSection, setCatalogSection] = useState<
+    "components" | "actions"
+  >("components");
+
+  // Catalog data for the catalog tab
+  const catalogData = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const raw = playgroundCatalog.data as any;
+
+    function extractFields(zodObj: unknown): { name: string; type: string }[] {
+      if (!zodObj) return [];
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const obj = zodObj as any;
+        const shape =
+          typeof obj.shape === "object"
+            ? obj.shape
+            : typeof obj._def?.shape === "function"
+              ? obj._def.shape()
+              : typeof obj._def?.shape === "object"
+                ? obj._def.shape
+                : null;
+        if (!shape) return [];
+
+        return Object.entries(shape).map(([name, schema]) => {
+          let type = "unknown";
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const s = schema as any;
+            const typeName: string =
+              s?._zod?.def?.type ?? s?._def?.typeName ?? "";
+            if (typeName.includes("string")) type = "string";
+            else if (typeName.includes("number")) type = "number";
+            else if (typeName.includes("boolean")) type = "boolean";
+            else if (typeName.includes("array")) type = "array";
+            else if (typeName.includes("enum")) {
+              const values = s?._zod?.def?.values ?? s?._def?.values;
+              type = Array.isArray(values) ? values.join(" | ") : "enum";
+            } else if (typeName.includes("union")) type = "union";
+            else if (typeName.includes("nullable")) {
+              const inner = s?._zod?.def?.innerType ?? s?._def?.innerType;
+              const innerName: string =
+                inner?._zod?.def?.type ?? inner?._def?.typeName ?? "";
+              if (innerName.includes("string")) type = "string?";
+              else if (innerName.includes("number")) type = "number?";
+              else if (innerName.includes("boolean")) type = "boolean?";
+              else if (innerName.includes("array")) type = "array?";
+              else if (innerName.includes("enum")) {
+                const values = inner?._zod?.def?.values ?? inner?._def?.values;
+                type = Array.isArray(values)
+                  ? `(${values.join(" | ")})?`
+                  : "enum?";
+              } else type = "optional";
+            }
+          } catch {
+            // ignore
+          }
+          return { name, type };
+        });
+      } catch {
+        return [];
+      }
+    }
+
+    const components = Object.entries(raw.components ?? {})
+      .map(([name, def]: [string, any]) => ({
+        // eslint-disable-line @typescript-eslint/no-explicit-any
+        name,
+        description: (def.description as string) ?? "",
+        props: extractFields(def.props),
+        slots: (def.slots as string[]) ?? [],
+        events: (def.events as string[]) ?? [],
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const actions = Object.entries(raw.actions ?? {})
+      .map(([name, def]: [string, any]) => ({
+        // eslint-disable-line @typescript-eslint/no-explicit-any
+        name,
+        description: (def.description as string) ?? "",
+        params: extractFields(def.params),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return { components, actions };
+  }, []);
 
   // Disable body scroll when any modal is open
   useEffect(() => {
@@ -1029,7 +1116,7 @@ Open [http://localhost:3000](http://localhost:3000) to view.
         {/* Tabbed code/stream/json panel */}
         <div className={`min-w-0 ${fullscreen ? "flex flex-col" : ""}`}>
           <div className="flex items-center gap-4 mb-2 h-6 shrink-0">
-            {(["json", "stream"] as const).map((tab) => (
+            {(["json", "stream", "catalog"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1046,14 +1133,16 @@ Open [http://localhost:3000](http://localhost:3000) to view.
           <div
             className={`border border-border rounded bg-background font-mono text-xs text-left grid relative group ${fullscreen ? "flex-1 min-h-0" : "h-[28rem]"}`}
           >
-            <div className="absolute top-2 right-2 z-10">
-              <CopyButton
-                text={
-                  activeTab === "stream" ? streamLines.join("\n") : jsonCode
-                }
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground"
-              />
-            </div>
+            {activeTab !== "catalog" && (
+              <div className="absolute top-2 right-2 z-10">
+                <CopyButton
+                  text={
+                    activeTab === "stream" ? streamLines.join("\n") : jsonCode
+                  }
+                  className="opacity-0 group-hover:opacity-100 text-muted-foreground"
+                />
+              </div>
+            )}
             <div
               className={`overflow-auto ${activeTab === "stream" ? "" : "hidden"}`}
             >
@@ -1088,6 +1177,126 @@ Open [http://localhost:3000](http://localhost:3000) to view.
                 fillHeight
                 hideCopyButton
               />
+            </div>
+            <div
+              className={`overflow-auto ${activeTab === "catalog" ? "" : "hidden"}`}
+            >
+              <div className="h-full flex flex-col text-sm font-sans">
+                <div className="flex items-center gap-3 px-3 h-9 border-b border-border">
+                  {(
+                    [
+                      {
+                        key: "components",
+                        label: `components (${catalogData.components.length})`,
+                      },
+                      {
+                        key: "actions",
+                        label: `actions (${catalogData.actions.length})`,
+                      },
+                    ] as const
+                  ).map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setCatalogSection(key)}
+                      className={`text-xs font-mono transition-colors ${
+                        catalogSection === key
+                          ? "text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex-1 overflow-auto p-3">
+                  {catalogSection === "components" ? (
+                    <div className="space-y-3">
+                      {catalogData.components.map((comp) => (
+                        <div
+                          key={comp.name}
+                          className="pb-3 border-b border-border last:border-b-0"
+                        >
+                          <div className="flex items-baseline gap-2 mb-1">
+                            <span className="font-mono font-medium text-foreground">
+                              {comp.name}
+                            </span>
+                            {comp.slots.length > 0 && (
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                slots: {comp.slots.join(", ")}
+                              </span>
+                            )}
+                          </div>
+                          {comp.description && (
+                            <p className="text-xs text-muted-foreground mb-2">
+                              {comp.description}
+                            </p>
+                          )}
+                          {comp.props.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-1">
+                              {comp.props.map((p) => (
+                                <span
+                                  key={p.name}
+                                  className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-700 dark:text-green-400"
+                                >
+                                  {p.name}
+                                  <span className="text-green-700/50 dark:text-green-400/50">
+                                    : {p.type}
+                                  </span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {comp.events.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {comp.events.map((e) => (
+                                <span
+                                  key={e}
+                                  className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                >
+                                  on.{e}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {catalogData.actions.map((action) => (
+                        <div
+                          key={action.name}
+                          className="pb-3 border-b border-border last:border-b-0"
+                        >
+                          <span className="font-mono font-medium text-foreground">
+                            {action.name}
+                          </span>
+                          {action.description && (
+                            <p className="text-xs text-muted-foreground mt-1 mb-2">
+                              {action.description}
+                            </p>
+                          )}
+                          {action.params.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {action.params.map((p) => (
+                                <span
+                                  key={p.name}
+                                  className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-700 dark:text-green-400"
+                                >
+                                  {p.name}
+                                  <span className="text-green-700/50 dark:text-green-400/50">
+                                    : {p.type}
+                                  </span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
