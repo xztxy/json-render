@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { Streamdown } from "streamdown";
 
 const transport = new DefaultChatTransport({ api: "/api/docs-chat" });
 
@@ -84,9 +85,15 @@ export function DocsChat() {
                     >
                       {message.role === "user" ? "You" : "Assistant"}
                     </div>
-                    <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                      {text}
-                    </div>
+                    {message.role === "assistant" ? (
+                      <div className="text-sm text-foreground/90 leading-relaxed prose prose-sm dark:prose-invert max-w-none">
+                        <Streamdown>{text}</Streamdown>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                        {text}
+                      </div>
+                    )}
                   </div>
                 );
               })}
