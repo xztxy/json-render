@@ -36,6 +36,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Carousel as CarouselPrimitive,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Table as TablePrimitive,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Drawer as DrawerPrimitive,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
+  DropdownMenu as DropdownMenuPrimitive,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Pagination as PaginationPrimitive,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Popover as PopoverPrimitive,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
+import {
+  Tabs as TabsPrimitive,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Toggle } from "@/components/ui/toggle";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Tooltip as TooltipPrimitive,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { playgroundCatalog } from "../catalog";
 
@@ -203,6 +265,485 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
         ))}
       </AccordionPrimitive>
     );
+  },
+
+  ButtonGroup: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(props.buttons[0]?.value ?? "");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <div className="inline-flex rounded-md border border-border">
+        {props.buttons.map((btn, i) => (
+          <button
+            key={btn.value}
+            className={`px-3 py-1.5 text-sm transition-colors ${
+              value === btn.value
+                ? "bg-primary text-primary-foreground"
+                : "bg-background hover:bg-muted"
+            } ${i > 0 ? "border-l border-border" : ""} ${
+              i === 0 ? "rounded-l-md" : ""
+            } ${i === props.buttons.length - 1 ? "rounded-r-md" : ""}`}
+            onClick={() => {
+              setValue(btn.value);
+              emit?.("change");
+            }}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
+    );
+  },
+
+  Carousel: ({ props }) => {
+    return (
+      <CarouselPrimitive className="w-full">
+        <CarouselContent>
+          {props.items.map((item, i) => (
+            <CarouselItem
+              key={i}
+              className="basis-3/4 md:basis-1/2 lg:basis-1/3"
+            >
+              <div className="border border-border rounded-lg p-4 bg-card h-full">
+                {item.title && (
+                  <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
+                )}
+                {item.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
+      </CarouselPrimitive>
+    );
+  },
+
+  Collapsible: ({ props, children }) => {
+    const [open, setOpen] = useState(props.defaultOpen ?? false);
+    return (
+      <Collapsible open={open} onOpenChange={setOpen} className="w-full">
+        <CollapsibleTrigger asChild>
+          <button className="flex w-full items-center justify-between rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
+            {props.title}
+            <svg
+              className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-2">{children}</CollapsibleContent>
+      </Collapsible>
+    );
+  },
+
+  Table: ({ props }) => {
+    return (
+      <div className="rounded-md border border-border overflow-hidden">
+        <TablePrimitive>
+          {props.caption && <TableCaption>{props.caption}</TableCaption>}
+          <TableHeader>
+            <TableRow>
+              {props.columns.map((col) => (
+                <TableHead key={col}>{col}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {props.rows.map((row, i) => (
+              <TableRow key={i}>
+                {row.map((cell, j) => (
+                  <TableCell key={j}>{cell}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </TablePrimitive>
+      </div>
+    );
+  },
+
+  Drawer: ({ props, children }) => {
+    const [open, setOpen] = useStateBinding<boolean>(props.openPath);
+    return (
+      <DrawerPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{props.title}</DrawerTitle>
+            {props.description && (
+              <DrawerDescription>{props.description}</DrawerDescription>
+            )}
+          </DrawerHeader>
+          <div className="p-4">{children}</div>
+        </DrawerContent>
+      </DrawerPrimitive>
+    );
+  },
+
+  DropdownMenu: ({ props, emit }) => {
+    return (
+      <DropdownMenuPrimitive>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">{props.label}</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {props.items.map((item) => (
+            <DropdownMenuItem key={item.value} onClick={() => emit?.("select")}>
+              {item.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenuPrimitive>
+    );
+  },
+
+  Pagination: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = useStateBinding<number>(
+      props.statePath,
+    );
+    const currentPage = boundValue ?? 1;
+
+    const pages = Array.from({ length: props.totalPages }, (_, i) => i + 1);
+
+    return (
+      <PaginationPrimitive>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                  setBoundValue(currentPage - 1);
+                  emit?.("change");
+                }
+              }}
+            />
+          </PaginationItem>
+          {pages.map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href="#"
+                isActive={page === currentPage}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setBoundValue(page);
+                  emit?.("change");
+                }}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage < props.totalPages) {
+                  setBoundValue(currentPage + 1);
+                  emit?.("change");
+                }
+              }}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </PaginationPrimitive>
+    );
+  },
+
+  Popover: ({ props }) => {
+    return (
+      <PopoverPrimitive>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="text-sm">
+            {props.trigger}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64">
+          <p className="text-sm">{props.content}</p>
+        </PopoverContent>
+      </PopoverPrimitive>
+    );
+  },
+
+  Separator: ({ props }) => {
+    return (
+      <Separator
+        orientation={props.orientation ?? "horizontal"}
+        className={props.orientation === "vertical" ? "h-full mx-2" : "my-3"}
+      />
+    );
+  },
+
+  Skeleton: ({ props }) => {
+    return (
+      <Skeleton
+        className={props.rounded ? "rounded-full" : "rounded-md"}
+        style={{
+          width: props.width ?? "100%",
+          height: props.height ?? "1.25rem",
+        }}
+      />
+    );
+  },
+
+  Slider: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<number>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(props.min ?? 0);
+    const value = props.statePath ? (boundValue ?? props.min ?? 0) : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <div className="space-y-2">
+        {props.label && (
+          <div className="flex justify-between">
+            <Label className="text-sm">{props.label}</Label>
+            <span className="text-sm text-muted-foreground">{value}</span>
+          </div>
+        )}
+        <Slider
+          value={[value]}
+          min={props.min ?? 0}
+          max={props.max ?? 100}
+          step={props.step ?? 1}
+          onValueChange={(v) => {
+            setValue(v[0] ?? 0);
+            emit?.("change");
+          }}
+        />
+      </div>
+    );
+  },
+
+  Spinner: ({ props }) => {
+    const sizeClass =
+      props.size === "lg"
+        ? "h-8 w-8"
+        : props.size === "sm"
+          ? "h-4 w-4"
+          : "h-6 w-6";
+
+    return (
+      <div className="flex items-center gap-2">
+        <svg
+          className={`${sizeClass} animate-spin text-muted-foreground`}
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        {props.label && (
+          <span className="text-sm text-muted-foreground">{props.label}</span>
+        )}
+      </div>
+    );
+  },
+
+  Tabs: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(
+      props.defaultValue ?? props.tabs[0]?.value ?? "",
+    );
+    const value = props.statePath
+      ? (boundValue ?? props.tabs[0]?.value ?? "")
+      : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <TabsPrimitive
+        value={value}
+        onValueChange={(v) => {
+          setValue(v);
+          emit?.("change");
+        }}
+      >
+        <TabsList>
+          {props.tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </TabsPrimitive>
+    );
+  },
+
+  Toggle: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<boolean>(props.statePath)
+      : [undefined, undefined];
+    const [localPressed, setLocalPressed] = useState(props.pressed ?? false);
+    const pressed = props.statePath ? (boundValue ?? false) : localPressed;
+    const setPressed = props.statePath ? setBoundValue! : setLocalPressed;
+
+    return (
+      <Toggle
+        variant={props.variant ?? "default"}
+        pressed={pressed}
+        onPressedChange={(v) => {
+          setPressed(v);
+          emit?.("change");
+        }}
+      >
+        {props.label}
+      </Toggle>
+    );
+  },
+
+  ToggleGroup: ({ props, emit }) => {
+    const type = props.type ?? "single";
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(props.items[0]?.value ?? "");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    if (type === "multiple") {
+      return (
+        <ToggleGroup type="multiple">
+          {props.items.map((item) => (
+            <ToggleGroupItem key={item.value} value={item.value}>
+              {item.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      );
+    }
+
+    return (
+      <ToggleGroup
+        type="single"
+        value={value}
+        onValueChange={(v) => {
+          if (v) {
+            setValue(v);
+            emit?.("change");
+          }
+        }}
+      >
+        {props.items.map((item) => (
+          <ToggleGroupItem key={item.value} value={item.value}>
+            {item.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    );
+  },
+
+  Tooltip: ({ props }) => {
+    return (
+      <TooltipProvider>
+        <TooltipPrimitive>
+          <TooltipTrigger asChild>
+            <span className="text-sm underline decoration-dotted cursor-help">
+              {props.text}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{props.content}</p>
+          </TooltipContent>
+        </TooltipPrimitive>
+      </TooltipProvider>
+    );
+  },
+
+  Typography: ({ props }) => {
+    const variant = props.variant ?? "p";
+    switch (variant) {
+      case "h1":
+        return (
+          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+            {props.text}
+          </h1>
+        );
+      case "h2":
+        return (
+          <h2 className="scroll-m-20 text-3xl font-semibold tracking-tight">
+            {props.text}
+          </h2>
+        );
+      case "h3":
+        return (
+          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+            {props.text}
+          </h3>
+        );
+      case "h4":
+        return (
+          <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+            {props.text}
+          </h4>
+        );
+      case "lead":
+        return <p className="text-xl text-muted-foreground">{props.text}</p>;
+      case "large":
+        return <p className="text-lg font-semibold">{props.text}</p>;
+      case "small":
+        return (
+          <small className="text-sm font-medium leading-none">
+            {props.text}
+          </small>
+        );
+      case "muted":
+        return <p className="text-sm text-muted-foreground">{props.text}</p>;
+      case "blockquote":
+        return (
+          <blockquote className="mt-2 border-l-2 pl-6 italic">
+            {props.text}
+          </blockquote>
+        );
+      case "code":
+        return (
+          <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+            {props.text}
+          </code>
+        );
+      case "list":
+        return (
+          <ul className="ml-6 list-disc [&>li]:mt-2">
+            {props.text.split("\n").map((line, i) => (
+              <li key={i}>{line}</li>
+            ))}
+          </ul>
+        );
+      default:
+        return <p className="leading-7">{props.text}</p>;
+    }
   },
 
   // Form Inputs
