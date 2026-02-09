@@ -213,7 +213,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
     Tabs: ({ props, emit }) => {
       const tabs = props.tabs ?? [];
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath)
+        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState(
         props.defaultValue ?? tabs[0]?.value ?? "",
@@ -767,7 +767,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
 
     Input: ({ props, emit }) => {
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath)
+        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState("");
       const value = props.statePath ? (boundValue ?? "") : localValue;
@@ -795,7 +795,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
 
     Textarea: ({ props }) => {
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath)
+        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState("");
       const value = props.statePath ? (boundValue ?? "") : localValue;
@@ -818,7 +818,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
 
     Select: ({ props, emit }) => {
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath)
+        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState<string>("");
       const value = props.statePath ? (boundValue ?? "") : localValue;
@@ -852,7 +852,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
 
     Checkbox: ({ props, emit }) => {
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<boolean>(props.statePath)
+        ? useStateBinding<boolean>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localChecked, setLocalChecked] = useState(!!props.checked);
       const checked = props.statePath ? (boundValue ?? false) : localChecked;
@@ -878,7 +878,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
     Radio: ({ props, emit }) => {
       const options = props.options ?? [];
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath)
+        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState(options[0] ?? "");
       const value = props.statePath ? (boundValue ?? "") : localValue;
@@ -912,7 +912,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
 
     Switch: ({ props, emit }) => {
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<boolean>(props.statePath)
+        ? useStateBinding<boolean>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localChecked, setLocalChecked] = useState(!!props.checked);
       const checked = props.statePath ? (boundValue ?? false) : localChecked;
@@ -937,7 +937,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
 
     Slider: ({ props, emit }) => {
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<number>(props.statePath)
+        ? useStateBinding<number>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState(props.min ?? 0);
       const value = props.statePath
@@ -1021,7 +1021,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
 
     Toggle: ({ props, emit }) => {
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<boolean>(props.statePath)
+        ? useStateBinding<boolean>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localPressed, setLocalPressed] = useState(props.pressed ?? false);
       const pressed = props.statePath ? (boundValue ?? false) : localPressed;
@@ -1045,7 +1045,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
       const type = props.type ?? "single";
       const items = props.items ?? [];
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath)
+        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState(items[0]?.value ?? "");
       const value = props.statePath ? (boundValue ?? "") : localValue;
@@ -1086,7 +1086,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
     ButtonGroup: ({ props, emit }) => {
       const buttons = props.buttons ?? [];
       const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath)
+        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
         : [undefined, undefined];
       const [localValue, setLocalValue] = useState(buttons[0]?.value ?? "");
       const value = props.statePath ? (boundValue ?? "") : localValue;

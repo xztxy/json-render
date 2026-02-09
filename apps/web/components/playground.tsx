@@ -526,8 +526,8 @@ ${jsx}
     }
 
     const components = Object.entries(raw.components ?? {})
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map(([name, def]: [string, any]) => ({
-        // eslint-disable-line @typescript-eslint/no-explicit-any
         name,
         description: (def.description as string) ?? "",
         props: extractFields(def.props),
@@ -537,8 +537,8 @@ ${jsx}
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const actions = Object.entries(raw.actions ?? {})
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map(([name, def]: [string, any]) => ({
-        // eslint-disable-line @typescript-eslint/no-explicit-any
         name,
         description: (def.description as string) ?? "",
         params: extractFields(def.params),
