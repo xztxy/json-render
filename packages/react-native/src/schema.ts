@@ -38,6 +38,8 @@ export const schema = defineSchema(
         slots: s.array(s.string()),
         /** Description for AI generation hints */
         description: s.string(),
+        /** Example prop values used in prompt examples (auto-generated from Zod schema if omitted) */
+        example: s.any(),
       }),
       /** Action definitions (optional) */
       actions: s.map({

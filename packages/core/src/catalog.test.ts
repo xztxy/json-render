@@ -403,6 +403,7 @@ describe("defineCatalog (new schema API)", () => {
       components: s.map({
         props: s.zod(),
         description: s.string(),
+        example: s.any(),
       }),
       actions: s.map({
         description: s.string(),
@@ -628,5 +629,89 @@ describe("defineCatalog (new schema API)", () => {
     expect(prompt).not.toContain('"type":"Column"');
     expect(prompt).not.toContain('"type":"Button"');
     expect(prompt).not.toContain('"type":"Pressable"');
+  });
+
+  it("generates example props from Zod schema when no example provided", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({
+            content: z.string(),
+            size: z.number(),
+            bold: z.boolean(),
+            variant: z.enum(["body", "heading"]),
+            color: z.string().optional(),
+          }),
+          description: "Display text",
+        },
+      },
+      actions: {},
+    });
+
+    const prompt = catalog.prompt();
+
+    // Required props should appear with generated values in examples
+    // (string -> "example", number -> 0, boolean -> true, enum -> first value)
+    expect(prompt).toContain('"content":"example"');
+    expect(prompt).toContain('"size":0');
+    expect(prompt).toContain('"bold":true');
+    expect(prompt).toContain('"variant":"body"');
+
+    // Optional props should NOT appear in examples (keeps them concise)
+    // The prop name "color" should still appear in the AVAILABLE COMPONENTS
+    // section but not in the JSON example objects
+    const exampleSection = prompt.split("AVAILABLE COMPONENTS")[0]!;
+    expect(exampleSection).not.toContain('"color"');
+
+    // Prompt examples should never have empty props:{}
+    expect(exampleSection).not.toContain('"props":{}');
+  });
+
+  it("uses explicit example field over Zod-generated values", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Heading: {
+          props: z.object({
+            text: z.string(),
+            level: z.enum(["h1", "h2", "h3"]),
+          }),
+          description: "A heading",
+          example: { text: "Welcome to My App", level: "h1" },
+        },
+        Paragraph: {
+          props: z.object({ content: z.string() }),
+          description: "A paragraph",
+          example: { content: "Lorem ipsum dolor sit amet" },
+        },
+      },
+      actions: {},
+    });
+
+    const prompt = catalog.prompt();
+
+    // Should use the explicit example values, not "example" or first enum value
+    expect(prompt).toContain('"text":"Welcome to My App"');
+    expect(prompt).toContain('"level":"h1"');
+    expect(prompt).toContain('"content":"Lorem ipsum dolor sit amet"');
+  });
+
+  it("uses $path binding on first string prop for repeat example", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Card: {
+          props: z.object({
+            title: z.string(),
+            subtitle: z.string(),
+          }),
+          description: "A card",
+        },
+      },
+      actions: {},
+    });
+
+    const prompt = catalog.prompt();
+
+    // In the repeat/item example, the first string prop should get a $path binding
+    expect(prompt).toContain('"title":{"$path":"$item/title"}');
   });
 });

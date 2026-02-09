@@ -551,19 +551,71 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push("Example output (each line is a separate JSON object):");
   lines.push("");
 
-  // Build example using actual catalog component names to avoid hallucinations
+  // Build example using actual catalog component names and props to avoid hallucinations
+  const allComponents = (catalog.data as Record<string, unknown>).components as
+    | Record<string, CatalogComponentDef>
+    | undefined;
   const cn = catalog.componentNames;
   const comp1 = cn[0] || "Component";
   const comp2 = cn.length > 1 ? cn[1]! : comp1;
+  const comp1Def = allComponents?.[comp1];
+  const comp2Def = allComponents?.[comp2];
+  const comp1Props = comp1Def ? getExampleProps(comp1Def) : {};
+  const comp2Props = comp2Def ? getExampleProps(comp2Def) : {};
 
-  lines.push(`{"op":"add","path":"/root","value":"main"}
-{"op":"add","path":"/elements/main","value":{"type":"${comp1}","props":{},"children":["title","list"]}}
-{"op":"add","path":"/elements/title","value":{"type":"${comp2}","props":{},"children":[]}}
-{"op":"add","path":"/elements/list","value":{"type":"${comp1}","props":{},"repeat":{"path":"/items","key":"id"},"children":["item"]}}
-{"op":"add","path":"/elements/item","value":{"type":"${comp2}","props":{"text":{"$path":"$item/title"}},"children":[]}}
-{"op":"add","path":"/state/items","value":[]}
-{"op":"add","path":"/state/items/0","value":{"id":"1","title":"First Item"}}
-{"op":"add","path":"/state/items/1","value":{"id":"2","title":"Second Item"}}
+  // Find a string prop on comp2 to demonstrate $path dynamic bindings
+  const dynamicPropName = comp2Def?.props
+    ? findFirstStringProp(comp2Def.props)
+    : null;
+  const dynamicProps = dynamicPropName
+    ? { ...comp2Props, [dynamicPropName]: { $path: "$item/title" } }
+    : comp2Props;
+
+  const exampleOutput = [
+    JSON.stringify({ op: "add", path: "/root", value: "main" }),
+    JSON.stringify({
+      op: "add",
+      path: "/elements/main",
+      value: {
+        type: comp1,
+        props: comp1Props,
+        children: ["child-1", "list"],
+      },
+    }),
+    JSON.stringify({
+      op: "add",
+      path: "/elements/child-1",
+      value: { type: comp2, props: comp2Props, children: [] },
+    }),
+    JSON.stringify({
+      op: "add",
+      path: "/elements/list",
+      value: {
+        type: comp1,
+        props: comp1Props,
+        repeat: { path: "/items", key: "id" },
+        children: ["item"],
+      },
+    }),
+    JSON.stringify({
+      op: "add",
+      path: "/elements/item",
+      value: { type: comp2, props: dynamicProps, children: [] },
+    }),
+    JSON.stringify({ op: "add", path: "/state/items", value: [] }),
+    JSON.stringify({
+      op: "add",
+      path: "/state/items/0",
+      value: { id: "1", title: "First Item" },
+    }),
+    JSON.stringify({
+      op: "add",
+      path: "/state/items/1",
+      value: { id: "2", title: "Second Item" },
+    }),
+  ].join("\n");
+
+  lines.push(`${exampleOutput}
 
 Note: state patches appear right after the elements that use them, so the UI fills in as it streams. ONLY use component types from the AVAILABLE COMPONENTS list below.`);
   lines.push("");
@@ -606,7 +658,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     'The element itself renders once (as the container), and its children are expanded once per array item. "path" is the state array path. "key" is an optional field name on each item for stable React keys.',
   );
   lines.push(
-    `Example: { "type": "${comp1}", "props": {}, "repeat": { "path": "/todos", "key": "id" }, "children": ["todo-item"] }`,
+    `Example: ${JSON.stringify({ type: comp1, props: comp1Props, repeat: { path: "/todos", key: "id" }, children: ["todo-item"] })}`,
   );
   lines.push(
     'Inside children of a repeated element, use "$item/field" for per-item paths: statePath:"$item/completed", { "$path": "$item/title" }. Use "$index" for the current array index.',
@@ -643,18 +695,8 @@ Note: state patches appear right after the elements that use them, so the UI fil
   );
   lines.push("");
 
-  // Components section
-  const components = (catalog.data as Record<string, unknown>).components as
-    | Record<
-        string,
-        {
-          props?: z.ZodType;
-          description?: string;
-          slots?: string[];
-          events?: string[];
-        }
-      >
-    | undefined;
+  // Components section — reuse the typed reference from example generation
+  const components = allComponents;
 
   if (components) {
     lines.push(`AVAILABLE COMPONENTS (${catalog.componentNames.length}):`);
@@ -699,7 +741,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
   lines.push("");
   lines.push("Example:");
   lines.push(
-    `  {"type":"${comp1}","props":{},"on":{"press":{"action":"setState","params":{"path":"/saved","value":true}}},"children":[]}`,
+    `  ${JSON.stringify({ type: comp1, props: comp1Props, on: { press: { action: "setState", params: { path: "/saved", value: true } } }, children: [] })}`,
   );
   lines.push("");
   lines.push(
@@ -716,7 +758,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     "Elements can have an optional `visible` field to conditionally show/hide based on data state. IMPORTANT: `visible` is a top-level field on the element object (sibling of type/props/children), NOT inside props.",
   );
   lines.push(
-    `Correct: {"type":"${comp1}","props":{},"visible":{"eq":[{"path":"/tab"},"home"]},"children":[...]}`,
+    `Correct: ${JSON.stringify({ type: comp1, props: comp1Props, visible: { eq: [{ path: "/tab" }, "home"] }, children: ["..."] })}`,
   );
   lines.push(
     '- `{ "eq": [{ "path": "/statePath" }, "value"] }` - visible when state at path equals value',
@@ -785,6 +827,169 @@ Note: state patches appear right after the elements that use them, so the UI fil
 
   return lines.join("\n");
 }
+
+// =============================================================================
+// Example Value Generation from Zod Schemas
+// =============================================================================
+
+/**
+ * Component definition shape as it appears in catalog data
+ */
+interface CatalogComponentDef {
+  props?: z.ZodType;
+  description?: string;
+  slots?: string[];
+  events?: string[];
+  example?: Record<string, unknown>;
+}
+
+/**
+ * Get example props for a catalog component.
+ * Uses the explicit `example` field if provided, otherwise generates from Zod schema.
+ */
+function getExampleProps(def: CatalogComponentDef): Record<string, unknown> {
+  if (def.example && Object.keys(def.example).length > 0) {
+    return def.example;
+  }
+  if (def.props) {
+    return generateExamplePropsFromZod(def.props);
+  }
+  return {};
+}
+
+/**
+ * Generate example prop values from a Zod object schema.
+ * Only includes required fields to keep examples concise.
+ */
+function generateExamplePropsFromZod(
+  schema: z.ZodType,
+): Record<string, unknown> {
+  if (!schema || !schema._def) return {};
+  const def = schema._def as unknown as Record<string, unknown>;
+  const typeName = getZodTypeName(schema);
+
+  if (typeName !== "ZodObject" && typeName !== "object") return {};
+
+  const shape =
+    typeof def.shape === "function"
+      ? (def.shape as () => Record<string, z.ZodType>)()
+      : (def.shape as Record<string, z.ZodType>);
+  if (!shape) return {};
+
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(shape)) {
+    const innerTypeName = getZodTypeName(value);
+    // Skip optional props to keep examples concise
+    if (
+      innerTypeName === "ZodOptional" ||
+      innerTypeName === "optional" ||
+      innerTypeName === "ZodNullable" ||
+      innerTypeName === "nullable"
+    ) {
+      continue;
+    }
+    result[key] = generateExampleValue(value);
+  }
+  return result;
+}
+
+/**
+ * Generate a single example value from a Zod type.
+ */
+function generateExampleValue(schema: z.ZodType): unknown {
+  if (!schema || !schema._def) return "...";
+  const def = schema._def as unknown as Record<string, unknown>;
+  const typeName = getZodTypeName(schema);
+
+  switch (typeName) {
+    case "ZodString":
+    case "string":
+      return "example";
+    case "ZodNumber":
+    case "number":
+      return 0;
+    case "ZodBoolean":
+    case "boolean":
+      return true;
+    case "ZodLiteral":
+    case "literal":
+      return def.value;
+    case "ZodEnum":
+    case "enum": {
+      if (Array.isArray(def.values) && def.values.length > 0)
+        return def.values[0];
+      if (def.entries && typeof def.entries === "object") {
+        const values = Object.values(def.entries as Record<string, string>);
+        return values.length > 0 ? values[0] : "example";
+      }
+      return "example";
+    }
+    case "ZodOptional":
+    case "optional":
+    case "ZodNullable":
+    case "nullable":
+    case "ZodDefault":
+    case "default": {
+      const inner = (def.innerType as z.ZodType) ?? (def.wrapped as z.ZodType);
+      return inner ? generateExampleValue(inner) : null;
+    }
+    case "ZodArray":
+    case "array":
+      return [];
+    case "ZodObject":
+    case "object":
+      return generateExamplePropsFromZod(schema);
+    case "ZodUnion":
+    case "union": {
+      const options = def.options as z.ZodType[] | undefined;
+      return options && options.length > 0
+        ? generateExampleValue(options[0]!)
+        : "...";
+    }
+    default:
+      return "...";
+  }
+}
+
+/**
+ * Find the name of the first required string prop in a Zod object schema.
+ * Used to demonstrate $path dynamic bindings in examples.
+ */
+function findFirstStringProp(schema?: z.ZodType): string | null {
+  if (!schema || !schema._def) return null;
+  const def = schema._def as unknown as Record<string, unknown>;
+  const typeName = getZodTypeName(schema);
+
+  if (typeName !== "ZodObject" && typeName !== "object") return null;
+
+  const shape =
+    typeof def.shape === "function"
+      ? (def.shape as () => Record<string, z.ZodType>)()
+      : (def.shape as Record<string, z.ZodType>);
+  if (!shape) return null;
+
+  for (const [key, value] of Object.entries(shape)) {
+    const innerTypeName = getZodTypeName(value);
+    // Skip optional props
+    if (
+      innerTypeName === "ZodOptional" ||
+      innerTypeName === "optional" ||
+      innerTypeName === "ZodNullable" ||
+      innerTypeName === "nullable"
+    ) {
+      continue;
+    }
+    // Unwrap to check the actual type
+    if (innerTypeName === "ZodString" || innerTypeName === "string") {
+      return key;
+    }
+  }
+  return null;
+}
+
+// =============================================================================
+// Zod Introspection Helpers
+// =============================================================================
 
 /**
  * Get Zod type name from schema (handles different Zod versions)
