@@ -184,17 +184,21 @@ export function DocsChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, error]);
 
-  // Cmd+K to focus prompt
+  // Cmd+K to focus prompt, Esc to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         inputRef.current?.focus();
       }
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+        inputRef.current?.blur();
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [open]);
 
   // Close message area when clicking outside
   useEffect(() => {
@@ -369,24 +373,13 @@ export function DocsChat() {
           >
             {!input && (
               <div className="absolute inset-0 flex items-center px-3 pointer-events-none">
-                {focused ? (
-                  <>
-                    <span className="text-sm text-muted-foreground">
-                      Ask a question...
-                    </span>
-                    <kbd className="hidden sm:inline-flex items-center gap-0.5 ml-2 px-1.5 py-0.5 rounded border border-muted-foreground/20 text-[10px] text-muted-foreground/40 font-mono shrink-0">
-                      <span className="text-xs">&#8984;</span>K
-                    </kbd>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-sm text-muted-foreground truncate flex-1">
-                      Ask a question...
-                    </span>
-                    <span className="text-muted-foreground/40 font-mono text-xs shrink-0">
-                      &#8984;K
-                    </span>
-                  </>
+                <span className="text-sm text-muted-foreground truncate flex-1">
+                  Ask a question...
+                </span>
+                {!focused && !showMessages && (
+                  <span className="text-muted-foreground/40 font-mono text-xs shrink-0">
+                    &#8984;K
+                  </span>
                 )}
               </div>
             )}
