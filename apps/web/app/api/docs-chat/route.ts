@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { convertToModelMessages, stepCountIs, streamText } from "ai";
-import type { UIMessage } from "ai";
+import type { ModelMessage, UIMessage } from "ai";
 import { createBashTool } from "bash-tool";
 import { headers } from "next/headers";
 import { allDocsPages } from "@/lib/docs-navigation";
@@ -58,6 +58,22 @@ async function loadDocsFiles(): Promise<Record<string, string>> {
   return files;
 }
 
+function addCacheControl(messages: ModelMessage[]): ModelMessage[] {
+  if (messages.length === 0) return messages;
+  return messages.map((message, index) => {
+    if (index === messages.length - 1) {
+      return {
+        ...message,
+        providerOptions: {
+          ...message.providerOptions,
+          anthropic: { cacheControl: { type: "ephemeral" } },
+        },
+      };
+    }
+    return message;
+  });
+}
+
 export async function POST(req: Request) {
   const headersList = await headers();
   const ip = headersList.get("x-forwarded-for")?.split(",")[0] ?? "anonymous";
@@ -94,6 +110,9 @@ export async function POST(req: Request) {
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(5),
     tools,
+    prepareStep: ({ messages: stepMessages }) => ({
+      messages: addCacheControl(stepMessages),
+    }),
   });
 
   return result.toUIMessageStreamResponse();

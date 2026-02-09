@@ -75,14 +75,14 @@ export function DocsChat() {
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
       <div
         ref={containerRef}
-        className="max-w-2xl mx-auto px-4 pb-4 [&>*]:pointer-events-auto"
+        className="max-w-xl mx-auto px-4 pb-4 [&>*]:pointer-events-auto"
       >
         {/* Messages panel */}
         {open && messages.length > 0 && (
           <div className="mb-2 bg-background border border-border rounded-lg shadow-lg max-h-[60vh] flex flex-col">
             <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0">
               <span className="text-xs font-medium text-muted-foreground">
-                Docs Assistant
+                json-render Docs
               </span>
               <button
                 onClick={handleClear}
@@ -110,13 +110,6 @@ export function DocsChat() {
                   </div>
                 );
               })}
-              {isLoading &&
-                messages.length > 0 &&
-                messages[messages.length - 1]?.role === "user" && (
-                  <div className="text-sm text-muted-foreground">
-                    Searching docs...
-                  </div>
-                )}
               <div ref={messagesEndRef} />
             </div>
           </div>
