@@ -121,6 +121,7 @@ function ScrollContainerComponent({ element, children }: ComponentRenderProps) {
     showsScrollIndicator?: boolean;
     padding?: number;
     backgroundColor?: string;
+    flex?: number;
   };
 
   return (
@@ -132,6 +133,7 @@ function ScrollContainerComponent({ element, children }: ComponentRenderProps) {
         padding: p.padding ?? undefined,
       }}
       style={{
+        flex: p.flex ?? 1,
         backgroundColor: p.backgroundColor ?? undefined,
       }}
     >
