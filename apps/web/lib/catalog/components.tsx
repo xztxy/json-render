@@ -102,7 +102,7 @@ import {
 import { playgroundCatalog } from "../catalog";
 
 // =============================================================================
-// Types - Inferred from Catalog
+// Types
 // =============================================================================
 
 type CatalogComponents = typeof playgroundCatalog.data.components;
@@ -122,11 +122,12 @@ export type ComponentFn<K extends keyof CatalogComponents> = (
 ) => ReactNode;
 
 // =============================================================================
-// Components - Type-safe with Catalog using shadcn/ui
+// Components
 // =============================================================================
 
 export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
-  // Layout Components
+  // ── Layout ──────────────────────────────────────────────────────────
+
   Card: ({ props, children }) => {
     const maxWidthClass =
       props.maxWidth === "sm"
@@ -161,7 +162,6 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
 
   Stack: ({ props, children }) => {
     const isHorizontal = props.direction === "horizontal";
-
     const gapClass =
       props.gap === "lg"
         ? "gap-4"
@@ -172,7 +172,6 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
             : props.gap === "none"
               ? "gap-0"
               : "gap-3";
-
     const alignClass =
       props.align === "center"
         ? "items-center"
@@ -181,7 +180,6 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
           : props.align === "stretch"
             ? "items-stretch"
             : "items-start";
-
     const justifyClass =
       props.justify === "center"
         ? "justify-center"
@@ -203,16 +201,17 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
   },
 
   Grid: ({ props, children }) => {
+    const n = props.columns ?? 1;
     const cols =
-      props.columns === 6
+      n >= 6
         ? "grid-cols-6"
-        : props.columns === 5
+        : n >= 5
           ? "grid-cols-5"
-          : props.columns === 4
+          : n >= 4
             ? "grid-cols-4"
-            : props.columns === 3
+            : n >= 3
               ? "grid-cols-3"
-              : props.columns === 2
+              : n >= 2
                 ? "grid-cols-2"
                 : "grid-cols-1";
     const gridGap =
@@ -221,362 +220,12 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
     return <div className={`grid ${cols} ${gridGap}`}>{children}</div>;
   },
 
-  Divider: () => <Separator className="my-3" />,
-
-  Dialog: ({ props, children }) => {
-    const [open, setOpen] = useStateBinding<boolean>(props.openPath);
-    return (
-      <DialogPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{props.title}</DialogTitle>
-            {props.description && (
-              <DialogDescription>{props.description}</DialogDescription>
-            )}
-          </DialogHeader>
-          {children}
-        </DialogContent>
-      </DialogPrimitive>
-    );
-  },
-
-  Accordion: ({ props }) => {
-    const accordionType = props.type ?? "single";
-    const items = props.items ?? [];
-    // Radix requires different props for single vs multiple
-    if (accordionType === "multiple") {
-      return (
-        <AccordionPrimitive type="multiple" className="w-full">
-          {items.map((item, i) => (
-            <AccordionItem key={i} value={`item-${i}`}>
-              <AccordionTrigger>{item.title}</AccordionTrigger>
-              <AccordionContent>{item.content}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </AccordionPrimitive>
-      );
-    }
-    return (
-      <AccordionPrimitive type="single" collapsible className="w-full">
-        {items.map((item, i) => (
-          <AccordionItem key={i} value={`item-${i}`}>
-            <AccordionTrigger>{item.title}</AccordionTrigger>
-            <AccordionContent>{item.content}</AccordionContent>
-          </AccordionItem>
-        ))}
-      </AccordionPrimitive>
-    );
-  },
-
-  ButtonGroup: ({ props, emit }) => {
-    const buttons = props.buttons ?? [];
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<string>(props.statePath)
-      : [undefined, undefined];
-    const [localValue, setLocalValue] = useState(buttons[0]?.value ?? "");
-    const value = props.statePath ? (boundValue ?? "") : localValue;
-    const setValue = props.statePath ? setBoundValue! : setLocalValue;
-
-    return (
-      <div className="inline-flex rounded-md border border-border">
-        {buttons.map((btn, i) => (
-          <button
-            key={btn.value}
-            className={`px-3 py-1.5 text-sm transition-colors ${
-              value === btn.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-background hover:bg-muted"
-            } ${i > 0 ? "border-l border-border" : ""} ${
-              i === 0 ? "rounded-l-md" : ""
-            } ${i === buttons.length - 1 ? "rounded-r-md" : ""}`}
-            onClick={() => {
-              setValue(btn.value);
-              emit?.("change");
-            }}
-          >
-            {btn.label}
-          </button>
-        ))}
-      </div>
-    );
-  },
-
-  Carousel: ({ props }) => {
-    const items = props.items ?? [];
-    return (
-      <CarouselPrimitive className="w-full">
-        <CarouselContent>
-          {items.map((item, i) => (
-            <CarouselItem
-              key={i}
-              className="basis-3/4 md:basis-1/2 lg:basis-1/3"
-            >
-              <div className="border border-border rounded-lg p-4 bg-card h-full">
-                {item.title && (
-                  <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
-                )}
-                {item.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </CarouselPrimitive>
-    );
-  },
-
-  Collapsible: ({ props, children }) => {
-    const [open, setOpen] = useState(props.defaultOpen ?? false);
-    return (
-      <Collapsible open={open} onOpenChange={setOpen} className="w-full">
-        <CollapsibleTrigger asChild>
-          <button className="flex w-full items-center justify-between rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
-            {props.title}
-            <svg
-              className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pt-2">{children}</CollapsibleContent>
-      </Collapsible>
-    );
-  },
-
-  Table: ({ props }) => {
-    const columns = props.columns ?? [];
-    const rows = props.rows ?? [];
-
-    return (
-      <div className="rounded-md border border-border overflow-hidden">
-        <TablePrimitive>
-          {props.caption && <TableCaption>{props.caption}</TableCaption>}
-          <TableHeader>
-            <TableRow>
-              {columns.map((col) => (
-                <TableHead key={col}>{col}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row, i) => (
-              <TableRow key={i}>
-                {(row ?? []).map((cell, j) => (
-                  <TableCell key={j}>{cell}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </TablePrimitive>
-      </div>
-    );
-  },
-
-  Drawer: ({ props, children }) => {
-    const [open, setOpen] = useStateBinding<boolean>(props.openPath);
-    return (
-      <DrawerPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{props.title}</DrawerTitle>
-            {props.description && (
-              <DrawerDescription>{props.description}</DrawerDescription>
-            )}
-          </DrawerHeader>
-          <div className="p-4">{children}</div>
-        </DrawerContent>
-      </DrawerPrimitive>
-    );
-  },
-
-  DropdownMenu: ({ props, emit }) => {
-    const items = props.items ?? [];
-    return (
-      <DropdownMenuPrimitive>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">{props.label}</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {items.map((item) => (
-            <DropdownMenuItem key={item.value} onClick={() => emit?.("select")}>
-              {item.label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenuPrimitive>
-    );
-  },
-
-  Pagination: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = useStateBinding<number>(
-      props.statePath,
-    );
-    const currentPage = boundValue ?? 1;
-
-    const pages = Array.from({ length: props.totalPages }, (_, i) => i + 1);
-
-    return (
-      <PaginationPrimitive>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (currentPage > 1) {
-                  setBoundValue(currentPage - 1);
-                  emit?.("change");
-                }
-              }}
-            />
-          </PaginationItem>
-          {pages.map((page) => (
-            <PaginationItem key={page}>
-              <PaginationLink
-                href="#"
-                isActive={page === currentPage}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setBoundValue(page);
-                  emit?.("change");
-                }}
-              >
-                {page}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (currentPage < props.totalPages) {
-                  setBoundValue(currentPage + 1);
-                  emit?.("change");
-                }
-              }}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </PaginationPrimitive>
-    );
-  },
-
-  Popover: ({ props }) => {
-    return (
-      <PopoverPrimitive>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="text-sm">
-            {props.trigger}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-64">
-          <p className="text-sm">{props.content}</p>
-        </PopoverContent>
-      </PopoverPrimitive>
-    );
-  },
-
-  Separator: ({ props }) => {
-    return (
-      <Separator
-        orientation={props.orientation ?? "horizontal"}
-        className={props.orientation === "vertical" ? "h-full mx-2" : "my-3"}
-      />
-    );
-  },
-
-  Skeleton: ({ props }) => {
-    return (
-      <Skeleton
-        className={props.rounded ? "rounded-full" : "rounded-md"}
-        style={{
-          width: props.width ?? "100%",
-          height: props.height ?? "1.25rem",
-        }}
-      />
-    );
-  },
-
-  Slider: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<number>(props.statePath)
-      : [undefined, undefined];
-    const [localValue, setLocalValue] = useState(props.min ?? 0);
-    const value = props.statePath ? (boundValue ?? props.min ?? 0) : localValue;
-    const setValue = props.statePath ? setBoundValue! : setLocalValue;
-
-    return (
-      <div className="space-y-2">
-        {props.label && (
-          <div className="flex justify-between">
-            <Label className="text-sm">{props.label}</Label>
-            <span className="text-sm text-muted-foreground">{value}</span>
-          </div>
-        )}
-        <Slider
-          value={[value]}
-          min={props.min ?? 0}
-          max={props.max ?? 100}
-          step={props.step ?? 1}
-          onValueChange={(v) => {
-            setValue(v[0] ?? 0);
-            emit?.("change");
-          }}
-        />
-      </div>
-    );
-  },
-
-  Spinner: ({ props }) => {
-    const sizeClass =
-      props.size === "lg"
-        ? "h-8 w-8"
-        : props.size === "sm"
-          ? "h-4 w-4"
-          : "h-6 w-6";
-
-    return (
-      <div className="flex items-center gap-2">
-        <svg
-          className={`${sizeClass} animate-spin text-muted-foreground`}
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          />
-        </svg>
-        {props.label && (
-          <span className="text-sm text-muted-foreground">{props.label}</span>
-        )}
-      </div>
-    );
-  },
+  Separator: ({ props }) => (
+    <Separator
+      orientation={props.orientation ?? "horizontal"}
+      className={props.orientation === "vertical" ? "h-full mx-2" : "my-3"}
+    />
+  ),
 
   Tabs: ({ props, emit }) => {
     const tabs = props.tabs ?? [];
@@ -610,351 +259,167 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
     );
   },
 
-  Toggle: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<boolean>(props.statePath)
-      : [undefined, undefined];
-    const [localPressed, setLocalPressed] = useState(props.pressed ?? false);
-    const pressed = props.statePath ? (boundValue ?? false) : localPressed;
-    const setPressed = props.statePath ? setBoundValue! : setLocalPressed;
-
-    return (
-      <Toggle
-        variant={props.variant ?? "default"}
-        pressed={pressed}
-        onPressedChange={(v) => {
-          setPressed(v);
-          emit?.("change");
-        }}
-      >
-        {props.label}
-      </Toggle>
-    );
-  },
-
-  ToggleGroup: ({ props, emit }) => {
-    const type = props.type ?? "single";
+  Accordion: ({ props }) => {
     const items = props.items ?? [];
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<string>(props.statePath)
-      : [undefined, undefined];
-    const [localValue, setLocalValue] = useState(items[0]?.value ?? "");
-    const value = props.statePath ? (boundValue ?? "") : localValue;
-    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+    const accordionType = props.type ?? "single";
 
-    if (type === "multiple") {
+    if (accordionType === "multiple") {
       return (
-        <ToggleGroup type="multiple">
-          {items.map((item) => (
-            <ToggleGroupItem key={item.value} value={item.value}>
-              {item.label}
-            </ToggleGroupItem>
+        <AccordionPrimitive type="multiple" className="w-full">
+          {items.map((item, i) => (
+            <AccordionItem key={i} value={`item-${i}`}>
+              <AccordionTrigger>{item.title}</AccordionTrigger>
+              <AccordionContent>{item.content}</AccordionContent>
+            </AccordionItem>
           ))}
-        </ToggleGroup>
+        </AccordionPrimitive>
       );
     }
-
     return (
-      <ToggleGroup
-        type="single"
-        value={value}
-        onValueChange={(v) => {
-          if (v) {
-            setValue(v);
-            emit?.("change");
-          }
-        }}
-      >
-        {items.map((item) => (
-          <ToggleGroupItem key={item.value} value={item.value}>
-            {item.label}
-          </ToggleGroupItem>
+      <AccordionPrimitive type="single" collapsible className="w-full">
+        {items.map((item, i) => (
+          <AccordionItem key={i} value={`item-${i}`}>
+            <AccordionTrigger>{item.title}</AccordionTrigger>
+            <AccordionContent>{item.content}</AccordionContent>
+          </AccordionItem>
         ))}
-      </ToggleGroup>
+      </AccordionPrimitive>
     );
   },
 
-  Tooltip: ({ props }) => {
+  Collapsible: ({ props, children }) => {
+    const [open, setOpen] = useState(props.defaultOpen ?? false);
     return (
-      <TooltipProvider>
-        <TooltipPrimitive>
-          <TooltipTrigger asChild>
-            <span className="text-sm underline decoration-dotted cursor-help">
-              {props.text}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{props.content}</p>
-          </TooltipContent>
-        </TooltipPrimitive>
-      </TooltipProvider>
+      <Collapsible open={open} onOpenChange={setOpen} className="w-full">
+        <CollapsibleTrigger asChild>
+          <button className="flex w-full items-center justify-between rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors">
+            {props.title}
+            <svg
+              className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-2">{children}</CollapsibleContent>
+      </Collapsible>
     );
   },
 
-  Typography: ({ props }) => {
-    const variant = props.variant ?? "p";
-    switch (variant) {
-      case "h1":
-        return (
-          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-            {props.text}
-          </h1>
-        );
-      case "h2":
-        return (
-          <h2 className="scroll-m-20 text-3xl font-semibold tracking-tight">
-            {props.text}
-          </h2>
-        );
-      case "h3":
-        return (
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            {props.text}
-          </h3>
-        );
-      case "h4":
-        return (
-          <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-            {props.text}
-          </h4>
-        );
-      case "lead":
-        return <p className="text-xl text-muted-foreground">{props.text}</p>;
-      case "large":
-        return <p className="text-lg font-semibold">{props.text}</p>;
-      case "small":
-        return (
-          <small className="text-sm font-medium leading-none">
-            {props.text}
-          </small>
-        );
-      case "muted":
-        return <p className="text-sm text-muted-foreground">{props.text}</p>;
-      case "blockquote":
-        return (
-          <blockquote className="mt-2 border-l-2 pl-6 italic">
-            {props.text}
-          </blockquote>
-        );
-      case "code":
-        return (
-          <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
-            {props.text}
-          </code>
-        );
-      case "list":
-        return (
-          <ul className="ml-6 list-disc [&>li]:mt-2">
-            {props.text.split("\n").map((line, i) => (
-              <li key={i}>{line}</li>
-            ))}
-          </ul>
-        );
-      default:
-        return <p className="leading-7">{props.text}</p>;
-    }
-  },
-
-  // Form Inputs
-  Input: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<string>(props.statePath)
-      : [undefined, undefined];
-    const [localValue, setLocalValue] = useState("");
-    const value = props.statePath ? (boundValue ?? "") : localValue;
-    const setValue = props.statePath ? setBoundValue! : setLocalValue;
-
+  Dialog: ({ props, children }) => {
+    const [open, setOpen] = useStateBinding<boolean>(props.openPath);
     return (
-      <div className="space-y-2">
-        {props.label && <Label htmlFor={props.name}>{props.label}</Label>}
-        <Input
-          id={props.name}
-          name={props.name}
-          type={props.type ?? "text"}
-          placeholder={props.placeholder ?? ""}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") emit?.("submit");
-          }}
-          onFocus={() => emit?.("focus")}
-          onBlur={() => emit?.("blur")}
-        />
-      </div>
+      <DialogPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{props.title}</DialogTitle>
+            {props.description && (
+              <DialogDescription>{props.description}</DialogDescription>
+            )}
+          </DialogHeader>
+          {children}
+        </DialogContent>
+      </DialogPrimitive>
     );
   },
 
-  Textarea: ({ props }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<string>(props.statePath)
-      : [undefined, undefined];
-    const [localValue, setLocalValue] = useState("");
-    const value = props.statePath ? (boundValue ?? "") : localValue;
-    const setValue = props.statePath ? setBoundValue! : setLocalValue;
-
+  Drawer: ({ props, children }) => {
+    const [open, setOpen] = useStateBinding<boolean>(props.openPath);
     return (
-      <div className="space-y-2">
-        {props.label && <Label htmlFor={props.name}>{props.label}</Label>}
-        <Textarea
-          id={props.name}
-          name={props.name}
-          placeholder={props.placeholder ?? ""}
-          rows={props.rows ?? 3}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-      </div>
+      <DrawerPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{props.title}</DrawerTitle>
+            {props.description && (
+              <DrawerDescription>{props.description}</DrawerDescription>
+            )}
+          </DrawerHeader>
+          <div className="p-4">{children}</div>
+        </DrawerContent>
+      </DrawerPrimitive>
     );
   },
 
-  Select: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<string>(props.statePath)
-      : [undefined, undefined];
-    const [localValue, setLocalValue] = useState<string>("");
-    const value = props.statePath ? (boundValue ?? "") : localValue;
-    const setValue = props.statePath ? setBoundValue! : setLocalValue;
-
+  Carousel: ({ props }) => {
+    const items = props.items ?? [];
     return (
-      <div className="space-y-2">
-        <Label>{props.label}</Label>
-        <Select
-          value={value}
-          onValueChange={(v) => {
-            setValue(v);
-            emit?.("change");
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={props.placeholder ?? "Select..."} />
-          </SelectTrigger>
-          <SelectContent>
-            {props.options.map((opt) => (
-              <SelectItem key={opt} value={opt}>
-                {opt}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    );
-  },
-
-  Checkbox: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<boolean>(props.statePath)
-      : [undefined, undefined];
-    const [localChecked, setLocalChecked] = useState(!!props.checked);
-    const checked = props.statePath ? (boundValue ?? false) : localChecked;
-    const setChecked = props.statePath ? setBoundValue! : setLocalChecked;
-
-    return (
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id={props.name}
-          checked={checked}
-          onCheckedChange={(c) => {
-            setChecked(c === true);
-            emit?.("change");
-          }}
-        />
-        <Label htmlFor={props.name} className="cursor-pointer">
-          {props.label}
-        </Label>
-      </div>
-    );
-  },
-
-  Radio: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<string>(props.statePath)
-      : [undefined, undefined];
-    const [localValue, setLocalValue] = useState(props.options[0] ?? "");
-    const value = props.statePath ? (boundValue ?? "") : localValue;
-    const setValue = props.statePath ? setBoundValue! : setLocalValue;
-
-    return (
-      <div className="space-y-2">
-        {props.label && <Label>{props.label}</Label>}
-        <RadioGroup
-          value={value}
-          onValueChange={(v) => {
-            setValue(v);
-            emit?.("change");
-          }}
-        >
-          {props.options.map((opt) => (
-            <div key={opt} className="flex items-center space-x-2">
-              <RadioGroupItem value={opt} id={`${props.name}-${opt}`} />
-              <Label
-                htmlFor={`${props.name}-${opt}`}
-                className="cursor-pointer"
-              >
-                {opt}
-              </Label>
-            </div>
+      <CarouselPrimitive className="w-full">
+        <CarouselContent>
+          {items.map((item, i) => (
+            <CarouselItem
+              key={i}
+              className="basis-3/4 md:basis-1/2 lg:basis-1/3"
+            >
+              <div className="border border-border rounded-lg p-4 bg-card h-full">
+                {item.title && (
+                  <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
+                )}
+                {item.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            </CarouselItem>
           ))}
-        </RadioGroup>
+        </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
+      </CarouselPrimitive>
+    );
+  },
+
+  // ── Data Display ────────────────────────────────────────────────────
+
+  Table: ({ props }) => {
+    const columns = props.columns ?? [];
+    const rawRows: unknown[] = Array.isArray(props.rows) ? props.rows : [];
+
+    // Normalize: if AI sends object rows, extract values by column name
+    const rows = rawRows.map((row) => {
+      if (Array.isArray(row)) return row.map(String);
+      if (row && typeof row === "object") {
+        const obj = row as Record<string, unknown>;
+        return columns.map((col) =>
+          String(obj[col] ?? obj[col.toLowerCase()] ?? ""),
+        );
+      }
+      return columns.map(() => "");
+    });
+
+    return (
+      <div className="rounded-md border border-border overflow-hidden">
+        <TablePrimitive>
+          {props.caption && <TableCaption>{props.caption}</TableCaption>}
+          <TableHeader>
+            <TableRow>
+              {columns.map((col) => (
+                <TableHead key={col}>{col}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row, i) => (
+              <TableRow key={i}>
+                {row.map((cell, j) => (
+                  <TableCell key={j}>{cell}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </TablePrimitive>
       </div>
     );
   },
 
-  Switch: ({ props, emit }) => {
-    const [boundValue, setBoundValue] = props.statePath
-      ? useStateBinding<boolean>(props.statePath)
-      : [undefined, undefined];
-    const [localChecked, setLocalChecked] = useState(!!props.checked);
-    const checked = props.statePath ? (boundValue ?? false) : localChecked;
-    const setChecked = props.statePath ? setBoundValue! : setLocalChecked;
-
-    return (
-      <div className="flex items-center justify-between space-x-2">
-        <Label htmlFor={props.name} className="cursor-pointer">
-          {props.label}
-        </Label>
-        <Switch
-          id={props.name}
-          checked={checked}
-          onCheckedChange={(c) => {
-            setChecked(c);
-            emit?.("change");
-          }}
-        />
-      </div>
-    );
-  },
-
-  // Actions
-  Button: ({ props, emit }) => {
-    const variant =
-      props.variant === "danger"
-        ? "destructive"
-        : props.variant === "secondary"
-          ? "secondary"
-          : "default";
-
-    return (
-      <Button
-        variant={variant}
-        disabled={props.disabled ?? false}
-        onClick={() => emit?.("press")}
-      >
-        {props.label}
-      </Button>
-    );
-  },
-
-  Link: ({ props, emit }) => (
-    <Button
-      variant="link"
-      className="h-auto p-0"
-      onClick={() => emit?.("press")}
-    >
-      {props.label}
-    </Button>
-  ),
-
-  // Typography
   Heading: ({ props }) => {
     const level = props.level ?? "h2";
     const headingClass =
@@ -981,12 +446,18 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
         ? "text-xs"
         : props.variant === "muted"
           ? "text-sm text-muted-foreground"
-          : "text-sm";
+          : props.variant === "lead"
+            ? "text-xl text-muted-foreground"
+            : props.variant === "code"
+              ? "font-mono text-sm bg-muted px-1.5 py-0.5 rounded"
+              : "text-sm";
 
+    if (props.variant === "code") {
+      return <code className={`${textClass} text-left`}>{props.text}</code>;
+    }
     return <p className={`${textClass} text-left`}>{props.text}</p>;
   },
 
-  // Data Display
   Image: ({ props }) => {
     const imgStyle = {
       width: props.width ?? 80,
@@ -1034,8 +505,6 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
         : props.variant === "danger"
           ? "destructive"
           : "default";
-
-    // Add custom colors for success/warning
     const customClass =
       props.variant === "success"
         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
@@ -1052,8 +521,6 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
 
   Alert: ({ props }) => {
     const variant = props.type === "error" ? "destructive" : "default";
-
-    // Custom colors for different alert types
     const customClass =
       props.type === "success"
         ? "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100"
@@ -1073,7 +540,6 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
 
   Progress: ({ props }) => {
     const value = Math.min(100, Math.max(0, props.value || 0));
-
     return (
       <div className="space-y-2">
         {props.label && (
@@ -1084,10 +550,82 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
     );
   },
 
+  Skeleton: ({ props }) => (
+    <Skeleton
+      className={props.rounded ? "rounded-full" : "rounded-md"}
+      style={{
+        width: props.width ?? "100%",
+        height: props.height ?? "1.25rem",
+      }}
+    />
+  ),
+
+  Spinner: ({ props }) => {
+    const sizeClass =
+      props.size === "lg"
+        ? "h-8 w-8"
+        : props.size === "sm"
+          ? "h-4 w-4"
+          : "h-6 w-6";
+    return (
+      <div className="flex items-center gap-2">
+        <svg
+          className={`${sizeClass} animate-spin text-muted-foreground`}
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+        {props.label && (
+          <span className="text-sm text-muted-foreground">{props.label}</span>
+        )}
+      </div>
+    );
+  },
+
+  Tooltip: ({ props }) => (
+    <TooltipProvider>
+      <TooltipPrimitive>
+        <TooltipTrigger asChild>
+          <span className="text-sm underline decoration-dotted cursor-help">
+            {props.text}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{props.content}</p>
+        </TooltipContent>
+      </TooltipPrimitive>
+    </TooltipProvider>
+  ),
+
+  Popover: ({ props }) => (
+    <PopoverPrimitive>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="text-sm">
+          {props.trigger}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64">
+        <p className="text-sm">{props.content}</p>
+      </PopoverContent>
+    </PopoverPrimitive>
+  ),
+
   Rating: ({ props }) => {
     const ratingValue = props.value || 0;
     const maxRating = props.max ?? 5;
-
     return (
       <div className="space-y-2">
         {props.label && (
@@ -1107,7 +645,8 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
     );
   },
 
-  // Charts
+  // ── Charts ──────────────────────────────────────────────────────────
+
   BarGraph: ({ props }) => {
     const data = props.data || [];
     const maxValue = Math.max(...data.map((d) => d.value), 1);
@@ -1240,6 +779,408 @@ export const components: { [K in keyof CatalogComponents]: ComponentFn<K> } = {
           </div>
         )}
       </div>
+    );
+  },
+
+  // ── Form Inputs ─────────────────────────────────────────────────────
+
+  Input: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState("");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <div className="space-y-2">
+        {props.label && <Label htmlFor={props.name}>{props.label}</Label>}
+        <Input
+          id={props.name}
+          name={props.name}
+          type={props.type ?? "text"}
+          placeholder={props.placeholder ?? ""}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") emit?.("submit");
+          }}
+          onFocus={() => emit?.("focus")}
+          onBlur={() => emit?.("blur")}
+        />
+      </div>
+    );
+  },
+
+  Textarea: ({ props }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState("");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <div className="space-y-2">
+        {props.label && <Label htmlFor={props.name}>{props.label}</Label>}
+        <Textarea
+          id={props.name}
+          name={props.name}
+          placeholder={props.placeholder ?? ""}
+          rows={props.rows ?? 3}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+      </div>
+    );
+  },
+
+  Select: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState<string>("");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+    const options = props.options ?? [];
+
+    return (
+      <div className="space-y-2">
+        <Label>{props.label}</Label>
+        <Select
+          value={value}
+          onValueChange={(v) => {
+            setValue(v);
+            emit?.("change");
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={props.placeholder ?? "Select..."} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt} value={opt}>
+                {opt}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  },
+
+  Checkbox: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<boolean>(props.statePath)
+      : [undefined, undefined];
+    const [localChecked, setLocalChecked] = useState(!!props.checked);
+    const checked = props.statePath ? (boundValue ?? false) : localChecked;
+    const setChecked = props.statePath ? setBoundValue! : setLocalChecked;
+
+    return (
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id={props.name}
+          checked={checked}
+          onCheckedChange={(c) => {
+            setChecked(c === true);
+            emit?.("change");
+          }}
+        />
+        <Label htmlFor={props.name} className="cursor-pointer">
+          {props.label}
+        </Label>
+      </div>
+    );
+  },
+
+  Radio: ({ props, emit }) => {
+    const options = props.options ?? [];
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(options[0] ?? "");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <div className="space-y-2">
+        {props.label && <Label>{props.label}</Label>}
+        <RadioGroup
+          value={value}
+          onValueChange={(v) => {
+            setValue(v);
+            emit?.("change");
+          }}
+        >
+          {options.map((opt) => (
+            <div key={opt} className="flex items-center space-x-2">
+              <RadioGroupItem value={opt} id={`${props.name}-${opt}`} />
+              <Label
+                htmlFor={`${props.name}-${opt}`}
+                className="cursor-pointer"
+              >
+                {opt}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
+    );
+  },
+
+  Switch: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<boolean>(props.statePath)
+      : [undefined, undefined];
+    const [localChecked, setLocalChecked] = useState(!!props.checked);
+    const checked = props.statePath ? (boundValue ?? false) : localChecked;
+    const setChecked = props.statePath ? setBoundValue! : setLocalChecked;
+
+    return (
+      <div className="flex items-center justify-between space-x-2">
+        <Label htmlFor={props.name} className="cursor-pointer">
+          {props.label}
+        </Label>
+        <Switch
+          id={props.name}
+          checked={checked}
+          onCheckedChange={(c) => {
+            setChecked(c);
+            emit?.("change");
+          }}
+        />
+      </div>
+    );
+  },
+
+  Slider: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<number>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(props.min ?? 0);
+    const value = props.statePath ? (boundValue ?? props.min ?? 0) : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <div className="space-y-2">
+        {props.label && (
+          <div className="flex justify-between">
+            <Label className="text-sm">{props.label}</Label>
+            <span className="text-sm text-muted-foreground">{value}</span>
+          </div>
+        )}
+        <Slider
+          value={[value]}
+          min={props.min ?? 0}
+          max={props.max ?? 100}
+          step={props.step ?? 1}
+          onValueChange={(v) => {
+            setValue(v[0] ?? 0);
+            emit?.("change");
+          }}
+        />
+      </div>
+    );
+  },
+
+  // ── Actions ─────────────────────────────────────────────────────────
+
+  Button: ({ props, emit }) => {
+    const variant =
+      props.variant === "danger"
+        ? "destructive"
+        : props.variant === "secondary"
+          ? "secondary"
+          : "default";
+
+    return (
+      <Button
+        variant={variant}
+        disabled={props.disabled ?? false}
+        onClick={() => emit?.("press")}
+      >
+        {props.label}
+      </Button>
+    );
+  },
+
+  Link: ({ props, emit }) => (
+    <Button
+      variant="link"
+      className="h-auto p-0"
+      onClick={() => emit?.("press")}
+    >
+      {props.label}
+    </Button>
+  ),
+
+  DropdownMenu: ({ props, emit }) => {
+    const items = props.items ?? [];
+    return (
+      <DropdownMenuPrimitive>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">{props.label}</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {items.map((item) => (
+            <DropdownMenuItem key={item.value} onClick={() => emit?.("select")}>
+              {item.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenuPrimitive>
+    );
+  },
+
+  Toggle: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<boolean>(props.statePath)
+      : [undefined, undefined];
+    const [localPressed, setLocalPressed] = useState(props.pressed ?? false);
+    const pressed = props.statePath ? (boundValue ?? false) : localPressed;
+    const setPressed = props.statePath ? setBoundValue! : setLocalPressed;
+
+    return (
+      <Toggle
+        variant={props.variant ?? "default"}
+        pressed={pressed}
+        onPressedChange={(v) => {
+          setPressed(v);
+          emit?.("change");
+        }}
+      >
+        {props.label}
+      </Toggle>
+    );
+  },
+
+  ToggleGroup: ({ props, emit }) => {
+    const type = props.type ?? "single";
+    const items = props.items ?? [];
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(items[0]?.value ?? "");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    if (type === "multiple") {
+      return (
+        <ToggleGroup type="multiple">
+          {items.map((item) => (
+            <ToggleGroupItem key={item.value} value={item.value}>
+              {item.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      );
+    }
+
+    return (
+      <ToggleGroup
+        type="single"
+        value={value}
+        onValueChange={(v) => {
+          if (v) {
+            setValue(v);
+            emit?.("change");
+          }
+        }}
+      >
+        {items.map((item) => (
+          <ToggleGroupItem key={item.value} value={item.value}>
+            {item.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    );
+  },
+
+  ButtonGroup: ({ props, emit }) => {
+    const buttons = props.buttons ?? [];
+    const [boundValue, setBoundValue] = props.statePath
+      ? useStateBinding<string>(props.statePath)
+      : [undefined, undefined];
+    const [localValue, setLocalValue] = useState(buttons[0]?.value ?? "");
+    const value = props.statePath ? (boundValue ?? "") : localValue;
+    const setValue = props.statePath ? setBoundValue! : setLocalValue;
+
+    return (
+      <div className="inline-flex rounded-md border border-border">
+        {buttons.map((btn, i) => (
+          <button
+            key={btn.value}
+            className={`px-3 py-1.5 text-sm transition-colors ${
+              value === btn.value
+                ? "bg-primary text-primary-foreground"
+                : "bg-background hover:bg-muted"
+            } ${i > 0 ? "border-l border-border" : ""} ${
+              i === 0 ? "rounded-l-md" : ""
+            } ${i === buttons.length - 1 ? "rounded-r-md" : ""}`}
+            onClick={() => {
+              setValue(btn.value);
+              emit?.("change");
+            }}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
+    );
+  },
+
+  Pagination: ({ props, emit }) => {
+    const [boundValue, setBoundValue] = useStateBinding<number>(
+      props.statePath,
+    );
+    const currentPage = boundValue ?? 1;
+    const pages = Array.from({ length: props.totalPages }, (_, i) => i + 1);
+
+    return (
+      <PaginationPrimitive>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                  setBoundValue(currentPage - 1);
+                  emit?.("change");
+                }
+              }}
+            />
+          </PaginationItem>
+          {pages.map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href="#"
+                isActive={page === currentPage}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setBoundValue(page);
+                  emit?.("change");
+                }}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage < props.totalPages) {
+                  setBoundValue(currentPage + 1);
+                  emit?.("change");
+                }
+              }}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </PaginationPrimitive>
     );
   },
 };
