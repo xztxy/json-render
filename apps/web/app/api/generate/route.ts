@@ -2,7 +2,7 @@ import { streamText } from "ai";
 import { headers } from "next/headers";
 import { buildUserPrompt } from "@json-render/core";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
-import { playgroundCatalog } from "@/lib/catalog";
+import { playgroundCatalog } from "@/lib/render/catalog";
 
 export const maxDuration = 30;
 

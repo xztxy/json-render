@@ -14,8 +14,8 @@ import { toast } from "sonner";
 import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
-import { PlaygroundRenderer } from "@/lib/renderer";
-import { playgroundCatalog } from "@/lib/catalog";
+import { PlaygroundRenderer } from "@/lib/render/renderer";
+import { playgroundCatalog } from "@/lib/render/catalog";
 
 const SIMULATION_PROMPT = "Create a contact form with name, email, and message";
 

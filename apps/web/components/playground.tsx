@@ -14,8 +14,8 @@ import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
 import { Header } from "./header";
-import { PlaygroundRenderer } from "@/lib/renderer";
-import { playgroundCatalog } from "@/lib/catalog";
+import { PlaygroundRenderer } from "@/lib/render/renderer";
+import { playgroundCatalog } from "@/lib/render/catalog";
 
 type Tab = "json" | "stream" | "catalog";
 type RenderView = "preview" | "code";
