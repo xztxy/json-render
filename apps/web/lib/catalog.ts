@@ -6,8 +6,7 @@ import { z } from "zod";
  * Web playground component catalog
  *
  * This defines the components available for AI generation in the playground.
- * Components map to implementations in lib/catalog/components.tsx
- * Actions map to handlers in lib/catalog/actions.ts
+ * Components and actions are implemented in lib/registry.tsx via defineRegistry.
  *
  * Keep schemas simple — one format per prop, no unions.
  * Fewer components = less confusion for the AI.
