@@ -285,6 +285,7 @@ export function Demo({
     isStreaming,
     send,
     clear,
+    rawLines: apiRawLines,
   } = useUIStream({
     api: "/api/generate",
     onError: (err: Error) => {
@@ -357,25 +358,12 @@ export function Demo({
     return () => clearInterval(interval);
   }, [mode, phase]);
 
-  // Track stream lines from real API
+  // Track stream lines from real API (use raw JSONL patch lines)
   useEffect(() => {
-    if (mode === "interactive" && apiSpec) {
-      // Convert tree to stream line for display
-      const streamLine = JSON.stringify({ tree: apiSpec });
-      if (
-        !streamLines.includes(streamLine) &&
-        Object.keys(apiSpec.elements).length > 0
-      ) {
-        setStreamLines((prev) => {
-          const lastLine = prev[prev.length - 1];
-          if (lastLine !== streamLine) {
-            return [...prev, streamLine];
-          }
-          return prev;
-        });
-      }
+    if (mode === "interactive" && apiRawLines.length > 0) {
+      setStreamLines(apiRawLines);
     }
-  }, [mode, apiSpec, streamLines]);
+  }, [mode, apiRawLines]);
 
   const handleSubmit = useCallback(async () => {
     if (!userPrompt.trim() || isStreaming) return;

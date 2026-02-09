@@ -545,7 +545,7 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     "Output JSONL (one JSON object per line) with patches to build a UI tree.",
   );
   lines.push(
-    "Each line is a JSON patch operation. Start with the root, then add elements, then add state LAST so the UI skeleton appears immediately.",
+    "Each line is a JSON patch operation. Start with /root, then stream /elements and /state patches interleaved so the UI fills in progressively as it streams.",
   );
   lines.push("");
   lines.push("Example output (each line is a separate JSON object):");
@@ -556,8 +556,11 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
 {"op":"add","path":"/elements/posts-grid","value":{"type":"Grid","props":{"columns":2,"gap":"md"},"repeat":{"path":"/posts","key":"id"},"children":["post-card"]}}
 {"op":"add","path":"/elements/post-card","value":{"type":"Card","props":{"title":{"$path":"$item/title"}},"children":["post-meta"]}}
 {"op":"add","path":"/elements/post-meta","value":{"type":"Text","props":{"text":{"$path":"$item/author"},"variant":"muted"},"children":[]}}
+{"op":"add","path":"/state/posts","value":[]}
 {"op":"add","path":"/state/posts/0","value":{"id":"1","title":"Getting Started","author":"Jane","date":"Jan 15"}}
-{"op":"add","path":"/state/posts/1","value":{"id":"2","title":"Advanced Tips","author":"Bob","date":"Feb 3"}}`);
+{"op":"add","path":"/state/posts/1","value":{"id":"2","title":"Advanced Tips","author":"Bob","date":"Feb 3"}}
+
+Note: state patches appear right after the elements that use them, so the UI fills in as it streams.`);
   lines.push("");
 
   // Initial state section
@@ -569,7 +572,7 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     "CRITICAL: You MUST include state patches whenever your UI displays data via $path expressions, uses repeat to iterate over arrays, or uses statePath bindings. Without state, $path references resolve to nothing and repeat lists render zero items.",
   );
   lines.push(
-    "Output state AFTER /root and /elements so the UI skeleton appears instantly while state streams in progressively.",
+    "Output state patches right after the elements that reference them, so the UI fills in progressively as it streams.",
   );
   lines.push(
     "Stream state progressively - output one patch per array item instead of one giant blob:",
@@ -764,7 +767,7 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     "Output ONLY JSONL patches - one JSON object per line, no markdown, no code fences",
     'First set root: {"op":"add","path":"/root","value":"<root-key>"}',
     'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
-    "THEN output /state patches LAST, one per array item for progressive loading. REQUIRED whenever using $path, repeat, or statePath.",
+    "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $path, repeat, or statePath.",
     "ONLY use components listed above",
     "Each element value needs: type, props, children (array of child keys)",
     "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",

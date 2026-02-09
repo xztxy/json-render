@@ -97,7 +97,7 @@ export function buildUserPrompt(options: UserPromptOptions): string {
   }
 
   parts.push(
-    `\nRemember: Output /root and /elements patches FIRST so the UI skeleton appears immediately. Then output /state patches LAST, one per array item for progressive loading.`,
+    `\nRemember: Output /root first, then interleave /elements and /state patches so the UI fills in progressively as it streams. Output each state patch right after the elements that use it, one per array item.`,
   );
 
   return parts.join("\n");
