@@ -62,7 +62,7 @@ function ToolCallDisplay({
   const argPreview =
     argValue != null
       ? String(argValue)
-          .replace(/^\/workspace\//, "/")
+          .replace(/\/workspace\//g, "/")
           .replace(/\.md$/, "")
           .replace(/\/index$/, "")
       : "";
@@ -243,11 +243,8 @@ export function DocsChat() {
   const showSuggestions = focused && messages.length === 0 && !isLoading;
 
   // Delay rendering panels until after the expand animation completes.
-  // Skip the delay if the container is already expanded (e.g. clicking a suggestion).
-  const wasExpandedRef = useRef(false);
-  useEffect(() => {
-    wasExpandedRef.current = focused || showMessages;
-  });
+  // Skip the delay if a panel was already visible (e.g. swapping between suggestions and messages).
+  const hadPanelRef = useRef(false);
 
   const [messagesVisible, setMessagesVisible] = useState(false);
   useEffect(() => {
@@ -255,7 +252,7 @@ export function DocsChat() {
       setMessagesVisible(false);
       return;
     }
-    if (wasExpandedRef.current) {
+    if (hadPanelRef.current) {
       setMessagesVisible(true);
       return;
     }
@@ -269,9 +266,18 @@ export function DocsChat() {
       setSuggestionsVisible(false);
       return;
     }
+    if (hadPanelRef.current) {
+      setSuggestionsVisible(true);
+      return;
+    }
     const timer = setTimeout(() => setSuggestionsVisible(true), 300);
     return () => clearTimeout(timer);
   }, [showSuggestions]);
+
+  // Update after visibility effects so they read the previous render's value
+  useEffect(() => {
+    hadPanelRef.current = messagesVisible || suggestionsVisible;
+  });
 
   // Re-focus input after both animations complete (expand + slide-in)
   useEffect(() => {
