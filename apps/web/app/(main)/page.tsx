@@ -10,14 +10,15 @@ export default function Home() {
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-6 pt-24 pb-16 text-center">
         <p className="text-xs sm:text-sm font-medium text-muted-foreground tracking-widest uppercase mb-4">
-          The framework for User-Generated Interfaces
+          The Generative UI Framework
         </p>
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter mb-6">
           AI → json-render → UI
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed">
-          Dynamic, personalized UIs per user without sacrificing reliability.
-          Predefined components and actions for safe, predictable output.
+          Generate dynamic, personalized UIs from prompts without sacrificing
+          reliability. Predefined components and actions for safe, predictable
+          output.
         </p>
 
         <Demo />
@@ -68,10 +69,10 @@ export default function Home() {
               <div className="text-xs text-muted-foreground font-mono mb-3">
                 02
               </div>
-              <h3 className="text-lg font-semibold mb-2">Users Generate</h3>
+              <h3 className="text-lg font-semibold mb-2">AI Generates</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                End users describe what they want. AI generates JSON constrained
-                to your catalog. Every interface is unique to the user.
+                Describe what you want. AI generates JSON constrained to your
+                catalog. Every interface is unique.
               </p>
             </div>
             <div>
@@ -248,8 +249,8 @@ export default function Page() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                title: "User-Generated Interfaces",
-                desc: "Dynamic, personalized UIs per user powered by Generative UI",
+                title: "Generative UI",
+                desc: "Generate dynamic, personalized interfaces from prompts with AI",
               },
               {
                 title: "Guardrails",

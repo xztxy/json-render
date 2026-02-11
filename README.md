@@ -1,8 +1,8 @@
 # json-render
 
-**The framework for User-Generated Interfaces (UGI).**
+**The Generative UI framework.**
 
-Dynamic, personalized UIs per user without sacrificing reliability. Predefined components and actions for safe, predictable output.
+Generate dynamic, personalized UIs from prompts without sacrificing reliability. Predefined components and actions for safe, predictable output.
 
 ```bash
 npm install @json-render/core @json-render/react
@@ -14,7 +14,7 @@ npm install @json-render/core @json-render/remotion
 
 ## Why json-render?
 
-json-render enables **User-Generated Interfaces**: dynamic UIs that end users create through natural language prompts, powered by Generative UI. You define the guardrails, AI generates within them:
+json-render is a **Generative UI** framework: AI generates interfaces from natural language prompts, constrained to components you define. You set the guardrails, AI generates within them:
 
 - **Guardrailed** - AI can only use components in your catalog
 - **Predictable** - JSON output matches your schema, every time
@@ -285,7 +285,7 @@ flowchart LR
 ```
 
 1. **Define the guardrails** - what components, actions, and data bindings AI can use
-2. **Users generate** - end users describe what they want in natural language
+2. **Prompt** - describe what you want in natural language
 3. **AI generates JSON** - output is always predictable, constrained to your catalog
 4. **Render fast** - stream and render progressively as the model responds
 
