@@ -18,6 +18,10 @@ export type {
   // SpecStream types
   SpecStreamLine,
   SpecStreamCompiler,
+  // Mixed stream types (chat + GenUI)
+  MixedStreamEvent,
+  MixedStreamCallbacks,
+  MixedStreamParser,
 } from "./types";
 
 export {
@@ -34,8 +38,11 @@ export {
   // SpecStream - streaming format for building specs (RFC 6902)
   parseSpecStreamLine,
   applySpecStreamPatch,
+  applySpecPatch,
   compileSpecStream,
   createSpecStreamCompiler,
+  // Mixed stream parser (chat + GenUI)
+  createMixedStreamParser,
 } from "./types";
 
 // Visibility

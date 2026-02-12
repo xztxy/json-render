@@ -91,8 +91,12 @@ export {
 // Hooks
 export {
   useUIStream,
+  useChatUI,
   flatToTree,
   type UseUIStreamOptions,
   type UseUIStreamReturn,
+  type UseChatUIOptions,
+  type UseChatUIReturn,
+  type ChatMessage,
   type TokenUsage,
 } from "./hooks";

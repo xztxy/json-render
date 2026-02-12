@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useChatUI, type ChatMessage } from "@/lib/use-chat-ui";
+import { useChatUI, type ChatMessage } from "@json-render/react";
 import { ExplorerRenderer } from "@/lib/render/renderer";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowUp, Loader2, Sparkles, User, Bot, Trash2 } from "lucide-react";

@@ -34,7 +34,7 @@ export function ExplorerRenderer({
   return (
     <StateProvider initialState={spec.state ?? {}}>
       <VisibilityProvider>
-        <ActionProvider handlers={{}}>
+        <ActionProvider>
           <Renderer
             spec={spec}
             registry={registry}

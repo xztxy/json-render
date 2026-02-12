@@ -107,6 +107,14 @@ export interface PromptOptions {
   system?: string;
   /** Additional rules to append */
   customRules?: string[];
+  /**
+   * Output mode for the generated prompt.
+   *
+   * - `"spec-only"` (default): The LLM should output only JSONL patches (no prose).
+   * - `"chat"`: The LLM should respond conversationally first, then output JSONL patches.
+   *   Includes rules about interleaving text with JSONL and not wrapping in code fences.
+   */
+  mode?: "spec-only" | "chat";
 }
 
 /**
@@ -533,6 +541,7 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   const {
     system = "You are a UI generator that outputs JSON.",
     customRules = [],
+    mode = "spec-only",
   } = options;
 
   const lines: string[] = [];
@@ -540,10 +549,23 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   lines.push("");
 
   // Output format section - explain JSONL streaming patch format
-  lines.push("OUTPUT FORMAT (JSONL, RFC 6902 JSON Patch):");
-  lines.push(
-    "Output JSONL (one JSON object per line) using RFC 6902 JSON Patch operations to build a UI tree.",
-  );
+  if (mode === "chat") {
+    lines.push("OUTPUT FORMAT (text + JSONL, RFC 6902 JSON Patch):");
+    lines.push(
+      "You respond conversationally. When generating UI, first write a brief explanation (1-3 sentences), then output JSONL patch lines on new lines.",
+    );
+    lines.push(
+      "The JSONL lines use RFC 6902 JSON Patch operations to build a UI tree. Do NOT wrap JSONL in markdown code blocks.",
+    );
+    lines.push(
+      "If the user's message does not require a UI (e.g. a greeting or clarifying question), respond with text only — no JSONL.",
+    );
+  } else {
+    lines.push("OUTPUT FORMAT (JSONL, RFC 6902 JSON Patch):");
+    lines.push(
+      "Output JSONL (one JSON object per line) using RFC 6902 JSON Patch operations to build a UI tree.",
+    );
+  }
   lines.push(
     "Each line is a JSON patch operation (add, remove, replace). Start with /root, then stream /elements and /state patches interleaved so the UI fills in progressively as it streams.",
   );
@@ -810,15 +832,27 @@ Note: state patches appear right after the elements that use them, so the UI fil
 
   // Rules
   lines.push("RULES:");
-  const baseRules = [
-    "Output ONLY JSONL patches - one JSON object per line, no markdown, no code fences",
-    'First set root: {"op":"add","path":"/root","value":"<root-key>"}',
-    'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
-    "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $path, repeat, or statePath.",
-    "ONLY use components listed above",
-    "Each element value needs: type, props, children (array of child keys)",
-    "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",
-  ];
+  const baseRules =
+    mode === "chat"
+      ? [
+          "When generating UI, output JSONL patches on their own lines - one JSON object per line, no markdown code fences",
+          "Write a brief conversational response before any JSONL output",
+          'First set root: {"op":"add","path":"/root","value":"<root-key>"}',
+          'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
+          "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $path, repeat, or statePath.",
+          "ONLY use components listed above",
+          "Each element value needs: type, props, children (array of child keys)",
+          "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",
+        ]
+      : [
+          "Output ONLY JSONL patches - one JSON object per line, no markdown, no code fences",
+          'First set root: {"op":"add","path":"/root","value":"<root-key>"}',
+          'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
+          "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $path, repeat, or statePath.",
+          "ONLY use components listed above",
+          "Each element value needs: type, props, children (array of child keys)",
+          "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",
+        ];
   const schemaRules = catalog.schema.defaultRules ?? [];
   const allRules = [...baseRules, ...schemaRules, ...customRules];
   allRules.forEach((rule, i) => {

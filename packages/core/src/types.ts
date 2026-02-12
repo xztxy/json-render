@@ -539,6 +539,22 @@ export function applySpecStreamPatch<T extends Record<string, unknown>>(
 }
 
 /**
+ * Apply a single RFC 6902 JSON Patch operation to a Spec.
+ * Mutates the spec in place and returns it with proper typing.
+ *
+ * This is a convenience wrapper around `applySpecStreamPatch` that accepts
+ * a `Spec` directly without requiring type casting.
+ *
+ * @example
+ * let spec: Spec = { root: "", elements: {} };
+ * spec = applySpecPatch(spec, { op: "add", path: "/root", value: "main" });
+ */
+export function applySpecPatch(spec: Spec, patch: SpecStreamLine): Spec {
+  applySpecStreamPatch(spec as unknown as Record<string, unknown>, patch);
+  return spec;
+}
+
+/**
  * Compile a SpecStream string into a JSON object.
  * Each line should be a patch operation.
  *
@@ -674,6 +690,98 @@ export function createSpecStreamCompiler<T = Record<string, unknown>>(
       buffer = "";
       appliedPatches.length = 0;
       processedLines.clear();
+    },
+  };
+}
+
+// =============================================================================
+// Mixed Stream Parser — for chat + GenUI (text interleaved with JSONL patches)
+// =============================================================================
+
+/**
+ * Event emitted by MixedStreamParser when a line is classified.
+ */
+export type MixedStreamEvent =
+  | { type: "patch"; patch: SpecStreamLine }
+  | { type: "text"; text: string };
+
+/**
+ * Callbacks for the mixed stream parser.
+ */
+export interface MixedStreamCallbacks {
+  /** Called when a JSONL patch line is parsed */
+  onPatch: (patch: SpecStreamLine) => void;
+  /** Called when a text (non-JSONL) line is received */
+  onText: (text: string) => void;
+}
+
+/**
+ * A stateful parser for mixed streams that contain both text and JSONL patches.
+ * Used in chat + GenUI scenarios where an LLM responds with conversational text
+ * interleaved with json-render JSONL patch operations.
+ */
+export interface MixedStreamParser {
+  /** Push a chunk of streamed data. Calls onPatch/onText for each complete line. */
+  push(chunk: string): void;
+  /** Flush any remaining buffered content. Call when the stream ends. */
+  flush(): void;
+}
+
+/**
+ * Create a parser for mixed text + JSONL streams.
+ *
+ * In chat + GenUI scenarios, an LLM streams a response that contains both
+ * conversational text and json-render JSONL patch lines. This parser buffers
+ * incoming chunks, splits them into lines, and classifies each line as either
+ * a JSONL patch (via `parseSpecStreamLine`) or plain text.
+ *
+ * @example
+ * const parser = createMixedStreamParser({
+ *   onText: (text) => appendToMessage(text),
+ *   onPatch: (patch) => applySpecPatch(spec, patch),
+ * });
+ *
+ * // As chunks arrive from the stream:
+ * for await (const chunk of stream) {
+ *   parser.push(chunk);
+ * }
+ * parser.flush();
+ */
+export function createMixedStreamParser(
+  callbacks: MixedStreamCallbacks,
+): MixedStreamParser {
+  let buffer = "";
+
+  function processLine(line: string): void {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    const patch = parseSpecStreamLine(trimmed);
+    if (patch) {
+      callbacks.onPatch(patch);
+    } else {
+      callbacks.onText(line);
+    }
+  }
+
+  return {
+    push(chunk: string): void {
+      buffer += chunk;
+
+      // Process complete lines
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        processLine(line);
+      }
+    },
+
+    flush(): void {
+      if (buffer.trim()) {
+        processLine(buffer);
+      }
+      buffer = "";
     },
   };
 }

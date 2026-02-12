@@ -12,6 +12,8 @@ import {
   getByPath,
   addByPath,
   removeByPath,
+  createMixedStreamParser,
+  applySpecPatch,
 } from "@json-render/core";
 
 /**
@@ -414,4 +416,259 @@ export function flatToTree(elements: FlatElement[]): Spec {
   }
 
   return { root, elements: elementMap };
+}
+
+// =============================================================================
+// useChatUI — Chat + GenUI hook
+// =============================================================================
+
+/**
+ * A single message in the chat, which may contain text, a rendered UI spec, or both.
+ */
+export interface ChatMessage {
+  /** Unique message ID */
+  id: string;
+  /** Who sent this message */
+  role: "user" | "assistant";
+  /** Text content (conversational prose) */
+  text: string;
+  /** json-render Spec built from JSONL patches (null if no UI was generated) */
+  spec: Spec | null;
+}
+
+/**
+ * Options for useChatUI
+ */
+export interface UseChatUIOptions {
+  /** API endpoint that accepts `{ messages: Array<{ role, content }> }` and returns a text stream */
+  api: string;
+  /** Callback when streaming completes for a message */
+  onComplete?: (message: ChatMessage) => void;
+  /** Callback on error */
+  onError?: (error: Error) => void;
+}
+
+/**
+ * Return type for useChatUI
+ */
+export interface UseChatUIReturn {
+  /** All messages in the conversation */
+  messages: ChatMessage[];
+  /** Whether currently streaming an assistant response */
+  isStreaming: boolean;
+  /** Error from the last request, if any */
+  error: Error | null;
+  /** Send a user message */
+  send: (text: string) => Promise<void>;
+  /** Clear all messages and reset the conversation */
+  clear: () => void;
+}
+
+let chatMessageIdCounter = 0;
+function generateChatId(): string {
+  chatMessageIdCounter += 1;
+  return `msg-${Date.now()}-${chatMessageIdCounter}`;
+}
+
+/**
+ * Hook for chat + GenUI experiences.
+ *
+ * Manages a multi-turn conversation where each assistant message can contain
+ * both conversational text and a json-render UI spec. The hook sends the full
+ * message history to the API endpoint, reads the streamed response, and
+ * separates text lines from JSONL patch lines using `createMixedStreamParser`.
+ *
+ * @example
+ * ```tsx
+ * const { messages, isStreaming, send, clear } = useChatUI({
+ *   api: "/api/chat",
+ * });
+ *
+ * // Send a message
+ * await send("Compare weather in NYC and Tokyo");
+ *
+ * // Render messages
+ * {messages.map((msg) => (
+ *   <div key={msg.id}>
+ *     {msg.text && <p>{msg.text}</p>}
+ *     {msg.spec && <MyRenderer spec={msg.spec} />}
+ *   </div>
+ * ))}
+ * ```
+ */
+export function useChatUI({
+  api,
+  onComplete,
+  onError,
+}: UseChatUIOptions): UseChatUIReturn {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const clear = useCallback(() => {
+    setMessages([]);
+    setError(null);
+  }, []);
+
+  const send = useCallback(
+    async (text: string) => {
+      if (!text.trim()) return;
+
+      // Abort any existing request
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = new AbortController();
+
+      const userMessage: ChatMessage = {
+        id: generateChatId(),
+        role: "user",
+        text: text.trim(),
+        spec: null,
+      };
+
+      const assistantId = generateChatId();
+      const assistantMessage: ChatMessage = {
+        id: assistantId,
+        role: "assistant",
+        text: "",
+        spec: null,
+      };
+
+      // Append user message and empty assistant placeholder
+      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      setIsStreaming(true);
+      setError(null);
+
+      // Build messages array for the API (full conversation history + new message)
+      const historyForApi = [
+        ...messages.map((m) => ({
+          role: m.role,
+          content: m.text,
+        })),
+        { role: "user" as const, content: text.trim() },
+      ];
+
+      // Mutable state for accumulating the assistant response
+      let accumulatedText = "";
+      let currentSpec: Spec = { root: "", elements: {} };
+      let hasSpec = false;
+
+      try {
+        const response = await fetch(api, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: historyForApi }),
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          let errorMessage = `HTTP error: ${response.status}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch {
+            // Ignore JSON parsing errors
+          }
+          throw new Error(errorMessage);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error("No response body");
+        }
+
+        const decoder = new TextDecoder();
+
+        // Use createMixedStreamParser to classify lines
+        const parser = createMixedStreamParser({
+          onPatch(patch) {
+            hasSpec = true;
+            applySpecPatch(currentSpec, patch);
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? {
+                      ...m,
+                      spec: {
+                        root: currentSpec.root,
+                        elements: { ...currentSpec.elements },
+                        ...(currentSpec.state
+                          ? { state: { ...currentSpec.state } }
+                          : {}),
+                      },
+                    }
+                  : m,
+              ),
+            );
+          },
+          onText(line) {
+            accumulatedText += (accumulatedText ? "\n" : "") + line;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, text: accumulatedText } : m,
+              ),
+            );
+          },
+        });
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          parser.push(decoder.decode(value, { stream: true }));
+        }
+        parser.flush();
+
+        // Build final message for onComplete callback
+        const finalMessage: ChatMessage = {
+          id: assistantId,
+          role: "assistant",
+          text: accumulatedText,
+          spec: hasSpec
+            ? {
+                root: currentSpec.root,
+                elements: { ...currentSpec.elements },
+                ...(currentSpec.state
+                  ? { state: { ...currentSpec.state } }
+                  : {}),
+              }
+            : null,
+        };
+        onComplete?.(finalMessage);
+      } catch (err) {
+        if ((err as Error).name === "AbortError") {
+          return;
+        }
+        const resolvedError =
+          err instanceof Error ? err : new Error(String(err));
+        setError(resolvedError);
+        // Remove empty assistant message on error
+        setMessages((prev) =>
+          prev.filter((m) => m.id !== assistantId || m.text.length > 0),
+        );
+        onError?.(resolvedError);
+      } finally {
+        setIsStreaming(false);
+      }
+    },
+    [api, messages, onComplete, onError],
+  );
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  return {
+    messages,
+    isStreaming,
+    error,
+    send,
+    clear,
+  };
 }
