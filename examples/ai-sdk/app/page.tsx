@@ -8,6 +8,8 @@ import { buildSpecFromParts } from "@json-render/react";
 import { ExplorerRenderer } from "@/lib/render/renderer";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowUp, Loader2, Sparkles, User, Bot, Trash2 } from "lucide-react";
+import { Streamdown } from "streamdown";
+import { code } from "@streamdown/code";
 
 // =============================================================================
 // Types
@@ -102,15 +104,16 @@ function MessageBubble({
         className={`flex flex-col gap-2 min-w-0 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}
       >
         {/* Text content */}
-        {text && (
-          <div
-            className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-              isUser
-                ? "bg-primary text-primary-foreground rounded-tr-md"
-                : "bg-muted rounded-tl-md"
-            }`}
-          >
+        {text && isUser && (
+          <div className="rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap bg-primary text-primary-foreground rounded-tr-md">
             {text}
+          </div>
+        )}
+        {text && !isUser && (
+          <div className="rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-muted rounded-tl-md">
+            <Streamdown plugins={{ code }} animated={isLast && isStreaming}>
+              {text}
+            </Streamdown>
           </div>
         )}
 

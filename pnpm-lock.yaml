@@ -198,6 +198,9 @@ importers:
       '@json-render/react':
         specifier: workspace:*
         version: link:../../packages/react
+      '@streamdown/code':
+        specifier: ^1.0.2
+        version: 1.0.2(react@19.2.4)
       ai:
         specifier: ^6.0.33
         version: 6.0.82(zod@4.3.5)
@@ -231,6 +234,9 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      streamdown:
+        specifier: ^2.2.0
+        version: 2.2.0(react@19.2.4)
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
@@ -3907,6 +3913,11 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@streamdown/code@1.0.2':
+    resolution: {integrity: sha512-QKLS3sC8no5y0YvhGLA+ZjtNhznWU09IvFcjRKgSA35ulckMLw3b5T1ha+o1DaW8BS8l0zceLPFZa3/X9+agWQ==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
 
   '@stripe/ui-extension-sdk@9.1.0':
     resolution: {integrity: sha512-NRmgAUMxksVcq4vTDuxl/1nacpb3lJSJnd1RTJgo4pk0WKpDRNNvZKJg7CMjN5VVTvnNnVEHDkAG43powUQt3A==}
@@ -8262,6 +8273,9 @@ packages:
   remend@1.1.0:
     resolution: {integrity: sha512-JENGyuIhTwzUfCarW43X4r9cehoqTo9QyYxfNDZSud2AmqeuWjZ5pfybasTa4q0dxTJAj5m8NB+wR+YueAFpxQ==}
 
+  remend@1.2.0:
+    resolution: {integrity: sha512-NbKrdWweTRuByPYErzQCNpNtsR9M1QQ0hK2UzmnmlSaEqHnkQ5Korlyi8KpdbOJ0rImJfRy4EAY0uDxYnL9Plw==}
+
   remotion@4.0.418:
     resolution: {integrity: sha512-E2s33/LAcbMj9DnCFgjiXRq6EliSIowdD06KQC7m8YMKCS8d/PlzPtRpoAtkveevfSMCQMpi/584x5dtg/yrtg==}
     peerDependencies:
@@ -8627,6 +8641,11 @@ packages:
 
   streamdown@2.1.0:
     resolution: {integrity: sha512-u9gWd0AmjKg1d+74P44XaPlGrMeC21oDOSIhjGNEYMAttDMzCzlJO6lpTyJ9JkSinQQF65YcK4eOd3q9iTvULw==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
+  streamdown@2.2.0:
+    resolution: {integrity: sha512-Y51o1I/sjpAy4Yn7j7R4TbUl9gcUZ7BTrHS+68IhrUBoYpNQZ28z06vww1MBFu4mSwvgF8xQIxIH2b9S9IHDyQ==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
 
@@ -14093,6 +14112,11 @@ snapshots:
       '@sinonjs/commons': 1.8.6
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@streamdown/code@1.0.2(react@19.2.4)':
+    dependencies:
+      react: 19.2.4
+      shiki: 3.21.0
 
   '@stripe/ui-extension-sdk@9.1.0(stripe@13.11.0)':
     dependencies:
@@ -19896,6 +19920,8 @@ snapshots:
 
   remend@1.1.0: {}
 
+  remend@1.2.0: {}
+
   remotion@4.0.418(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
       react: 19.2.3
@@ -20343,6 +20369,27 @@ snapshots:
       tailwind-merge: 3.4.0
       unified: 11.0.5
       unist-util-visit: 5.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  streamdown@2.2.0(react@19.2.4):
+    dependencies:
+      clsx: 2.1.1
+      hast-util-to-jsx-runtime: 2.3.6
+      html-url-attributes: 3.0.1
+      marked: 17.0.1
+      react: 19.2.4
+      rehype-harden: 1.1.7
+      rehype-raw: 7.0.0
+      rehype-sanitize: 6.0.0
+      remark-gfm: 4.0.1
+      remark-parse: 11.0.0
+      remark-rehype: 11.1.2
+      remend: 1.2.0
+      tailwind-merge: 3.4.0
+      unified: 11.0.5
+      unist-util-visit: 5.0.0
+      unist-util-visit-parents: 6.0.2
     transitivePeerDependencies:
       - supports-color
 
