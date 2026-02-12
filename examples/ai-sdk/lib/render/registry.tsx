@@ -323,6 +323,11 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
+                interval={
+                  items.length > 12
+                    ? Math.ceil(items.length / 8) - 1
+                    : undefined
+                }
               />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line

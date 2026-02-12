@@ -64,10 +64,14 @@ export const getCryptoPrice = tool({
     const step = Math.max(1, Math.floor(sparkline.length / 14));
     const sparklineData = sparkline
       .filter((_, i) => i % step === 0)
-      .map((price, i) => ({
-        hour: i * step,
-        price: Math.round(price * 100) / 100,
-      }));
+      .map((price, i) => {
+        const hourIndex = i * step;
+        const day = Math.floor(hourIndex / 24) + 1;
+        return {
+          day: `Day ${day}`,
+          price: Math.round(price * 100) / 100,
+        };
+      });
 
     return {
       id: data.id,
