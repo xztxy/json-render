@@ -71,14 +71,16 @@ function MessageBubble({
   const isUser = message.role === "user";
   const spec = useSpecFromParts(message.parts);
 
-  // Gather all text from text parts
+  // Gather all text from text parts.
+  // Each agent step produces a separate TextUIPart — join with double newline
+  // so Streamdown renders them as distinct paragraphs.
   const text = useMemo(
     () =>
       message.parts
         .filter((p): p is { type: "text"; text: string } => p.type === "text")
-        .map((p) => p.text)
-        .join("")
-        .trim(),
+        .map((p) => p.text.trim())
+        .filter(Boolean)
+        .join("\n\n"),
     [message.parts],
   );
 
@@ -86,52 +88,43 @@ function MessageBubble({
   const showLoader =
     isLast && isStreaming && message.role === "assistant" && !text && !hasSpec;
 
-  return (
-    <div className={`flex gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
-      {/* Avatar */}
-      <div
-        className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center ${
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-muted-foreground"
-        }`}
-      >
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-      </div>
-
-      {/* Content */}
-      <div
-        className={`flex flex-col gap-2 min-w-0 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}
-      >
-        {/* Text content */}
-        {text && isUser && (
-          <div className="rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap bg-primary text-primary-foreground rounded-tr-md">
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        {text && (
+          <div className="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap bg-primary text-primary-foreground rounded-tr-md">
             {text}
           </div>
         )}
-        {text && !isUser && (
-          <div className="rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-muted rounded-tl-md">
-            <Streamdown plugins={{ code }} animated={isLast && isStreaming}>
-              {text}
-            </Streamdown>
-          </div>
-        )}
-
-        {/* Loading indicator */}
-        {showLoader && (
-          <div className="bg-muted rounded-2xl rounded-tl-md px-4 py-2.5 text-sm text-muted-foreground flex items-center gap-2">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            <span>Thinking...</span>
-          </div>
-        )}
-
-        {/* Rendered UI spec */}
-        {hasSpec && (
-          <div className="w-full min-w-[400px] max-w-[800px] rounded-xl border bg-card p-4 shadow-sm">
-            <ExplorerRenderer spec={spec} loading={isLast && isStreaming} />
-          </div>
-        )}
       </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Text content */}
+      {text && (
+        <div className="text-sm leading-relaxed [&_p+p]:mt-3 [&_ul]:mt-2 [&_ol]:mt-2 [&_pre]:mt-2">
+          <Streamdown plugins={{ code }} animated={isLast && isStreaming}>
+            {text}
+          </Streamdown>
+        </div>
+      )}
+
+      {/* Loading indicator */}
+      {showLoader && (
+        <div className="text-sm text-muted-foreground flex items-center gap-2">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <span>Thinking...</span>
+        </div>
+      )}
+
+      {/* Rendered UI spec */}
+      {hasSpec && (
+        <div className="w-full max-w-[800px] rounded-xl border bg-card p-4 shadow-sm">
+          <ExplorerRenderer spec={spec} loading={isLast && isStreaming} />
+        </div>
+      )}
     </div>
   );
 }
@@ -184,7 +177,7 @@ export default function ChatPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Header */}
       <header className="border-b px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -264,7 +257,7 @@ export default function ChatPage() {
       </main>
 
       {/* Input bar - always visible at bottom */}
-      <div className="border-t px-6 py-3 flex-shrink-0 bg-background">
+      <div className="px-6 pb-3 flex-shrink-0 bg-background">
         <div className="max-w-4xl mx-auto relative">
           <textarea
             ref={inputRef}

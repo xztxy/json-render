@@ -88,7 +88,16 @@ function emitLine(
   controller: TransformStreamDefaultController<UIMessageChunk>,
 ): void {
   const trimmed = line.trim();
-  if (!trimmed) return;
+
+  // Empty lines are meaningful for markdown (paragraph breaks) — pass them through
+  if (!trimmed) {
+    controller.enqueue({
+      type: "text-delta",
+      id: textId,
+      delta: "\n",
+    });
+    return;
+  }
 
   const patch = parseSpecStreamLine(trimmed);
   if (patch) {
