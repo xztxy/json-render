@@ -1,7 +1,9 @@
 import { agent } from "@/lib/agent";
 import {
+  convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
+  type UIMessage,
   type UIMessageChunk,
 } from "ai";
 import { parseSpecStreamLine } from "@json-render/core";
@@ -107,9 +109,9 @@ function emitLine(
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const messages: Array<{ role: string; content: string }> = body.messages;
+  const uiMessages: UIMessage[] = body.messages;
 
-  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+  if (!uiMessages || !Array.isArray(uiMessages) || uiMessages.length === 0) {
     return new Response(
       JSON.stringify({ error: "messages array is required" }),
       {
@@ -119,12 +121,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = await agent.stream({
-    messages: messages.map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    })),
-  });
+  // Convert UIMessages (parts-based) to ModelMessages (content-based) for the agent
+  const modelMessages = await convertToModelMessages(uiMessages);
+
+  const result = await agent.stream({ messages: modelMessages });
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
