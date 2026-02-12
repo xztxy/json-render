@@ -424,11 +424,14 @@ export function flatToTree(elements: FlatElement[]): Spec {
 
 /**
  * A single part from the AI SDK's `message.parts` array. This is a minimal
- * structural type so that `buildSpecFromParts` does not depend on the AI SDK.
- * The `data` field is optional because not all part types carry data (e.g. text parts).
+ * structural type so that library helpers do not depend on the AI SDK.
+ * Fields are optional because different part types carry different data:
+ * - Text parts have `text`
+ * - Data parts have `data`
  */
 export interface DataPart {
   type: string;
+  text?: string;
   data?: unknown;
 }
 
@@ -463,6 +466,34 @@ export function buildSpecFromParts(parts: DataPart[]): Spec | null {
   }
 
   return hasPatches ? spec : null;
+}
+
+/**
+ * Extract and join all text content from a message's parts array.
+ *
+ * Filters for parts with `type === "text"`, trims each one, and joins them
+ * with double newlines so that text from separate agent steps renders as
+ * distinct paragraphs in markdown.
+ *
+ * Has no AI SDK dependency — operates on a generic `DataPart[]`.
+ *
+ * @example
+ * ```tsx
+ * const text = getTextFromParts(message.parts);
+ * if (text) {
+ *   return <Streamdown>{text}</Streamdown>;
+ * }
+ * ```
+ */
+export function getTextFromParts(parts: DataPart[]): string {
+  return parts
+    .filter(
+      (p): p is DataPart & { text: string } =>
+        p.type === "text" && typeof p.text === "string",
+    )
+    .map((p) => p.text.trim())
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 // =============================================================================

@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import type { JsonPatch, Spec } from "@json-render/core";
-import { buildSpecFromParts } from "@json-render/react";
+import { buildSpecFromParts, getTextFromParts } from "@json-render/react";
 import { ExplorerRenderer } from "@/lib/render/renderer";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowUp, Loader2, Sparkles } from "lucide-react";
@@ -71,18 +71,7 @@ function MessageBubble({
   const isUser = message.role === "user";
   const spec = useSpecFromParts(message.parts);
 
-  // Gather all text from text parts.
-  // Each agent step produces a separate TextUIPart — join with double newline
-  // so Streamdown renders them as distinct paragraphs.
-  const text = useMemo(
-    () =>
-      message.parts
-        .filter((p): p is { type: "text"; text: string } => p.type === "text")
-        .map((p) => p.text.trim())
-        .filter(Boolean)
-        .join("\n\n"),
-    [message.parts],
-  );
+  const text = useMemo(() => getTextFromParts(message.parts), [message.parts]);
 
   const hasSpec = spec && Object.keys(spec.elements || {}).length > 0;
   const showLoader =
@@ -180,10 +169,9 @@ export default function ChatPage() {
       {/* Header */}
       <header className="border-b px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold">AI Data Explorer</h1>
-          <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
-            json-render + AI SDK
-          </span>
+          <h1 className="text-lg font-semibold">
+            json-render + AI SDK Example
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           {messages.length > 0 && (

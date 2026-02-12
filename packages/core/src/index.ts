@@ -21,6 +21,8 @@ export type {
   // Mixed stream types (chat + GenUI)
   MixedStreamCallbacks,
   MixedStreamParser,
+  // AI SDK stream transform
+  StreamChunk,
 } from "./types";
 
 export {
@@ -42,6 +44,8 @@ export {
   createSpecStreamCompiler,
   // Mixed stream parser (chat + GenUI)
   createMixedStreamParser,
+  // AI SDK stream transform
+  createJsonRenderTransform,
 } from "./types";
 
 // Visibility

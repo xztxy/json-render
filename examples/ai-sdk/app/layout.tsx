@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Data Explorer | json-render + AI SDK",
+  title: "json-render + AI SDK Example",
   description: "AI-powered data explorer using ToolLoopAgent and json-render",
 };
 

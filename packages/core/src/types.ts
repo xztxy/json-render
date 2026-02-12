@@ -781,3 +781,187 @@ export function createMixedStreamParser(
     },
   };
 }
+
+// =============================================================================
+// AI SDK Stream Transform
+// =============================================================================
+
+/**
+ * Minimal chunk shape compatible with the AI SDK's `UIMessageChunk`.
+ *
+ * Defined here so that `@json-render/core` has no dependency on the `ai`
+ * package. The discriminated union covers the three text-related chunk types
+ * the transform inspects; all other chunk types pass through via the fallback.
+ */
+export type StreamChunk =
+  | { type: "text-start"; id: string; [k: string]: unknown }
+  | { type: "text-delta"; id: string; delta: string; [k: string]: unknown }
+  | { type: "text-end"; id: string; [k: string]: unknown }
+  | { type: string; [k: string]: unknown };
+
+/**
+ * Creates a `TransformStream` that intercepts AI SDK UI message stream chunks
+ * and classifies text content as either prose or json-render JSONL patches.
+ *
+ * - **Prose text** (lines not starting with `{`): forwarded immediately as
+ *   `text-delta` chunks, preserving character-by-character streaming.
+ * - **Potential JSONL** (lines starting with `{`): buffered until the line
+ *   completes, then classified via `parseSpecStreamLine`. Valid patches are
+ *   emitted as `data-jsonrender` parts; everything else is flushed as text.
+ * - **Non-text chunks** (tool events, step markers, etc.): passed through
+ *   unchanged.
+ *
+ * @example
+ * ```ts
+ * import { createJsonRenderTransform } from "@json-render/core";
+ * import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
+ *
+ * const stream = createUIMessageStream({
+ *   execute: async ({ writer }) => {
+ *     writer.merge(
+ *       result.toUIMessageStream().pipeThrough(createJsonRenderTransform()),
+ *     );
+ *   },
+ * });
+ * return createUIMessageStreamResponse({ stream });
+ * ```
+ */
+export function createJsonRenderTransform(): TransformStream<
+  StreamChunk,
+  StreamChunk
+> {
+  let lineBuffer = "";
+  let currentTextId = "";
+  // Whether the current incomplete line might be JSONL (starts with '{')
+  let buffering = false;
+
+  function flushBuffer(
+    controller: TransformStreamDefaultController<StreamChunk>,
+  ) {
+    if (!lineBuffer) return;
+
+    const trimmed = lineBuffer.trim();
+    if (trimmed) {
+      const patch = parseSpecStreamLine(trimmed);
+      if (patch) {
+        controller.enqueue({ type: "data-jsonrender", data: patch });
+      } else {
+        // Was buffered but isn't JSONL — flush as text
+        controller.enqueue({
+          type: "text-delta",
+          id: currentTextId,
+          delta: lineBuffer,
+        });
+      }
+    } else {
+      // Whitespace-only buffer — forward as-is (preserves blank lines)
+      controller.enqueue({
+        type: "text-delta",
+        id: currentTextId,
+        delta: lineBuffer,
+      });
+    }
+    lineBuffer = "";
+    buffering = false;
+  }
+
+  function processCompleteLine(
+    line: string,
+    controller: TransformStreamDefaultController<StreamChunk>,
+  ) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      // Empty line — forward for markdown paragraph breaks
+      controller.enqueue({
+        type: "text-delta",
+        id: currentTextId,
+        delta: "\n",
+      });
+      return;
+    }
+
+    const patch = parseSpecStreamLine(trimmed);
+    if (patch) {
+      controller.enqueue({ type: "data-jsonrender", data: patch });
+    } else {
+      controller.enqueue({
+        type: "text-delta",
+        id: currentTextId,
+        delta: line + "\n",
+      });
+    }
+  }
+
+  return new TransformStream<StreamChunk, StreamChunk>({
+    transform(chunk, controller) {
+      switch (chunk.type) {
+        case "text-start": {
+          currentTextId = (chunk as { id: string }).id;
+          controller.enqueue(chunk);
+          break;
+        }
+
+        case "text-delta": {
+          const delta = chunk as { id: string; delta: string };
+          currentTextId = delta.id;
+          const text = delta.delta;
+
+          for (let i = 0; i < text.length; i++) {
+            const ch = text.charAt(i);
+
+            if (ch === "\n") {
+              // Line complete — classify and emit
+              if (buffering) {
+                processCompleteLine(lineBuffer, controller);
+                lineBuffer = "";
+                buffering = false;
+              } else {
+                controller.enqueue({
+                  type: "text-delta",
+                  id: currentTextId,
+                  delta: "\n",
+                });
+              }
+            } else if (lineBuffer.length === 0 && !buffering) {
+              // Start of a new line — decide whether to buffer or stream
+              if (ch === "{") {
+                buffering = true;
+                lineBuffer += ch;
+              } else {
+                controller.enqueue({
+                  type: "text-delta",
+                  id: currentTextId,
+                  delta: ch,
+                });
+              }
+            } else if (buffering) {
+              lineBuffer += ch;
+            } else {
+              controller.enqueue({
+                type: "text-delta",
+                id: currentTextId,
+                delta: ch,
+              });
+            }
+          }
+          break;
+        }
+
+        case "text-end": {
+          flushBuffer(controller);
+          controller.enqueue(chunk);
+          break;
+        }
+
+        default: {
+          controller.enqueue(chunk);
+          break;
+        }
+      }
+    },
+
+    flush(controller) {
+      flushBuffer(controller);
+    },
+  });
+}

@@ -94,6 +94,7 @@ export {
   useChatUI,
   flatToTree,
   buildSpecFromParts,
+  getTextFromParts,
   type UseUIStreamOptions,
   type UseUIStreamReturn,
   type UseChatUIOptions,
