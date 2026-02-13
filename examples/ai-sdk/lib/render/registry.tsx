@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getByPath } from "@json-render/core";
 import { useStateStore, defineRegistry } from "@json-render/react";
 import {
@@ -56,6 +57,9 @@ import {
   Lightbulb,
   AlertTriangle,
   Star,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 import { explorerCatalog } from "./catalog";
@@ -177,6 +181,9 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
             >)
           : [];
 
+      const [sortKey, setSortKey] = useState<string | null>(null);
+      const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
       if (items.length === 0) {
         return (
           <div className="text-center py-4 text-muted-foreground">
@@ -185,17 +192,59 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
         );
       }
 
+      const sorted = sortKey
+        ? [...items].sort((a, b) => {
+            const av = a[sortKey];
+            const bv = b[sortKey];
+            // numeric comparison when both values are numbers
+            if (typeof av === "number" && typeof bv === "number") {
+              return sortDir === "asc" ? av - bv : bv - av;
+            }
+            const as = String(av ?? "");
+            const bs = String(bv ?? "");
+            return sortDir === "asc"
+              ? as.localeCompare(bs)
+              : bs.localeCompare(as);
+          })
+        : items;
+
+      const handleSort = (key: string) => {
+        if (sortKey === key) {
+          setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+        } else {
+          setSortKey(key);
+          setSortDir("asc");
+        }
+      };
+
       return (
         <Table>
           <TableHeader>
             <TableRow>
-              {props.columns.map((col) => (
-                <TableHead key={col.key}>{col.label}</TableHead>
-              ))}
+              {props.columns.map((col) => {
+                const SortIcon =
+                  sortKey === col.key
+                    ? sortDir === "asc"
+                      ? ArrowUp
+                      : ArrowDown
+                    : ArrowUpDown;
+                return (
+                  <TableHead key={col.key}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                      onClick={() => handleSort(col.key)}
+                    >
+                      {col.label}
+                      <SortIcon className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  </TableHead>
+                );
+              })}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item, i) => (
+            {sorted.map((item, i) => (
               <TableRow key={i}>
                 {props.columns.map((col) => (
                   <TableCell key={col.key}>
