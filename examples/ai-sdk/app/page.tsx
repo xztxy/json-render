@@ -7,7 +7,13 @@ import { SPEC_DATA_PART, type SpecDataPart } from "@json-render/core";
 import { useJsonRenderMessage } from "@json-render/react";
 import { ExplorerRenderer } from "@/lib/render/renderer";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ArrowUp, ChevronRight, Loader2, Sparkles } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronRight,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 
@@ -258,6 +264,10 @@ function MessageBubble({
 export default function ChatPage() {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const isStickToBottom = useRef(true);
+  const isAutoScrolling = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { messages, sendMessage, setMessages, status, error } =
@@ -265,10 +275,54 @@ export default function ChatPage() {
 
   const isStreaming = status === "streaming" || status === "submitted";
 
-  // Auto-scroll to bottom on new messages
+  // Track whether the user has scrolled away from the bottom.
+  // During programmatic scrolling, suppress button updates until we arrive.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const THRESHOLD = 80;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - THRESHOLD;
+
+      if (isAutoScrolling.current) {
+        // Wait for the programmatic scroll to reach the bottom before
+        // handing control back to the user-scroll tracker.
+        if (atBottom) {
+          isAutoScrolling.current = false;
+        }
+        return;
+      }
+
+      isStickToBottom.current = atBottom;
+      setShowScrollButton(!atBottom);
+    };
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Auto-scroll to bottom on new messages, unless user scrolled up.
+  // Uses instant scrollTop assignment (no smooth animation) to avoid
+  // an ongoing animation that fights user scroll input.
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !isStickToBottom.current) return;
+    isAutoScrolling.current = true;
+    container.scrollTop = container.scrollHeight;
+    requestAnimationFrame(() => {
+      isAutoScrolling.current = false;
+    });
   }, [messages, isStreaming]);
+
+  const scrollToBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    isStickToBottom.current = true;
+    setShowScrollButton(false);
+    isAutoScrolling.current = true;
+    container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    // isAutoScrolling is cleared by the scroll handler once it reaches bottom
+  }, []);
 
   const handleSubmit = useCallback(
     async (text?: string) => {
@@ -321,7 +375,7 @@ export default function ChatPage() {
       </header>
 
       {/* Messages area */}
-      <main className="flex-1 overflow-auto">
+      <main ref={scrollContainerRef} className="flex-1 overflow-auto">
         {isEmpty ? (
           /* Empty state */
           <div className="h-full flex flex-col items-center justify-center px-6 py-12">
@@ -376,7 +430,17 @@ export default function ChatPage() {
       </main>
 
       {/* Input bar - always visible at bottom */}
-      <div className="px-6 pb-3 flex-shrink-0 bg-background">
+      <div className="px-6 pb-3 flex-shrink-0 bg-background relative">
+        {/* Scroll to bottom button */}
+        {showScrollButton && !isEmpty && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute left-1/2 -translate-x-1/2 -top-10 z-10 h-8 w-8 rounded-full border border-border bg-background text-muted-foreground shadow-md flex items-center justify-center hover:text-foreground hover:bg-accent transition-colors"
+            aria-label="Scroll to bottom"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </button>
+        )}
         <div className="max-w-4xl mx-auto relative">
           <textarea
             ref={inputRef}
