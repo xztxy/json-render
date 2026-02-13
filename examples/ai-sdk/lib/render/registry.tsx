@@ -6,8 +6,12 @@ import {
   Bar,
   BarChart as RechartsBarChart,
   CartesianGrid,
+  Cell,
+  Legend,
   Line,
   LineChart as RechartsLineChart,
+  Pie,
+  PieChart as RechartsPieChart,
   XAxis,
 } from "recharts";
 import {
@@ -36,9 +40,23 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Accordion as AccordionRoot,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Info,
+  Lightbulb,
+  AlertTriangle,
+  Star,
+} from "lucide-react";
 
 import { explorerCatalog } from "./catalog";
 
@@ -369,6 +387,175 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
         className={`${props.width ?? "w-full"} ${props.height ?? "h-4"}`}
       />
     ),
+
+    Callout: ({ props }) => {
+      const config = {
+        info: {
+          icon: Info,
+          border: "border-l-blue-500",
+          bg: "bg-blue-500/5",
+          iconColor: "text-blue-500",
+        },
+        tip: {
+          icon: Lightbulb,
+          border: "border-l-emerald-500",
+          bg: "bg-emerald-500/5",
+          iconColor: "text-emerald-500",
+        },
+        warning: {
+          icon: AlertTriangle,
+          border: "border-l-amber-500",
+          bg: "bg-amber-500/5",
+          iconColor: "text-amber-500",
+        },
+        important: {
+          icon: Star,
+          border: "border-l-purple-500",
+          bg: "bg-purple-500/5",
+          iconColor: "text-purple-500",
+        },
+      }[props.type ?? "info"] ?? {
+        icon: Info,
+        border: "border-l-blue-500",
+        bg: "bg-blue-500/5",
+        iconColor: "text-blue-500",
+      };
+      const Icon = config.icon;
+      return (
+        <div
+          className={`border-l-4 ${config.border} ${config.bg} rounded-r-lg p-4`}
+        >
+          <div className="flex items-start gap-3">
+            <Icon className={`h-5 w-5 mt-0.5 shrink-0 ${config.iconColor}`} />
+            <div className="flex-1 min-w-0">
+              {props.title && (
+                <p className="font-semibold text-sm mb-1">{props.title}</p>
+              )}
+              <p className="text-sm text-muted-foreground">{props.content}</p>
+            </div>
+          </div>
+        </div>
+      );
+    },
+
+    Accordion: ({ props }) => (
+      <AccordionRoot
+        type={props.type === "single" ? "single" : "multiple"}
+        collapsible={props.type === "single" ? true : undefined}
+        className="w-full"
+      >
+        {props.items.map((item, i) => (
+          <AccordionItem key={i} value={`item-${i}`}>
+            <AccordionTrigger>{item.title}</AccordionTrigger>
+            <AccordionContent>
+              <p className="text-muted-foreground">{item.content}</p>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </AccordionRoot>
+    ),
+
+    Timeline: ({ props }) => (
+      <div className="relative pl-6">
+        <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border" />
+        <div className="flex flex-col gap-6">
+          {props.items.map((item, i) => {
+            const dotColor =
+              item.status === "completed"
+                ? "bg-emerald-500"
+                : item.status === "current"
+                  ? "bg-blue-500"
+                  : "bg-muted-foreground/30";
+            return (
+              <div key={i} className="relative flex gap-3">
+                <div
+                  className={`absolute -left-6 top-1.5 h-[10px] w-[10px] rounded-full ${dotColor} ring-2 ring-background`}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-medium text-sm">{item.title}</p>
+                    {item.date && (
+                      <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                        {item.date}
+                      </span>
+                    )}
+                  </div>
+                  {item.description && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    ),
+
+    PieChart: ({ props }) => {
+      const { state } = useStateStore();
+      const path = props.statePath.replace(/\./g, "/");
+      const rawData = getByPath(state, path);
+
+      const items: Array<Record<string, unknown>> = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray((rawData as Record<string, unknown>)?.data)
+          ? ((rawData as Record<string, unknown>).data as Array<
+              Record<string, unknown>
+            >)
+          : [];
+
+      if (items.length === 0) {
+        return (
+          <div className="text-center py-4 text-muted-foreground">
+            No data available
+          </div>
+        );
+      }
+
+      const chartConfig: ChartConfig = {};
+      items.forEach((item, i) => {
+        const name = String(item[props.nameKey] ?? `Segment ${i + 1}`);
+        chartConfig[name] = {
+          label: name,
+          color: PIE_COLORS[i % PIE_COLORS.length],
+        };
+      });
+
+      return (
+        <div className="w-full">
+          {props.title && (
+            <p className="text-sm font-medium mb-2">{props.title}</p>
+          )}
+          <ChartContainer
+            config={chartConfig}
+            className="mx-auto aspect-square w-full"
+            style={{ height: props.height ?? 300 }}
+          >
+            <RechartsPieChart>
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Pie
+                data={items.map((item, i) => ({
+                  name: String(item[props.nameKey] ?? `Segment ${i + 1}`),
+                  value:
+                    typeof item[props.valueKey] === "number"
+                      ? item[props.valueKey]
+                      : parseFloat(String(item[props.valueKey])) || 0,
+                  fill: PIE_COLORS[i % PIE_COLORS.length],
+                }))}
+                dataKey="value"
+                nameKey="name"
+                innerRadius="40%"
+                outerRadius="70%"
+                paddingAngle={2}
+              />
+              <Legend />
+            </RechartsPieChart>
+          </ChartContainer>
+        </div>
+      );
+    },
   },
 
   actions: {},
@@ -377,6 +564,14 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
 // =============================================================================
 // Chart Helpers
 // =============================================================================
+
+const PIE_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 function processChartData(
   items: Array<Record<string, unknown>>,

@@ -202,6 +202,77 @@ export const explorerCatalog = defineCatalog(schema, {
       }),
       description: "Loading placeholder",
     },
+
+    // Educational / Rich content
+    Callout: {
+      props: z.object({
+        type: z.enum(["info", "tip", "warning", "important"]).nullable(),
+        title: z.string().nullable(),
+        content: z.string(),
+      }),
+      description:
+        "Highlighted callout box for tips, warnings, notes, or key information",
+      example: {
+        type: "tip",
+        title: "Did you know?",
+        content: "The sun is about 93 million miles from Earth.",
+      },
+    },
+
+    Accordion: {
+      props: z.object({
+        items: z.array(
+          z.object({
+            title: z.string(),
+            content: z.string(),
+          }),
+        ),
+        type: z.enum(["single", "multiple"]).nullable(),
+      }),
+      description:
+        "Collapsible accordion sections for organizing detailed content",
+      example: {
+        items: [{ title: "Overview", content: "A brief introduction." }],
+        type: "multiple",
+      },
+    },
+
+    Timeline: {
+      props: z.object({
+        items: z.array(
+          z.object({
+            title: z.string(),
+            description: z.string().nullable(),
+            date: z.string().nullable(),
+            status: z.enum(["completed", "current", "upcoming"]).nullable(),
+          }),
+        ),
+      }),
+      description:
+        "Vertical timeline showing ordered events, steps, or historical milestones",
+      example: {
+        items: [
+          {
+            title: "Discovery",
+            description: "Initial breakthrough",
+            date: "1905",
+            status: "completed",
+          },
+        ],
+      },
+    },
+
+    PieChart: {
+      props: z.object({
+        title: z.string().nullable(),
+        statePath: z.string(),
+        nameKey: z.string(),
+        valueKey: z.string(),
+        height: z.number().nullable(),
+      }),
+      description:
+        "Pie/donut chart for proportional data. statePath points to an array of objects. nameKey is the label field, valueKey is the numeric value field.",
+    },
   },
 
   actions: {},
