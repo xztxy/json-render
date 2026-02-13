@@ -2,6 +2,41 @@ import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 import { z } from "zod";
 
+// =============================================================================
+// Shared 3D schemas
+// =============================================================================
+
+const vec3 = z.array(z.number());
+
+const animation3D = z
+  .object({
+    rotate: vec3.nullable(),
+  })
+  .nullable();
+
+const transform3DProps = {
+  position: vec3.nullable(),
+  rotation: vec3.nullable(),
+  scale: vec3.nullable(),
+};
+
+const material3DProps = {
+  color: z.string().nullable(),
+  metalness: z.number().nullable(),
+  roughness: z.number().nullable(),
+  emissive: z.string().nullable(),
+  emissiveIntensity: z.number().nullable(),
+  wireframe: z.boolean().nullable(),
+  opacity: z.number().nullable(),
+};
+
+const mesh3DProps = {
+  ...transform3DProps,
+  ...material3DProps,
+  args: z.array(z.number()).nullable(),
+  animation: animation3D,
+};
+
 /**
  * json-render + AI SDK Example Catalog
  *
@@ -356,6 +391,196 @@ export const explorerCatalog = defineCatalog(schema, {
         variant: "default",
         size: "default",
         disabled: null,
+      },
+    },
+
+    // =========================================================================
+    // 3D Scene Components (React Three Fiber)
+    // =========================================================================
+
+    // Containers
+    Scene3D: {
+      props: z.object({
+        height: z.string().nullable(),
+        background: z.string().nullable(),
+        cameraPosition: vec3.nullable(),
+        cameraFov: z.number().nullable(),
+        autoRotate: z.boolean().nullable(),
+      }),
+      slots: ["default"],
+      description:
+        "3D scene container with orbit controls. All 3D components (Sphere, Box, lights, etc.) must be children of a Scene3D. height is a CSS value like '500px'.",
+      example: {
+        height: "500px",
+        background: "#000010",
+        cameraPosition: [0, 25, 45],
+        cameraFov: null,
+        autoRotate: null,
+      },
+    },
+
+    Group3D: {
+      props: z.object({
+        ...transform3DProps,
+        animation: animation3D,
+      }),
+      slots: ["default"],
+      description:
+        "3D group for positioning, rotating, and animating children together. Use to create orbits: position a planet inside a Group3D and animate the group's rotation.",
+      example: {
+        position: null,
+        rotation: null,
+        scale: null,
+        animation: { rotate: [0, 0.005, 0] },
+      },
+    },
+
+    // Geometry primitives
+    Box: {
+      props: z.object(mesh3DProps),
+      description:
+        "3D box/cube mesh. args: [width, height, depth]. Supports on.press for click interaction.",
+      example: {
+        position: [0, 0, 0],
+        color: "#4488ff",
+        args: [1, 1, 1],
+      },
+    },
+
+    Sphere: {
+      props: z.object(mesh3DProps),
+      description:
+        "3D sphere mesh. args: [radius, widthSegments, heightSegments]. Use higher segment counts (32+) for smooth spheres.",
+      example: {
+        position: [0, 0, 0],
+        color: "#4B7BE5",
+        args: [1, 32, 32],
+      },
+    },
+
+    Cylinder: {
+      props: z.object(mesh3DProps),
+      description:
+        "3D cylinder mesh. args: [radiusTop, radiusBottom, height, radialSegments].",
+      example: {
+        position: [0, 0, 0],
+        color: "#88aa44",
+        args: [1, 1, 2, 32],
+      },
+    },
+
+    Cone: {
+      props: z.object(mesh3DProps),
+      description: "3D cone mesh. args: [radius, height, radialSegments].",
+      example: {
+        position: [0, 0, 0],
+        color: "#ff8844",
+        args: [1, 2, 32],
+      },
+    },
+
+    Torus: {
+      props: z.object(mesh3DProps),
+      description:
+        "3D torus (donut) mesh. args: [radius, tube, radialSegments, tubularSegments].",
+      example: {
+        position: [0, 0, 0],
+        color: "#aa44ff",
+        args: [1, 0.4, 16, 100],
+      },
+    },
+
+    Plane: {
+      props: z.object(mesh3DProps),
+      description:
+        "3D flat plane mesh. args: [width, height]. Useful for ground planes or flat surfaces.",
+      example: {
+        position: [0, -1, 0],
+        rotation: [-Math.PI / 2, 0, 0],
+        color: "#334455",
+        args: [10, 10],
+      },
+    },
+
+    Ring: {
+      props: z.object(mesh3DProps),
+      description:
+        "3D flat ring mesh. args: [innerRadius, outerRadius, thetaSegments]. Great for orbit path indicators.",
+      example: {
+        position: [0, 0, 0],
+        rotation: [-Math.PI / 2, 0, 0],
+        color: "#ffffff",
+        opacity: 0.2,
+        args: [14.8, 15.2, 64],
+      },
+    },
+
+    // Lights
+    AmbientLight: {
+      props: z.object({
+        color: z.string().nullable(),
+        intensity: z.number().nullable(),
+      }),
+      description:
+        "Ambient light that illuminates all objects equally. Use for base scene illumination.",
+      example: { color: null, intensity: 0.3 },
+    },
+
+    PointLight: {
+      props: z.object({
+        position: vec3.nullable(),
+        color: z.string().nullable(),
+        intensity: z.number().nullable(),
+        distance: z.number().nullable(),
+      }),
+      description:
+        "Point light that emits from a position in all directions. Use for suns, lamps, etc.",
+      example: { position: [0, 0, 0], intensity: 2 },
+    },
+
+    DirectionalLight: {
+      props: z.object({
+        position: vec3.nullable(),
+        color: z.string().nullable(),
+        intensity: z.number().nullable(),
+      }),
+      description:
+        "Directional light like sunlight. Position sets direction, not location.",
+      example: { position: [5, 10, 5], intensity: 1 },
+    },
+
+    // Helpers (drei)
+    Stars: {
+      props: z.object({
+        radius: z.number().nullable(),
+        depth: z.number().nullable(),
+        count: z.number().nullable(),
+        factor: z.number().nullable(),
+        fade: z.boolean().nullable(),
+        speed: z.number().nullable(),
+      }),
+      description:
+        "Starfield background for space scenes. Renders thousands of tiny points around the scene.",
+      example: { count: 5000, fade: true },
+    },
+
+    Label3D: {
+      props: z.object({
+        text: z.string(),
+        position: vec3.nullable(),
+        rotation: vec3.nullable(),
+        color: z.string().nullable(),
+        fontSize: z.number().nullable(),
+        anchorX: z.enum(["left", "center", "right"]).nullable(),
+        anchorY: z.enum(["top", "middle", "bottom"]).nullable(),
+      }),
+      description:
+        "Text label rendered in 3D space. Always faces the camera (billboard). Use for labeling objects in a scene.",
+      example: {
+        text: "Earth",
+        position: [15, 2, 0],
+        color: "#ffffff",
+        fontSize: 0.8,
       },
     },
   },

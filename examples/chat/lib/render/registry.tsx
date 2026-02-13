@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import { useBoundProp, defineRegistry } from "@json-render/react";
 import {
   Bar,
@@ -71,7 +71,146 @@ import {
   ArrowDown,
 } from "lucide-react";
 
+// 3D imports
+import { Canvas, useFrame } from "@react-three/fiber";
+import {
+  OrbitControls,
+  Stars as DreiStars,
+  Text as DreiText,
+} from "@react-three/drei";
+import type * as THREE from "three";
+
 import { explorerCatalog } from "./catalog";
+
+// =============================================================================
+// 3D Helper Types & Components
+// =============================================================================
+
+type Vec3Tuple = [number, number, number];
+
+interface Animation3D {
+  rotate?: number[] | null;
+}
+
+interface Mesh3DProps {
+  position?: number[] | null;
+  rotation?: number[] | null;
+  scale?: number[] | null;
+  color?: string | null;
+  args?: number[] | null;
+  metalness?: number | null;
+  roughness?: number | null;
+  emissive?: string | null;
+  emissiveIntensity?: number | null;
+  wireframe?: boolean | null;
+  opacity?: number | null;
+  animation?: Animation3D | null;
+}
+
+function toVec3(v: number[] | null | undefined): Vec3Tuple | undefined {
+  if (!v || v.length < 3) return undefined;
+  return v.slice(0, 3) as Vec3Tuple;
+}
+
+function toGeoArgs<T extends unknown[]>(
+  v: number[] | null | undefined,
+  fallback: T,
+): T {
+  if (!v || v.length === 0) return fallback;
+  return v as unknown as T;
+}
+
+/** Shared hook for continuous rotation animation */
+function useRotationAnimation(
+  ref: React.RefObject<THREE.Object3D | null>,
+  animation?: Animation3D | null,
+) {
+  useFrame(() => {
+    if (!ref.current || !animation?.rotate) return;
+    const [rx, ry, rz] = animation.rotate;
+    ref.current.rotation.x += rx ?? 0;
+    ref.current.rotation.y += ry ?? 0;
+    ref.current.rotation.z += rz ?? 0;
+  });
+}
+
+/** Standard material props shared by all mesh primitives */
+function StandardMaterial({
+  color,
+  metalness,
+  roughness,
+  emissive,
+  emissiveIntensity,
+  wireframe,
+  opacity,
+}: Mesh3DProps) {
+  return (
+    <meshStandardMaterial
+      color={color ?? "#cccccc"}
+      metalness={metalness ?? 0.1}
+      roughness={roughness ?? 0.8}
+      emissive={emissive ?? undefined}
+      emissiveIntensity={emissiveIntensity ?? 1}
+      wireframe={wireframe ?? false}
+      transparent={opacity != null && opacity < 1}
+      opacity={opacity ?? 1}
+    />
+  );
+}
+
+/** Generic mesh wrapper for all geometry primitives */
+function MeshPrimitive({
+  meshProps,
+  children,
+  onClick,
+}: {
+  meshProps: Mesh3DProps;
+  children: ReactNode;
+  onClick?: () => void;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  useRotationAnimation(ref, meshProps.animation);
+  return (
+    <mesh
+      ref={ref}
+      position={toVec3(meshProps.position)}
+      rotation={toVec3(meshProps.rotation)}
+      scale={toVec3(meshProps.scale)}
+      onClick={onClick}
+    >
+      {children}
+      <StandardMaterial {...meshProps} />
+    </mesh>
+  );
+}
+
+/** Animated group wrapper */
+function AnimatedGroup({
+  position,
+  rotation,
+  scale,
+  animation,
+  children,
+}: {
+  position?: number[] | null;
+  rotation?: number[] | null;
+  scale?: number[] | null;
+  animation?: Animation3D | null;
+  children?: ReactNode;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  useRotationAnimation(ref, animation);
+  return (
+    <group
+      ref={ref}
+      position={toVec3(position)}
+      rotation={toVec3(rotation)}
+      scale={toVec3(scale)}
+    >
+      {children}
+    </group>
+  );
+}
 
 // =============================================================================
 // Registry
@@ -694,6 +833,157 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
       >
         {props.label}
       </Button>
+    ),
+
+    // =========================================================================
+    // 3D Scene Components
+    // =========================================================================
+
+    Scene3D: ({ props, children }) => (
+      <div
+        style={{
+          height: props.height ?? "400px",
+          width: "100%",
+          background: props.background ?? "#111111",
+          borderRadius: 8,
+          overflow: "hidden",
+        }}
+      >
+        <Canvas
+          camera={{
+            position: toVec3(props.cameraPosition) ?? [0, 10, 30],
+            fov: props.cameraFov ?? 50,
+          }}
+        >
+          <OrbitControls
+            autoRotate={props.autoRotate ?? false}
+            enablePan
+            enableZoom
+          />
+          {children}
+        </Canvas>
+      </div>
+    ),
+
+    Group3D: ({ props, children }) => (
+      <AnimatedGroup
+        position={props.position}
+        rotation={props.rotation}
+        scale={props.scale}
+        animation={props.animation}
+      >
+        {children}
+      </AnimatedGroup>
+    ),
+
+    Box: ({ props, emit }) => (
+      <MeshPrimitive meshProps={props} onClick={() => emit("press")}>
+        <boxGeometry
+          args={toGeoArgs<[number, number, number]>(props.args, [1, 1, 1])}
+        />
+      </MeshPrimitive>
+    ),
+
+    Sphere: ({ props, emit }) => (
+      <MeshPrimitive meshProps={props} onClick={() => emit("press")}>
+        <sphereGeometry
+          args={toGeoArgs<[number, number, number]>(props.args, [1, 32, 32])}
+        />
+      </MeshPrimitive>
+    ),
+
+    Cylinder: ({ props, emit }) => (
+      <MeshPrimitive meshProps={props} onClick={() => emit("press")}>
+        <cylinderGeometry
+          args={toGeoArgs<[number, number, number, number]>(
+            props.args,
+            [1, 1, 2, 32],
+          )}
+        />
+      </MeshPrimitive>
+    ),
+
+    Cone: ({ props, emit }) => (
+      <MeshPrimitive meshProps={props} onClick={() => emit("press")}>
+        <coneGeometry
+          args={toGeoArgs<[number, number, number]>(props.args, [1, 2, 32])}
+        />
+      </MeshPrimitive>
+    ),
+
+    Torus: ({ props, emit }) => (
+      <MeshPrimitive meshProps={props} onClick={() => emit("press")}>
+        <torusGeometry
+          args={toGeoArgs<[number, number, number, number]>(
+            props.args,
+            [1, 0.4, 16, 100],
+          )}
+        />
+      </MeshPrimitive>
+    ),
+
+    Plane: ({ props, emit }) => (
+      <MeshPrimitive meshProps={props} onClick={() => emit("press")}>
+        <planeGeometry
+          args={toGeoArgs<[number, number]>(props.args, [10, 10])}
+        />
+      </MeshPrimitive>
+    ),
+
+    Ring: ({ props, emit }) => (
+      <MeshPrimitive meshProps={props} onClick={() => emit("press")}>
+        <ringGeometry
+          args={toGeoArgs<[number, number, number]>(props.args, [0.5, 1, 64])}
+        />
+      </MeshPrimitive>
+    ),
+
+    AmbientLight: ({ props }) => (
+      <ambientLight
+        color={props.color ?? undefined}
+        intensity={props.intensity ?? 0.5}
+      />
+    ),
+
+    PointLight: ({ props }) => (
+      <pointLight
+        position={toVec3(props.position)}
+        color={props.color ?? undefined}
+        intensity={props.intensity ?? 1}
+        distance={props.distance ?? 0}
+      />
+    ),
+
+    DirectionalLight: ({ props }) => (
+      <directionalLight
+        position={toVec3(props.position)}
+        color={props.color ?? undefined}
+        intensity={props.intensity ?? 1}
+      />
+    ),
+
+    Stars: ({ props }) => (
+      <DreiStars
+        radius={props.radius ?? 100}
+        depth={props.depth ?? 50}
+        count={props.count ?? 5000}
+        factor={props.factor ?? 4}
+        fade={props.fade ?? true}
+        speed={props.speed ?? 1}
+      />
+    ),
+
+    Label3D: ({ props }) => (
+      <DreiText
+        position={toVec3(props.position)}
+        rotation={toVec3(props.rotation)}
+        color={props.color ?? "#ffffff"}
+        fontSize={props.fontSize ?? 1}
+        anchorX={props.anchorX ?? "center"}
+        anchorY={props.anchorY ?? "middle"}
+      >
+        {props.text}
+      </DreiText>
     ),
   },
 

@@ -3,7 +3,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { SPEC_DATA_PART, type SpecDataPart } from "@json-render/core";
+import {
+  SPEC_DATA_PART,
+  SPEC_DATA_PART_TYPE,
+  type SpecDataPart,
+} from "@json-render/core";
 import { useJsonRenderMessage } from "@json-render/react";
 import { ExplorerRenderer } from "@/lib/render/renderer";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -132,7 +136,9 @@ function MessageBubble({
   const isUser = message.role === "user";
   const { spec, text, hasSpec } = useJsonRenderMessage(message.parts);
 
-  // Build ordered segments from parts, collapsing adjacent text and adjacent tools
+  // Build ordered segments from parts, collapsing adjacent text and adjacent tools.
+  // Spec data parts are tracked so the rendered UI appears inline where the AI
+  // placed it rather than always at the bottom.
   const segments: Array<
     | { kind: "text"; text: string }
     | {
@@ -144,7 +150,10 @@ function MessageBubble({
           output?: unknown;
         }>;
       }
+    | { kind: "spec" }
   > = [];
+
+  let specInserted = false;
 
   for (const part of message.parts) {
     if (part.type === "text") {
@@ -183,6 +192,10 @@ function MessageBubble({
           ],
         });
       }
+    } else if (part.type === SPEC_DATA_PART_TYPE && !specInserted) {
+      // First spec data part — mark where the rendered UI should appear
+      segments.push({ kind: "spec" });
+      specInserted = true;
     }
   }
 
@@ -202,6 +215,11 @@ function MessageBubble({
     );
   }
 
+  // If there's a spec but no spec segment was inserted (edge case),
+  // append it so it still renders.
+  const specRenderedInline = specInserted;
+  const showSpecAtEnd = hasSpec && !specRenderedInline;
+
   return (
     <div className="w-full flex flex-col gap-3">
       {segments.map((seg, i) => {
@@ -218,6 +236,14 @@ function MessageBubble({
               >
                 {seg.text}
               </Streamdown>
+            </div>
+          );
+        }
+        if (seg.kind === "spec") {
+          if (!hasSpec) return null;
+          return (
+            <div key="spec" className="w-full">
+              <ExplorerRenderer spec={spec} loading={isLast && isStreaming} />
             </div>
           );
         }
@@ -242,8 +268,8 @@ function MessageBubble({
         </div>
       )}
 
-      {/* Rendered UI spec */}
-      {hasSpec && (
+      {/* Fallback: render spec at end if no inline position was found */}
+      {showSpecAtEnd && (
         <div className="w-full">
           <ExplorerRenderer spec={spec} loading={isLast && isStreaming} />
         </div>

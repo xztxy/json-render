@@ -15,6 +15,8 @@
     "@ai-sdk/react": "^3.0.84",
     "@json-render/core": "workspace:*",
     "@json-render/react": "workspace:*",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@streamdown/code": "^1.0.2",
     "ai": "^6.0.33",
     "class-variance-authority": "^0.7.1",
@@ -29,6 +31,7 @@
     "sonner": "^2.0.7",
     "streamdown": "^2.2.0",
     "tailwind-merge": "^3.4.0",
+    "three": "^0.182.0",
     "zod": "4.3.5"
   },
   "devDependencies": {
@@ -37,6 +40,7 @@
     "@types/node": "^22.10.0",
     "@types/react": "19.2.3",
     "@types/react-dom": "19.2.3",
+    "@types/three": "^0.182.0",
     "eslint": "^9.39.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
