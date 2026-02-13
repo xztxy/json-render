@@ -29,6 +29,7 @@ export const docsNavigation: NavSection[] = [
       { title: "Data Binding", href: "/docs/data-binding" },
       { title: "Visibility", href: "/docs/visibility" },
       { title: "Validation", href: "/docs/validation" },
+      { title: "Generation Modes", href: "/docs/generation-modes" },
     ],
   },
   {

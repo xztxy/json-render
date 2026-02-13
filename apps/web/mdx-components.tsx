@@ -1,6 +1,7 @@
 import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
 import { Code } from "@/components/code";
+import { GenerationModesDiagram } from "@/components/generation-modes-diagram";
 import { PackageInstall } from "@/components/package-install";
 
 function slugify(text: string): string {
@@ -145,6 +146,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     em: ({ children }: { children?: React.ReactNode }) => <em>{children}</em>,
     // Custom components available in all MDX files
+    GenerationModesDiagram,
     PackageInstall,
   };
 }

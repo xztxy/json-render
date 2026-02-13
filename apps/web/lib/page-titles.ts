@@ -24,6 +24,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/validation": "Validation",
   "docs/data-binding": "Data Binding",
   "docs/visibility": "Visibility",
+  "docs/generation-modes": "Generation Modes",
   "docs/code-export": "Code Export",
   "docs/custom-schema": "Custom Schema & Renderer",
   "docs/ai-sdk": "AI SDK Integration",
