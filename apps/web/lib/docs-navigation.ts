@@ -20,15 +20,21 @@ export const docsNavigation: NavSection[] = [
     ],
   },
   {
-    title: "Core Concepts",
+    title: "Core",
     items: [
       { title: "Specs", href: "/docs/specs" },
       { title: "Schemas", href: "/docs/schemas" },
       { title: "Catalog", href: "/docs/catalog" },
-      { title: "Registry", href: "/docs/registry" },
       { title: "Data Binding", href: "/docs/data-binding" },
       { title: "Visibility", href: "/docs/visibility" },
       { title: "Validation", href: "/docs/validation" },
+    ],
+  },
+  {
+    title: "Rendering",
+    items: [
+      { title: "Registry", href: "/docs/registry" },
+      { title: "Streaming", href: "/docs/streaming" },
       { title: "Generation Modes", href: "/docs/generation-modes" },
     ],
   },
@@ -61,7 +67,6 @@ export const docsNavigation: NavSection[] = [
     title: "Guides",
     items: [
       { title: "Custom Schema", href: "/docs/custom-schema" },
-      { title: "Streaming", href: "/docs/streaming" },
       { title: "Code Export", href: "/docs/code-export" },
     ],
   },

@@ -10,7 +10,7 @@ The mode controls how the AI formats its output and how your app processes the s
 
 ## Generate Mode (Standalone)
 
-In generate mode, the AI outputs **only JSONL patches** -- no prose, no markdown. The entire response is a UI spec.
+In generate mode, the AI outputs **only JSONL patches** — no prose, no markdown. The entire response is a UI spec.
 
 This is the default mode and is ideal for:
 
@@ -63,7 +63,7 @@ function Playground() {
 
 ### Example output
 
-The AI outputs only JSONL -- one patch per line, no surrounding text:
+The AI outputs only JSONL — one patch per line, no surrounding text:
 
 ```
 {"op":"add","path":"/root","value":"card-1"}
@@ -163,7 +163,7 @@ Here's a dashboard showing the latest crypto prices:
 {"op":"add","path":"/elements/eth","value":{"type":"Metric","props":{"label":"Ethereum","value":{"$state":"/prices/1/price"}}}}
 ```
 
-If the user asks a simple question ("what does BTC stand for?"), the AI replies with text only -- no JSONL.
+If the user asks a simple question ("what does BTC stand for?"), the AI replies with text only — no JSONL.
 
 ## Quick Comparison
 

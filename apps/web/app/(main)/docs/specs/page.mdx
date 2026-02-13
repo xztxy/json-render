@@ -219,9 +219,23 @@ Control when elements appear using the `visible` property:
 
 ## Working with Specs
 
-### Rendering a Spec
+### Validating a Spec
 
-Wrap the `Renderer` in a `StateProvider` to supply the state model:
+Use `validateSpec` from `@json-render/core` to check a spec for structural issues:
+
+```typescript
+import { validateSpec } from '@json-render/core';
+
+const result = validateSpec(spec);
+
+if (!result.valid) {
+  console.error('Invalid spec:', result.issues);
+}
+```
+
+### Rendering a Spec (React)
+
+With `@json-render/react`, wrap the `Renderer` in providers to supply state and visibility:
 
 ```tsx
 import { Renderer, StateProvider, VisibilityProvider } from '@json-render/react';
@@ -238,21 +252,11 @@ function MyApp({ spec, initialState }) {
 }
 ```
 
-### Validating a Spec
+See the [@json-render/react API reference](/docs/api/react) for full provider and hook documentation.
 
-```typescript
-import { validateSpec } from '@json-render/core';
+### Streaming a Spec (React)
 
-const result = validateSpec(spec);
-
-if (!result.valid) {
-  console.error('Invalid spec:', result.issues);
-}
-```
-
-### Streaming Specs
-
-Specs can be streamed incrementally for progressive rendering:
+With `@json-render/react`, use the `useUIStream` hook to stream specs incrementally:
 
 ```tsx
 import { useUIStream } from '@json-render/react';
@@ -271,6 +275,8 @@ function GenerativeUI() {
   );
 }
 ```
+
+See [Streaming](/docs/streaming) for the full SpecStream format and server-side setup.
 
 ## Spec Sources
 

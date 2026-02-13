@@ -3,7 +3,7 @@
  * Used by both page metadata exports and the OG image route.
  *
  * Keys mirror the page's URL path (e.g., "docs/changelog" → /og/docs/changelog).
- * Values are display titles (without the "| json-render" suffix -- the layout template adds that).
+ * Values are display titles (without the "| json-render" suffix — the layout template adds that).
  */
 export const PAGE_TITLES: Record<string, string> = {
   // Home (no slug)

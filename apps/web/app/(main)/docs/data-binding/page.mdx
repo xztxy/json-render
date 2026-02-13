@@ -24,7 +24,7 @@ Every spec can include a `state` object that holds the data your UI reads from:
 }
 ```
 
-State can also be provided programmatically via `StateProvider` in React or React Native. See the [React API reference](/docs/api/react#useStateStore) for hooks like `useStateStore`, `useStateValue`, and `useStateBinding`.
+State can also be provided programmatically at runtime. In `@json-render/react`, this is done via `StateProvider` and hooks like `useStateStore`. See the [React API reference](/docs/api/react) for details.
 
 ## JSON Pointer Paths
 
@@ -50,7 +50,7 @@ Given this state:
 
 Expressions are special objects you place in props to read dynamic values instead of hardcoding them. There are three expression types.
 
-### `$state` -- Read from state
+### `$state` — Read from state
 
 Use `{ "$state": "/path" }` in any prop to read a value from the state model:
 
@@ -67,7 +67,7 @@ Use `{ "$state": "/path" }` in any prop to read a value from the state model:
 
 If state contains `{ "user": { "name": "Alice", "email": "alice@example.com" } }`, the Card renders with title "Alice" and subtitle "alice@example.com".
 
-### `$item` -- Read from the current repeat item
+### `$item` — Read from the current repeat item
 
 Use `{ "$item": "/field" }` inside a [repeat](#repeat) to read a field from the current array item:
 
@@ -81,7 +81,7 @@ Use `{ "$item": "/field" }` inside a [repeat](#repeat) to read a field from the 
 
 Use `{ "$item": "/" }` to get the entire item object.
 
-### `$index` -- Current repeat index
+### `$index` — Current repeat index
 
 Use `{ "$index": true }` inside a [repeat](#repeat) to get the current array index (zero-based number):
 
@@ -95,7 +95,7 @@ Use `{ "$index": true }` inside a [repeat](#repeat) to get the current array ind
 
 ## Repeat
 
-The `repeat` field on an element renders its children once per item in a state array. It is a top-level field on the element, sibling of `type`, `props`, and `children` -- not inside `props`.
+The `repeat` field on an element renders its children once per item in a state array. It is a top-level field on the element, sibling of `type`, `props`, and `children` — not inside `props`.
 
 ```json
 {
@@ -125,8 +125,8 @@ The `repeat` field on an element renders its children once per item in a state a
 }
 ```
 
-- `repeat.path` -- JSON Pointer to the state array
-- `repeat.key` -- field name on each item to use as a stable React key
+- `repeat.path` — JSON Pointer to the state array
+- `repeat.key` — field name on each item to use as a stable key for rendering
 
 Inside `todo-item`, `{ "$item": "/title" }` reads the `title` field from whichever array item is currently being rendered. `{ "$index": true }` would return `0` for the first item, `1` for the second, and so on.
 
@@ -221,6 +221,6 @@ The condition uses the same [visibility](/docs/visibility) expression format.
 
 ## Next
 
-- [Visibility](/docs/visibility) -- conditionally show or hide elements
-- [Action handlers](/docs/registry#action-handlers) -- respond to user interactions
-- [React API reference](/docs/api/react) -- hooks for programmatic state access
+- [Visibility](/docs/visibility) — conditionally show or hide elements
+- [Action handlers](/docs/registry#action-handlers) — respond to user interactions
+- [React API reference](/docs/api/react) — React-specific hooks for programmatic state access

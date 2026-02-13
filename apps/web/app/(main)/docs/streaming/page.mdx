@@ -15,28 +15,6 @@ json-render uses **SpecStream**, a JSONL-based streaming format where each line 
 {"op":"add","path":"/elements/metric-2","value":{"type":"Metric","props":{"label":"Users"}}}
 ```
 
-## useUIStream Hook
-
-The hook handles parsing and state management:
-
-```tsx
-import { useUIStream } from '@json-render/react';
-
-function App() {
-  const {
-    spec,          // Current UI spec state
-    isStreaming,   // True while streaming
-    error,         // Any error that occurred
-    send,          // Function to start generation
-    clear,         // Function to reset spec and error
-  } = useUIStream({
-    api: '/api/generate',
-    onComplete: (spec) => {},  // Optional: called when streaming completes
-    onError: (error) => {},    // Optional: called when an error occurs
-  });
-}
-```
-
 ## Patch Operations (RFC 6902)
 
 SpecStream uses [RFC 6902 JSON Patch](https://datatracker.ietf.org/doc/html/rfc6902) operations:
@@ -81,47 +59,9 @@ export async function POST(req: Request) {
 }
 ```
 
-## Progressive Rendering
-
-The Renderer automatically updates as the spec changes:
-
-```tsx
-function App() {
-  const { spec, isStreaming } = useUIStream({ api: '/api/generate' });
-
-  return (
-    <div>
-      {isStreaming && <LoadingIndicator />}
-      <Renderer spec={spec} registry={registry} loading={isStreaming} />
-    </div>
-  );
-}
-```
-
-## Aborting Streams
-
-Calling `send` again automatically aborts the previous request. Use `clear` to reset the spec and error state:
-
-```tsx
-function App() {
-  const { isStreaming, send, clear } = useUIStream({
-    api: '/api/generate',
-  });
-
-  return (
-    <div>
-      <button onClick={() => send('Create dashboard')}>
-        Generate
-      </button>
-      <button onClick={clear}>Reset</button>
-    </div>
-  );
-}
-```
-
 ## Low-Level SpecStream API
 
-For custom streaming implementations, use the SpecStream compiler directly:
+For custom or framework-agnostic streaming implementations, use the SpecStream compiler from `@json-render/core` directly:
 
 ```typescript
 import { createSpecStreamCompiler } from '@json-render/core';
@@ -164,3 +104,67 @@ const jsonl = `{"op":"add","path":"/root","value":"card-1"}
 const spec = compileSpecStream<Spec>(jsonl);
 // { root: "card-1", elements: { "card-1": { type: "Card", props: { title: "Hello" }, children: [] } } }
 ```
+
+## Usage with React
+
+`@json-render/react` provides the `useUIStream` hook, which wraps the low-level compiler in a React-friendly API with state management, error handling, and abort support.
+
+### useUIStream Hook
+
+```tsx
+import { useUIStream } from '@json-render/react';
+
+function App() {
+  const {
+    spec,          // Current UI spec state
+    isStreaming,   // True while streaming
+    error,         // Any error that occurred
+    send,          // Function to start generation
+    clear,         // Function to reset spec and error
+  } = useUIStream({
+    api: '/api/generate',
+    onComplete: (spec) => {},  // Optional: called when streaming completes
+    onError: (error) => {},    // Optional: called when an error occurs
+  });
+}
+```
+
+### Progressive Rendering
+
+The Renderer automatically updates as the spec changes:
+
+```tsx
+function App() {
+  const { spec, isStreaming } = useUIStream({ api: '/api/generate' });
+
+  return (
+    <div>
+      {isStreaming && <LoadingIndicator />}
+      <Renderer spec={spec} registry={registry} loading={isStreaming} />
+    </div>
+  );
+}
+```
+
+### Aborting Streams
+
+Calling `send` again automatically aborts the previous request. Use `clear` to reset the spec and error state:
+
+```tsx
+function App() {
+  const { isStreaming, send, clear } = useUIStream({
+    api: '/api/generate',
+  });
+
+  return (
+    <div>
+      <button onClick={() => send('Create dashboard')}>
+        Generate
+      </button>
+      <button onClick={clear}>Reset</button>
+    </div>
+  );
+}
+```
+
+See the [@json-render/react API reference](/docs/api/react) for full `useUIStream` documentation.

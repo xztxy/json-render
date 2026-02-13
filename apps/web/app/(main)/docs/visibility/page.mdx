@@ -4,24 +4,6 @@ export const metadata = { title: "Visibility" }
 
 Conditionally show or hide components based on data, auth, or logic.
 
-## VisibilityProvider
-
-Wrap your app with VisibilityProvider to enable conditional rendering:
-
-```tsx
-import { VisibilityProvider } from '@json-render/react';
-
-function App() {
-  return (
-    <StateProvider initialState={data}>
-      <VisibilityProvider>
-        {/* Components can now use visibility conditions */}
-      </VisibilityProvider>
-    </StateProvider>
-  );
-}
-```
-
 ## State-Based Visibility
 
 Show/hide based on state values. Use `$state` with a JSON Pointer path:
@@ -162,20 +144,6 @@ Use boolean literals for constant visibility:
 }
 ```
 
-## Using in Components
-
-```tsx
-import { useIsVisible } from '@json-render/react';
-
-// The Renderer handles visibility automatically, but you can also use the hook
-function ConditionalContent({ condition, children }) {
-  const isVisible = useIsVisible(condition);
-
-  if (!isVisible) return null;
-  return <div>{children}</div>;
-}
-```
-
 ## Quick Reference
 
 <div className="my-6 overflow-x-auto">
@@ -240,6 +208,39 @@ Comparison values can be literals or state references for state-to-state compari
 ```json
 { "$state": "/a", "eq": { "$state": "/b" } }
 ```
+
+## Usage with React
+
+In `@json-render/react`, wrap your app with `VisibilityProvider` to enable conditional rendering. The `Renderer` handles visibility automatically — elements with unmet conditions are not rendered.
+
+```tsx
+import { VisibilityProvider, StateProvider } from '@json-render/react';
+
+function App() {
+  return (
+    <StateProvider initialState={data}>
+      <VisibilityProvider>
+        {/* Components can now use visibility conditions */}
+      </VisibilityProvider>
+    </StateProvider>
+  );
+}
+```
+
+For advanced use cases, the `useIsVisible` hook lets you evaluate visibility conditions programmatically:
+
+```tsx
+import { useIsVisible } from '@json-render/react';
+
+function ConditionalContent({ condition, children }) {
+  const isVisible = useIsVisible(condition);
+
+  if (!isVisible) return null;
+  return <div>{children}</div>;
+}
+```
+
+See the [@json-render/react API reference](/docs/api/react) for full details.
 
 ## Next
 

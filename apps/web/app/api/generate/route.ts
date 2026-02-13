@@ -83,7 +83,7 @@ export async function POST(req: Request) {
         });
         controller.enqueue(encoder.encode(`\n${meta}\n`));
       } catch {
-        // Usage not available -- skip silently
+        // Usage not available — skip silently
       }
       controller.close();
     },

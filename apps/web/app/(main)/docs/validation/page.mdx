@@ -60,11 +60,11 @@ json-render includes common validation functions:
 
 ## Custom Validation Functions
 
-Define custom validators in your catalog:
+Define custom validators in your catalog's `functions` field. The catalog itself is framework-agnostic — only the `schema` import varies by platform:
 
 ```typescript
 import { defineCatalog } from '@json-render/core';
-import { schema } from '@json-render/react';
+import { schema } from '@json-render/react'; // or '@json-render/react-native'
 import { z } from 'zod';
 
 const catalog = defineCatalog(schema, {
@@ -80,7 +80,9 @@ const catalog = defineCatalog(schema, {
 });
 ```
 
-Then implement them in your ValidationProvider:
+## Usage with React
+
+In `@json-render/react`, use `ValidationProvider` to supply implementations for your custom validators:
 
 ```tsx
 import { ValidationProvider } from '@json-render/react';
@@ -106,7 +108,9 @@ function App() {
 }
 ```
 
-## Using in Components
+### Using in Components
+
+The `useFieldValidation` and `useStateStore` hooks wire validation into your registry components:
 
 ```tsx
 import { useFieldValidation, useStateStore } from '@json-render/react';
@@ -134,6 +138,8 @@ function TextField({ props }) {
   );
 }
 ```
+
+See the [@json-render/react API reference](/docs/api/react) for full `ValidationProvider` and `useFieldValidation` documentation.
 
 ## Validation Timing
 
