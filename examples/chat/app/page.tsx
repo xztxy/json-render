@@ -357,9 +357,7 @@ export default function ChatPage() {
       {/* Header */}
       <header className="border-b px-6 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold">
-            json-render + AI SDK Example
-          </h1>
+          <h1 className="text-lg font-semibold">json-render Chat Example</h1>
         </div>
         <div className="flex items-center gap-2">
           {messages.length > 0 && (

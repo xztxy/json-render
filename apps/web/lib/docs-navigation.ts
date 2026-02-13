@@ -36,6 +36,11 @@ export const docsNavigation: NavSection[] = [
     title: "Examples",
     items: [
       {
+        title: "Chat",
+        href: "https://github.com/vercel-labs/json-render/tree/main/examples/chat",
+        external: true,
+      },
+      {
         title: "Dashboard",
         href: "https://github.com/vercel-labs/json-render/tree/main/examples/dashboard",
         external: true,
