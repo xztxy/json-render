@@ -770,17 +770,17 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
     // ── Form Inputs ───────────────────────────────────────────────────
 
     Input: ({ props, emit }) => {
-      const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
-        : [undefined, undefined];
+      const [boundValue, setBoundValue] = useStateBinding<string>(
+        props.statePath ?? "",
+      );
       const [localValue, setLocalValue] = useState("");
       const value = props.statePath ? (boundValue ?? "") : localValue;
-      const setValue = props.statePath ? setBoundValue! : setLocalValue;
+      const setValue = props.statePath ? setBoundValue : setLocalValue;
 
       const hasValidation = !!(props.statePath && props.checks?.length);
-      const { errors, validate } = hasValidation
-        ? useFieldValidation(props.statePath!, { checks: props.checks! }) // eslint-disable-line react-hooks/rules-of-hooks
-        : { errors: [] as string[], validate: (() => {}) as () => void };
+      const { errors, validate } = useFieldValidation(props.statePath ?? "", {
+        checks: props.checks ?? [],
+      });
 
       return (
         <div className="space-y-2">
@@ -809,17 +809,17 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
     },
 
     Textarea: ({ props }) => {
-      const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
-        : [undefined, undefined];
+      const [boundValue, setBoundValue] = useStateBinding<string>(
+        props.statePath ?? "",
+      );
       const [localValue, setLocalValue] = useState("");
       const value = props.statePath ? (boundValue ?? "") : localValue;
-      const setValue = props.statePath ? setBoundValue! : setLocalValue;
+      const setValue = props.statePath ? setBoundValue : setLocalValue;
 
       const hasValidation = !!(props.statePath && props.checks?.length);
-      const { errors, validate } = hasValidation
-        ? useFieldValidation(props.statePath!, { checks: props.checks! }) // eslint-disable-line react-hooks/rules-of-hooks
-        : { errors: [] as string[], validate: (() => {}) as () => void };
+      const { errors, validate } = useFieldValidation(props.statePath ?? "", {
+        checks: props.checks ?? [],
+      });
 
       return (
         <div className="space-y-2">
@@ -843,12 +843,12 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
     },
 
     Select: ({ props, emit }) => {
-      const [boundValue, setBoundValue] = props.statePath
-        ? useStateBinding<string>(props.statePath) // eslint-disable-line react-hooks/rules-of-hooks
-        : [undefined, undefined];
+      const [boundValue, setBoundValue] = useStateBinding<string>(
+        props.statePath ?? "",
+      );
       const [localValue, setLocalValue] = useState<string>("");
       const value = props.statePath ? (boundValue ?? "") : localValue;
-      const setValue = props.statePath ? setBoundValue! : setLocalValue;
+      const setValue = props.statePath ? setBoundValue : setLocalValue;
       const rawOptions = props.options ?? [];
       // Coerce options to strings – AI may produce objects/numbers instead of
       // plain strings which would cause duplicate `[object Object]` keys.
@@ -857,9 +857,9 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
       );
 
       const hasValidation = !!(props.statePath && props.checks?.length);
-      const { errors, validate } = hasValidation
-        ? useFieldValidation(props.statePath!, { checks: props.checks! }) // eslint-disable-line react-hooks/rules-of-hooks
-        : { errors: [] as string[], validate: (() => {}) as () => void };
+      const { errors, validate } = useFieldValidation(props.statePath ?? "", {
+        checks: props.checks ?? [],
+      });
 
       return (
         <div className="space-y-2">

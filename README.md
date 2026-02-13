@@ -116,15 +116,21 @@ function Dashboard({ spec }) {
 import { defineRegistry, Renderer } from "@json-render/react";
 import { schema } from "@json-render/react";
 
-// Element tree spec format
+// Flat spec format (root key + elements map)
 const spec = {
-  root: {
-    type: "Card",
-    props: { title: "Hello" },
-    children: [
-      { type: "Button", props: { label: "Click me" } }
-    ]
-  }
+  root: "card-1",
+  elements: {
+    "card-1": {
+      type: "Card",
+      props: { title: "Hello" },
+      children: ["button-1"],
+    },
+    "button-1": {
+      type: "Button",
+      props: { label: "Click me" },
+      children: [],
+    },
+  },
 };
 
 // defineRegistry creates a type-safe component registry

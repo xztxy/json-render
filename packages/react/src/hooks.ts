@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type {
   Spec,
   UIElement,
@@ -539,8 +539,31 @@ export function getTextFromParts(parts: DataPart[]): string {
  * ```
  */
 export function useJsonRenderMessage(parts: DataPart[]) {
-  const spec = useMemo(() => buildSpecFromParts(parts), [parts]);
-  const text = useMemo(() => getTextFromParts(parts), [parts]);
+  const prevPartsRef = useRef<DataPart[]>([]);
+  const prevResultRef = useRef<{ spec: Spec | null; text: string }>({
+    spec: null,
+    text: "",
+  });
+
+  // Recompute only when parts actually change (by length + last element identity).
+  // AI SDK typically appends to the parts array during streaming, so checking
+  // length and the last element covers both "new array reference with same
+  // content" (no recompute) and "new part appended" (recompute).
+  const partsChanged =
+    parts !== prevPartsRef.current &&
+    (parts.length !== prevPartsRef.current.length ||
+      parts[parts.length - 1] !==
+        prevPartsRef.current[prevPartsRef.current.length - 1]);
+
+  if (partsChanged || prevPartsRef.current.length === 0) {
+    prevPartsRef.current = parts;
+    prevResultRef.current = {
+      spec: buildSpecFromParts(parts),
+      text: getTextFromParts(parts),
+    };
+  }
+
+  const { spec, text } = prevResultRef.current;
   const hasSpec = spec !== null && Object.keys(spec.elements || {}).length > 0;
   return { spec, text, hasSpec };
 }

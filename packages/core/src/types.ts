@@ -433,27 +433,27 @@ function deepEqual(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Find a form value from params and/or data.
+ * Find a form value from params and/or state.
  * Useful in action handlers to locate form input values regardless of path format.
  *
  * Checks in order:
  * 1. Direct param key (if not a path reference)
  * 2. Param keys ending with the field name
- * 3. Data keys ending with the field name (dot notation)
- * 4. Data paths using getByPath (slash notation)
+ * 3. State keys ending with the field name (dot notation)
+ * 4. State paths using getByPath (slash notation)
  *
  * @example
- * // Find "name" from params or data
- * const name = findFormValue("name", params, data);
+ * // Find "name" from params or state
+ * const name = findFormValue("name", params, state);
  *
- * // Will find from: params.name, params["form.name"], data["customerForm.name"], data.customerForm.name
+ * // Will find from: params.name, params["form.name"], state["customerForm.name"], state.customerForm.name
  */
 export function findFormValue(
   fieldName: string,
   params?: Record<string, unknown>,
-  data?: Record<string, unknown>,
+  state?: Record<string, unknown>,
 ): unknown {
-  // Check params first (but not if it looks like a data path reference)
+  // Check params first (but not if it looks like a state path reference)
   if (params?.[fieldName] !== undefined) {
     const val = params[fieldName];
     // If the value looks like a path reference (contains dots), skip it
@@ -474,11 +474,11 @@ export function findFormValue(
     }
   }
 
-  // Check data keys that end with the field name (handles any form naming)
-  if (data) {
-    for (const key of Object.keys(data)) {
+  // Check state keys that end with the field name (handles any form naming)
+  if (state) {
+    for (const key of Object.keys(state)) {
       if (key === fieldName || key.endsWith(`.${fieldName}`)) {
-        return data[key];
+        return state[key];
       }
     }
 
@@ -486,7 +486,7 @@ export function findFormValue(
     const prefixes = ["form", "newCustomer", "customer", ""];
     for (const prefix of prefixes) {
       const path = prefix ? `${prefix}/${fieldName}` : fieldName;
-      const val = getByPath(data, path);
+      const val = getByPath(state, path);
       if (val !== undefined) {
         return val;
       }

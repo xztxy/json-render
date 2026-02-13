@@ -72,8 +72,9 @@ interface Catalog {
 }
 
 interface PromptOptions {
-  system?: string;        // Custom system message intro
-  customRules?: string[]; // Additional rules to append
+  system?: string;           // Custom system message intro
+  customRules?: string[];    // Additional rules to append
+  mode?: "generate" | "chat"; // Output mode (default: "generate")
 }
 
 interface SpecValidationResult<T> {
@@ -351,8 +352,8 @@ const name2 = resolveDynamicValue({ $state: "/user/name" }, state);  // "Alice"
 import { findFormValue } from '@json-render/core';
 
 // Find form values regardless of path format
-// Checks: params.name, params["form.name"], data["form.name"], data.form.name
-const value = findFormValue("name", params, data);
+// Checks: params.name, params["form.name"], state["form.name"], state.form.name
+const value = findFormValue("name", params, state);
 ```
 
 ## evaluateVisibility
