@@ -131,14 +131,13 @@ const SIMULATION_STAGES: SimulationStage[] = [
           on: {
             press: {
               action: "formSubmit",
-              params: { formName: "Contact form" },
             },
           },
         },
       },
     },
     stream:
-      '{"op":"add","path":"/elements/submit","value":{"type":"Button","props":{"label":"Send Message","variant":"primary"},"on":{"press":{"action":"formSubmit","params":{"formName":"Contact form"}}}}}',
+      '{"op":"add","path":"/elements/submit","value":{"type":"Button","props":{"label":"Send Message","variant":"primary"},"on":{"press":{"action":"formSubmit"}}}}',
   },
 ];
 
