@@ -208,7 +208,7 @@ function ElementRenderer({
     return null;
   }
 
-  // Resolve dynamic prop expressions ($path, $cond/$then/$else)
+  // Resolve dynamic prop expressions ($state, $cond/$then/$else)
   const resolvedProps = resolveElementProps(
     effectiveElement.props as Record<string, unknown>,
     ctx,

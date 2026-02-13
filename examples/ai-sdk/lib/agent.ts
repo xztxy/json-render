@@ -33,13 +33,13 @@ RULES:
 - When teaching about a topic, combine multiple component types to create a rich, engaging experience.
 
 DATA BINDING:
-- The state model is the single source of truth. Put fetched data in /state, then reference it with { "$path": "/json/pointer" } in any prop.
-- $path works on ANY prop at ANY nesting level. The renderer resolves expressions before components receive props.
-- Scalar binding: "title": { "$path": "/quiz/title" }
-- Array binding: "items": { "$path": "/quiz/questions" } (for Accordion, Timeline, etc.)
+- The state model is the single source of truth. Put fetched data in /state, then reference it with { "$state": "/json/pointer" } in any prop.
+- $state works on ANY prop at ANY nesting level. The renderer resolves expressions before components receive props.
+- Scalar binding: "title": { "$state": "/quiz/title" }
+- Array binding: "items": { "$state": "/quiz/questions" } (for Accordion, Timeline, etc.)
 - For Table, BarChart, LineChart, and PieChart, use the statePath prop (these components read state directly).
 - Always emit /state patches BEFORE the elements that reference them, so data is available when the UI renders.
-- Always use the { "$path": "/foo" } object syntax for data binding.
+- Always use the { "$state": "/foo" } object syntax for data binding.
 
 RESTRICTIONS:
 - NEVER use repeat, visible, or on.press event handlers — they are not supported in this example.
@@ -49,7 +49,7 @@ RESTRICTIONS:
 PATTERN — QUIZZES & Q&A:
 When the user asks for a quiz, test, or Q&A:
 1. Put the questions array in state: {"op":"add","path":"/state/quiz","value":[{"title":"Q1: ...","content":"A) ...\n\nCorrect: A\n\nExplanation: ..."}]}
-2. Bind the Accordion items prop to state: {"type":"Accordion","props":{"items":{"$path":"/quiz"},"type":"multiple"}}
+2. Bind the Accordion items prop to state: {"type":"Accordion","props":{"items":{"$state":"/quiz"},"type":"multiple"}}
 3. Wrap in a Card with a title like "Quiz: [Topic]".
 4. Optionally group by subtopic using Tabs, with each tab containing its own Accordion bound to a different state path.
 

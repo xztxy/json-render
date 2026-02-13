@@ -41,7 +41,7 @@ See the [Custom Schema guide](/docs/custom-schema) to learn how to implement sup
     },
     "text-1": {
       "type": "Text",
-      "props": { "content": { "$path": "/user/name" } },
+      "props": { "content": { "$state": "/user/name" } },
       "children": []
     },
     "button-1": {
@@ -70,14 +70,14 @@ interface Element {
 
 ### Data Binding Syntax
 
-Reference dynamic data using `$path` expressions in props. The value is a JSON Pointer path into the state model:
+Reference dynamic data using `$state` expressions in props. The value is a JSON Pointer path into the state model:
 
 ```json
 {
   "type": "Text",
   "props": {
-    "content": { "$path": "/user/name" },
-    "count": { "$path": "/items/count" }
+    "content": { "$state": "/user/name" },
+    "count": { "$state": "/items/count" }
   },
   "children": []
 }

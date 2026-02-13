@@ -93,7 +93,7 @@ The React schema uses an element tree format:
 
 Any prop value can be a data-driven expression resolved by the renderer before components receive props:
 
-- **`{ "$path": "/state/key" }`** - reads from data model
+- **`{ "$state": "/state/key" }`** - reads from state model
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
 
 ```json

@@ -695,7 +695,7 @@ describe("defineCatalog (new schema API)", () => {
     expect(prompt).toContain('"content":"Lorem ipsum dolor sit amet"');
   });
 
-  it("uses $path binding on first string prop for repeat example", () => {
+  it("uses $state binding on first string prop for repeat example", () => {
     const catalog = defineCatalog(testSchema, {
       components: {
         Card: {
@@ -711,7 +711,7 @@ describe("defineCatalog (new schema API)", () => {
 
     const prompt = catalog.prompt();
 
-    // In the repeat/item example, the first string prop should get a $path binding
-    expect(prompt).toContain('"title":{"$path":"$item/title"}');
+    // In the repeat/item example, the first string prop should get a $state binding
+    expect(prompt).toContain('"title":{"$state":"$item/title"}');
   });
 });

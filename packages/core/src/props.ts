@@ -9,13 +9,14 @@ import { evaluateVisibility, type VisibilityContext } from "./visibility";
 /**
  * A prop expression that resolves to a value based on state.
  *
- * - `{ $path: string }` reads a value from the state model
+ * - `{ $state: string }` reads a value from the state model
  * - `{ $cond, $then, $else }` conditionally picks a value
  * - Any other value is a literal (passthrough)
  */
 export type PropExpression<T = unknown> =
   | T
-  | { $path: string }
+  | { $state: string }
+  | { $path: string } // deprecated alias for $state
   | {
       $cond: VisibilityCondition;
       $then: PropExpression<T>;
@@ -23,15 +24,24 @@ export type PropExpression<T = unknown> =
     };
 
 /**
- * Check if a value is a $path expression
+ * Check if a value is a $state expression (or the deprecated $path alias)
  */
-function isPathExpression(value: unknown): value is { $path: string } {
+function isStateExpression(
+  value: unknown,
+): value is { $state: string } | { $path: string } {
+  if (typeof value !== "object" || value === null) return false;
+  const obj = value as Record<string, unknown>;
   return (
-    typeof value === "object" &&
-    value !== null &&
-    "$path" in value &&
-    typeof (value as Record<string, unknown>).$path === "string"
+    ("$state" in obj && typeof obj.$state === "string") ||
+    ("$path" in obj && typeof obj.$path === "string")
   );
+}
+
+/**
+ * Get the path string from a $state or $path expression
+ */
+function getStatePath(value: { $state?: string; $path?: string }): string {
+  return (value.$state ?? value.$path)!;
 }
 
 /**
@@ -55,7 +65,7 @@ function isCondExpression(
 
 /**
  * Resolve a single prop value that may contain expressions.
- * Recursively resolves $path and $cond/$then/$else expressions.
+ * Recursively resolves $state/$path and $cond/$then/$else expressions.
  */
 export function resolvePropValue(
   value: unknown,
@@ -65,9 +75,9 @@ export function resolvePropValue(
     return value;
   }
 
-  // $path: read from state model
-  if (isPathExpression(value)) {
-    return getByPath(ctx.stateModel, value.$path);
+  // $state (or deprecated $path): read from state model
+  if (isStateExpression(value)) {
+    return getByPath(ctx.stateModel, getStatePath(value));
   }
 
   // $cond/$then/$else: evaluate condition and pick branch

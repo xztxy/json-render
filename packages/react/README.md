@@ -260,7 +260,7 @@ Any prop value can use data-driven expressions that resolve at render time. The 
 {
   "type": "Badge",
   "props": {
-    "label": { "$path": "/user/role" },
+    "label": { "$state": "/user/role" },
     "color": {
       "$cond": { "eq": [{ "path": "/user/role" }, "admin"] },
       "$then": "red",

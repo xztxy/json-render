@@ -238,7 +238,7 @@ Any prop value can be data-driven using expressions:
 
 Two expression forms:
 
-- **`{ "$path": "/state/key" }`** - reads a value from the data model
+- **`{ "$state": "/state/key" }`** - reads a value from the state model
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - evaluates a condition (same syntax as visibility conditions) and picks a branch
 
 ### Actions

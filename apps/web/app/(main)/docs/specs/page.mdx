@@ -32,7 +32,7 @@ A basic spec using the `@json-render/react` schema. Note the flat structure with
     },
     "text-1": {
       "type": "Text",
-      "props": { "content": { "$path": "/user/greeting" } },
+      "props": { "content": { "$state": "/user/greeting" } },
       "children": []
     }
   }
@@ -59,7 +59,7 @@ A more complex spec with multiple nested elements:
     },
     "avatar-1": {
       "type": "Avatar",
-      "props": { "src": { "$path": "/user/avatar" }, "alt": { "$path": "/user/name" } },
+      "props": { "src": { "$state": "/user/avatar" }, "alt": { "$state": "/user/name" } },
       "children": []
     },
     "stack-1": {
@@ -69,12 +69,12 @@ A more complex spec with multiple nested elements:
     },
     "name-text": {
       "type": "Text",
-      "props": { "content": { "$path": "/user/name" }, "variant": "heading" },
+      "props": { "content": { "$state": "/user/name" }, "variant": "heading" },
       "children": []
     },
     "email-text": {
       "type": "Text",
-      "props": { "content": { "$path": "/user/email" }, "variant": "caption" },
+      "props": { "content": { "$state": "/user/email" }, "variant": "caption" },
       "children": []
     },
     "button-1": {
@@ -181,15 +181,15 @@ Each element in the map has a consistent shape:
 
 ### Dynamic Data
 
-Props can reference data from the state model using `$path` expressions. The path is a JSON Pointer (RFC 6901) into the state:
+Props can reference data from the state model using `$state` expressions. The value is a JSON Pointer (RFC 6901) path into the state:
 
 ```json
 {
   "type": "Metric",
   "props": {
     "label": "Total Revenue",
-    "value": { "$path": "/metrics/revenue" },
-    "change": { "$path": "/metrics/revenueChange" }
+    "value": { "$state": "/metrics/revenue" },
+    "change": { "$state": "/metrics/revenueChange" }
   },
   "children": []
 }

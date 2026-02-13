@@ -211,14 +211,14 @@ const spec = compileSpecStream<MySpec>(jsonlString);
 
 Any prop value can be a dynamic expression that resolves based on data state at render time. Expressions are resolved by the renderer before props reach components.
 
-### Data Binding (`$path`)
+### Data Binding (`$state`)
 
 Read a value directly from the state model:
 
 ```json
 {
-  "color": { "$path": "/theme/primary" },
-  "label": { "$path": "/user/name" }
+  "color": { "$state": "/theme/primary" },
+  "label": { "$state": "/user/name" }
 }
 ```
 
@@ -247,7 +247,7 @@ Evaluate a condition (same syntax as visibility conditions) and pick a value:
 {
   "label": {
     "$cond": { "path": "/user/isAdmin" },
-    "$then": { "$path": "/admin/greeting" },
+    "$then": { "$state": "/admin/greeting" },
     "$else": "Welcome"
   }
 }

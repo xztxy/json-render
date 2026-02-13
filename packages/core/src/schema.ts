@@ -585,12 +585,12 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   const comp1Props = comp1Def ? getExampleProps(comp1Def) : {};
   const comp2Props = comp2Def ? getExampleProps(comp2Def) : {};
 
-  // Find a string prop on comp2 to demonstrate $path dynamic bindings
+  // Find a string prop on comp2 to demonstrate $state dynamic bindings
   const dynamicPropName = comp2Def?.props
     ? findFirstStringProp(comp2Def.props)
     : null;
   const dynamicProps = dynamicPropName
-    ? { ...comp2Props, [dynamicPropName]: { $path: "$item/title" } }
+    ? { ...comp2Props, [dynamicPropName]: { $state: "$item/title" } }
     : comp2Props;
 
   const exampleOutput = [
@@ -645,10 +645,10 @@ Note: state patches appear right after the elements that use them, so the UI fil
   // Initial state section
   lines.push("INITIAL STATE:");
   lines.push(
-    "Specs include a /state field to seed the state model. Components with statePath read from and write to this state, and $path expressions read from it.",
+    "Specs include a /state field to seed the state model. Components with statePath read from and write to this state, and $state expressions read from it.",
   );
   lines.push(
-    "CRITICAL: You MUST include state patches whenever your UI displays data via $path expressions, uses repeat to iterate over arrays, or uses statePath bindings. Without state, $path references resolve to nothing and repeat lists render zero items.",
+    "CRITICAL: You MUST include state patches whenever your UI displays data via $state expressions, uses repeat to iterate over arrays, or uses statePath bindings. Without state, $state references resolve to nothing and repeat lists render zero items.",
   );
   lines.push(
     "Output state patches right after the elements that reference them, so the UI fills in progressively as it streams.",
@@ -666,7 +666,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     '  Initialize the array first if needed: {"op":"add","path":"/state/posts","value":[]}',
   );
   lines.push(
-    'When content comes from the state model, use { "$path": "/some/path" } dynamic props to display it instead of hardcoding the same value in both state and props. The state model is the single source of truth.',
+    'When content comes from the state model, use { "$state": "/some/path" } dynamic props to display it instead of hardcoding the same value in both state and props. The state model is the single source of truth.',
   );
   lines.push(
     "Include realistic sample data in state. For blogs: 3-4 posts with titles, excerpts, authors, dates. For product lists: 3-5 items with names, prices, descriptions. Never leave arrays empty.",
@@ -683,7 +683,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     `Example: ${JSON.stringify({ type: comp1, props: comp1Props, repeat: { path: "/todos", key: "id" }, children: ["todo-item"] })}`,
   );
   lines.push(
-    'Inside children of a repeated element, use "$item/field" for per-item paths: statePath:"$item/completed", { "$path": "$item/title" }. Use "$index" for the current array index.',
+    'Inside children of a repeated element, use "$item/field" for per-item paths: statePath:"$item/completed", { "$state": "$item/title" }. Use "$index" for the current array index.',
   );
   lines.push(
     "ALWAYS use the repeat field for lists backed by state arrays. NEVER hardcode individual elements for each array item.",
@@ -809,10 +809,10 @@ Note: state patches appear right after the elements that use them, so the UI fil
   );
   lines.push("");
   lines.push(
-    '1. State binding: `{ "$path": "/statePath" }` - resolves to the value at that state path.',
+    '1. State binding: `{ "$state": "/statePath" }` - resolves to the value at that state path.',
   );
   lines.push(
-    '   Example: `"color": { "$path": "/theme/primary" }` reads the color from state.',
+    '   Example: `"color": { "$state": "/theme/primary" }` reads the color from state.',
   );
   lines.push("");
   lines.push(
@@ -839,7 +839,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
           "Write a brief conversational response before any JSONL output",
           'First set root: {"op":"add","path":"/root","value":"<root-key>"}',
           'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
-          "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $path, repeat, or statePath.",
+          "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $state, repeat, or statePath.",
           "ONLY use components listed above",
           "Each element value needs: type, props, children (array of child keys)",
           "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",
@@ -848,7 +848,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
           "Output ONLY JSONL patches - one JSON object per line, no markdown, no code fences",
           'First set root: {"op":"add","path":"/root","value":"<root-key>"}',
           'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
-          "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $path, repeat, or statePath.",
+          "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $state, repeat, or statePath.",
           "ONLY use components listed above",
           "Each element value needs: type, props, children (array of child keys)",
           "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",
@@ -987,7 +987,7 @@ function generateExampleValue(schema: z.ZodType): unknown {
 
 /**
  * Find the name of the first required string prop in a Zod object schema.
- * Used to demonstrate $path dynamic bindings in examples.
+ * Used to demonstrate $state dynamic bindings in examples.
  */
 function findFirstStringProp(schema?: z.ZodType): string | null {
   if (!schema || !schema._def) return null;
