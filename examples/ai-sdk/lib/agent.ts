@@ -2,7 +2,7 @@ import { ToolLoopAgent, stepCountIs } from "ai";
 import { gateway } from "@ai-sdk/gateway";
 import { explorerCatalog } from "./render/catalog";
 import { getWeather } from "./tools/weather";
-import { getGitHubRepo } from "./tools/github";
+import { getGitHubRepo, getGitHubPullRequests } from "./tools/github";
 import { getCryptoPrice, getCryptoPriceHistory } from "./tools/crypto";
 import { getHackerNewsTop } from "./tools/hackernews";
 import { webSearch } from "./tools/search";
@@ -50,6 +50,7 @@ export const agent = new ToolLoopAgent({
   tools: {
     getWeather,
     getGitHubRepo,
+    getGitHubPullRequests,
     getCryptoPrice,
     getCryptoPriceHistory,
     getHackerNewsTop,
