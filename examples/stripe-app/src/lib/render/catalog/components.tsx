@@ -331,11 +331,7 @@ export const List: FunctionComponent<ExtendedRenderProps> = ({
   children,
   emit,
 }) => {
-  return (
-    <UIList onAction={emit ? (_id) => emit("select") : undefined}>
-      {children}
-    </UIList>
-  );
+  return <UIList onAction={(_id) => emit("select")}>{children}</UIList>;
 };
 
 export const ListItem: FunctionComponent<ExtendedRenderProps> = ({
@@ -404,7 +400,7 @@ export const TaskListItem: FunctionComponent<ExtendedRenderProps> = ({
     <UITaskListItem
       title={String(title || "")}
       status={status as "not-started" | "in-progress" | "blocked" | "complete"}
-      onPress={action && emit ? () => emit("press") : undefined}
+      onPress={action ? () => emit("press") : undefined}
     />
   );
 };
@@ -423,7 +419,7 @@ export const Menu: FunctionComponent<ExtendedRenderProps> = ({
       trigger={
         <UIButton type="secondary">{String(triggerLabel || "Menu")}</UIButton>
       }
-      onAction={emit ? (_id) => emit("select") : undefined}
+      onAction={(_id) => emit("select")}
     >
       {children}
     </UIMenu>
@@ -442,7 +438,7 @@ export const MenuItem: FunctionComponent<ExtendedRenderProps> = ({
     <UIMenuItem
       id={String(id || "")}
       disabled={Boolean(disabled) || undefined}
-      onAction={action && emit ? () => emit("select") : undefined}
+      onAction={action ? () => emit("select") : undefined}
     >
       {String(label || "")}
     </UIMenuItem>
@@ -657,7 +653,7 @@ export const Button: FunctionComponent<ExtendedRenderProps> = ({
       disabled={Boolean(disabled) || undefined}
       pending={Boolean(pending) || undefined}
       href={href ? String(href) : undefined}
-      onPress={action && emit ? () => emit("press") : undefined}
+      onPress={action ? () => emit("press") : undefined}
     >
       {String(label || "")}
     </UIButton>
@@ -884,7 +880,7 @@ export const CustomerCard: FunctionComponent<ExtendedRenderProps> = ({
         </UIBadge>
       </Box>
       <Box css={{ color: "secondary" }}>{String(email || "")}</Box>
-      {customerId && emit && (
+      {customerId && (
         <UIButton type="secondary" size="small" onPress={() => emit("press")}>
           View Details
         </UIButton>
@@ -937,7 +933,7 @@ export const PaymentCard: FunctionComponent<ExtendedRenderProps> = ({
       {description && (
         <Box css={{ color: "secondary" }}>{String(description)}</Box>
       )}
-      {paymentId && emit && (
+      {paymentId && (
         <Box css={{ stack: "x", gap: "small" }}>
           <UIButton type="secondary" size="small" onPress={() => emit("press")}>
             View
@@ -1063,7 +1059,7 @@ export const InvoiceCard: FunctionComponent<ExtendedRenderProps> = ({
           Due: {String(dueDate)}
         </Box>
       )}
-      {status === "open" && emit && (
+      {status === "open" && (
         <UIButton type="primary" size="small" onPress={() => emit("press")}>
           Send Invoice
         </UIButton>
@@ -1220,7 +1216,7 @@ export const Chip: FunctionComponent<ExtendedRenderProps> = ({
     <UIChip
       label={String(label || "")}
       value={value ? String(value) : undefined}
-      onClose={removable && action && emit ? () => emit("remove") : undefined}
+      onClose={removable && action ? () => emit("remove") : undefined}
     />
   );
 };

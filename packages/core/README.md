@@ -236,7 +236,7 @@ Use `{ "$bindState": "/path" }` on the natural value prop for form components th
 }
 ```
 
-Inside a repeat scope, use `{ "$bindItem": "/completed" }` to bind to a field on the current item:
+Inside a repeat scope, use `{ "$bindItem": "completed" }` to bind to a field on the current item:
 
 ### Conditional (`$cond` / `$then` / `$else`)
 
@@ -274,10 +274,10 @@ Evaluate a condition (same syntax as visibility conditions) and pick a value:
 Inside children of a repeated element, read a field from the current array item:
 
 ```json
-{ "$item": "/title" }
+{ "$item": "title" }
 ```
 
-Use `"/"` to get the entire item object. `$item` takes a path string because items are typically objects with nested fields to navigate.
+Use `""` to get the entire item object. `$item` takes a path string because items are typically objects with nested fields to navigate.
 
 ### Repeat Index (`$index`)
 
@@ -316,7 +316,7 @@ Visibility conditions control when elements are shown. `VisibilityContext` is `{
 { "$state": "/path", "eq": value }             // equality
 { "$state": "/path", "neq": value }            // inequality
 { "$state": "/path", "gt": number }            // greater than
-{ "$item": "/field" }                          // repeat item field
+{ "$item": "field" }                          // repeat item field
 { "$index": true, "gt": 0 }                   // repeat index
 [ condition, condition ]                       // implicit AND
 { "$and": [ condition, condition ] }           // explicit AND

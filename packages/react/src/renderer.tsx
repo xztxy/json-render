@@ -17,7 +17,7 @@ import type {
 import {
   resolveElementProps,
   resolveBindings,
-  resolvePropValue,
+  resolveActionParam,
   evaluateVisibility,
   getByPath,
   type PropResolutionContext,
@@ -48,8 +48,8 @@ export interface ComponentRenderProps<P = Record<string, unknown>> {
   element: UIElement<string, P>;
   /** Rendered children */
   children?: ReactNode;
-  /** Emit a named event. The renderer resolves the event to action binding(s) from the element's `on` field. */
-  emit?: (event: string) => void;
+  /** Emit a named event. The renderer resolves the event to action binding(s) from the element's `on` field. Always provided by the renderer. */
+  emit: (event: string) => void;
   /**
    * Two-way binding paths resolved from `$bindState` / `$bindItem` expressions.
    * Maps prop name → absolute state path for write-back.
@@ -174,10 +174,6 @@ const ElementRenderer = React.memo(function ElementRenderer({
       ? true
       : evaluateVisibility(element.visible, fullCtx);
 
-  // Action params that are state paths (not values).
-  // These get $item prefix rewriting inside repeat scopes.
-  const ACTION_PATH_PARAMS = ["statePath", "clearStatePath"];
-
   // Create emit function that resolves events to action bindings.
   // Must be called before any early return to satisfy Rules of Hooks.
   const onBindings = element.on;
@@ -191,27 +187,16 @@ const ElementRenderer = React.memo(function ElementRenderer({
           execute(b);
           continue;
         }
-        // Resolve action params: path params get $item rewriting,
-        // other params get full expression resolution.
+        // Resolve all action params via resolveActionParam which handles
+        // $item (→ absolute state path), $index (→ number), $state, $cond, and literals.
         const resolved: Record<string, unknown> = {};
         for (const [key, val] of Object.entries(b.params)) {
-          if (
-            repeatScope &&
-            ACTION_PATH_PARAMS.includes(key) &&
-            typeof val === "string" &&
-            (val === "$item" || val.startsWith("$item/"))
-          ) {
-            // Rewrite $item-prefixed path params to absolute state paths
-            resolved[key] = repeatScope.basePath + val.slice("$item".length);
-          } else {
-            // Resolve $item/$index/$state/$cond/$bindState/$bindItem expressions to values
-            resolved[key] = resolvePropValue(val, fullCtx);
-          }
+          resolved[key] = resolveActionParam(val, fullCtx);
         }
         execute({ ...b, params: resolved });
       }
     },
-    [onBindings, execute, repeatScope, fullCtx],
+    [onBindings, execute, fullCtx],
   );
 
   // Don't render if not visible
@@ -586,7 +571,7 @@ export function defineRegistry<C extends Catalog>(
 type DefineRegistryComponentFn = (ctx: {
   props: unknown;
   children?: React.ReactNode;
-  emit?: (event: string) => void;
+  emit: (event: string) => void;
   bindings?: Record<string, string>;
   loading?: boolean;
 }) => React.ReactNode;

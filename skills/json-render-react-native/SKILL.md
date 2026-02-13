@@ -116,7 +116,7 @@ Any prop value can be a data-driven expression resolved at render time:
 
 - **`{ "$state": "/state/key" }`** - reads from state model (one-way read)
 - **`{ "$bindState": "/path" }`** - two-way binding: use on the natural value prop (value, checked, pressed, etc.) of form components.
-- **`{ "$bindItem": "/field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
+- **`{ "$bindItem": "field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
 
 ```json

@@ -83,7 +83,7 @@ Any prop value can be a dynamic expression resolved at render time:
 
 - **`{ "$state": "/state/key" }`** - reads a value from the state model (one-way read)
 - **`{ "$bindState": "/path" }`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components.
-- **`{ "$bindItem": "/field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
+- **`{ "$bindItem": "field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - evaluates a visibility condition and picks a branch
 
 `$cond` uses the same syntax as visibility conditions (`$state`, `eq`, `neq`, `not`, arrays for AND). `$then` and `$else` can themselves be expressions (recursive).

@@ -86,7 +86,16 @@ export interface FlatElement<
   parentKey?: string | null;
 }
 
-/** Shared comparison operators for visibility conditions. */
+/**
+ * Shared comparison operators for visibility conditions.
+ *
+ * Use at most ONE comparison operator per condition. If multiple are
+ * provided, only the first matching one is evaluated (precedence:
+ * eq > neq > gt > gte > lt > lte). With no operator, truthiness is checked.
+ *
+ * `not` inverts the final result of whichever operator (or truthiness
+ * check) is used.
+ */
 type ComparisonOperators = {
   eq?: unknown;
   neq?: unknown;
@@ -111,7 +120,7 @@ export type StateCondition = { $state: string } & ComparisonOperators;
  * A condition that resolves `$item` to a field on the current repeat item.
  * Only meaningful inside a `repeat` scope.
  *
- * Use `"/"` to reference the whole item, or `"/field"` for a specific field.
+ * Use `""` to reference the whole item, or `"field"` for a specific field.
  */
 export type ItemCondition = { $item: string } & ComparisonOperators;
 
@@ -440,13 +449,13 @@ function deepEqual(a: unknown, b: unknown): boolean {
  * 1. Direct param key (if not a path reference)
  * 2. Param keys ending with the field name
  * 3. State keys ending with the field name (dot notation)
- * 4. State paths using getByPath (slash notation)
+ * 4. State path using getByPath (slash notation)
  *
  * @example
  * // Find "name" from params or state
  * const name = findFormValue("name", params, state);
  *
- * // Will find from: params.name, params["form.name"], state["customerForm.name"], state.customerForm.name
+ * // Will find from: params.name, params["form.name"], state["form.name"], or getByPath(state, "name")
  */
 export function findFormValue(
   fieldName: string,
@@ -482,14 +491,10 @@ export function findFormValue(
       }
     }
 
-    // Try getByPath with common prefixes
-    const prefixes = ["form", "newCustomer", "customer", ""];
-    for (const prefix of prefixes) {
-      const path = prefix ? `${prefix}/${fieldName}` : fieldName;
-      const val = getByPath(state, path);
-      if (val !== undefined) {
-        return val;
-      }
+    // Try getByPath with the raw field name
+    const val = getByPath(state, fieldName);
+    if (val !== undefined) {
+      return val;
     }
   }
 
@@ -1237,8 +1242,10 @@ export type SpecDataPart =
  * return createUIMessageStreamResponse({ stream });
  * ```
  */
-export function pipeJsonRender(
-  stream: ReadableStream<StreamChunk>,
-): ReadableStream<StreamChunk> {
-  return stream.pipeThrough(createJsonRenderTransform());
+export function pipeJsonRender<T = StreamChunk>(
+  stream: ReadableStream<T>,
+): ReadableStream<T> {
+  return stream.pipeThrough(
+    createJsonRenderTransform() as unknown as TransformStream<T, T>,
+  );
 }

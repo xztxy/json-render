@@ -432,7 +432,7 @@ export function flatToTree(elements: FlatElement[]): Spec {
  * - `setValue` writes back to the bound state path (no-op if not bound)
  *
  * Designed to work with the `bindings` map that the renderer provides when
- * a prop uses `{ $bindState: "/path" }` or `{ $bindItem: "/field" }`.
+ * a prop uses `{ $bindState: "/path" }` or `{ $bindItem: "field" }`.
  *
  * @example
  * ```tsx
@@ -721,6 +721,12 @@ export function useChatUI({
   // current history, avoiding stale closure issues.
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
+  // Keep refs to callbacks so `send` doesn't recreate when consumers
+  // pass inline arrow functions.
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   const clear = useCallback(() => {
     setMessages([]);
@@ -854,7 +860,7 @@ export function useChatUI({
               }
             : null,
         };
-        onComplete?.(finalMessage);
+        onCompleteRef.current?.(finalMessage);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
           return;
@@ -866,12 +872,12 @@ export function useChatUI({
         setMessages((prev) =>
           prev.filter((m) => m.id !== assistantId || m.text.length > 0),
         );
-        onError?.(resolvedError);
+        onErrorRef.current?.(resolvedError);
       } finally {
         setIsStreaming(false);
       }
     },
-    [api, onComplete, onError],
+    [api],
   );
 
   // Cleanup on unmount

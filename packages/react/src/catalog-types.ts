@@ -29,7 +29,7 @@ export type SetState = (
  * Context passed to component render functions
  * @example
  * const Button: ComponentFn<typeof catalog, 'Button'> = (ctx) => {
- *   return <button onClick={() => ctx.emit?.("press")}>{ctx.props.label}</button>
+ *   return <button onClick={() => ctx.emit("press")}>{ctx.props.label}</button>
  * }
  */
 export interface ComponentContext<
@@ -39,7 +39,7 @@ export interface ComponentContext<
   props: InferComponentProps<C, K>;
   children?: ReactNode;
   /** Emit a named event. The renderer resolves the event to an action binding from the element's `on` field. */
-  emit?: (event: string) => void;
+  emit: (event: string) => void;
   /**
    * Two-way binding paths resolved from `$bindState` / `$bindItem` expressions.
    * Maps prop name → absolute state path for write-back.
@@ -52,7 +52,7 @@ export interface ComponentContext<
  * Component render function type for React
  * @example
  * const Button: ComponentFn<typeof catalog, 'Button'> = ({ props, emit }) => (
- *   <button onClick={() => emit?.("press")}>{props.label}</button>
+ *   <button onClick={() => emit("press")}>{props.label}</button>
  * );
  */
 export type ComponentFn<

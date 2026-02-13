@@ -134,7 +134,7 @@ function resolveConditionValue(
   }
   if (isItemCondition(cond)) {
     if (ctx.repeatItem === undefined) return undefined;
-    return cond.$item === "/"
+    return cond.$item === ""
       ? ctx.repeatItem
       : getByPath(ctx.repeatItem, cond.$item);
   }

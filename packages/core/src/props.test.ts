@@ -67,7 +67,7 @@ describe("resolvePropValue", () => {
         repeatItem: { title: "Hello", id: "1" },
         repeatIndex: 0,
       };
-      expect(resolvePropValue({ $item: "/title" }, ctx)).toBe("Hello");
+      expect(resolvePropValue({ $item: "title" }, ctx)).toBe("Hello");
     });
 
     it('resolves "/" to the whole item', () => {
@@ -77,7 +77,7 @@ describe("resolvePropValue", () => {
         repeatItem: item,
         repeatIndex: 0,
       };
-      expect(resolvePropValue({ $item: "/" }, ctx)).toBe(item);
+      expect(resolvePropValue({ $item: "" }, ctx)).toBe(item);
     });
 
     it("resolves nested field from item", () => {
@@ -86,12 +86,12 @@ describe("resolvePropValue", () => {
         repeatItem: { user: { name: "Bob" } },
         repeatIndex: 0,
       };
-      expect(resolvePropValue({ $item: "/user/name" }, ctx)).toBe("Bob");
+      expect(resolvePropValue({ $item: "user/name" }, ctx)).toBe("Bob");
     });
 
     it("returns undefined when no repeat item in context", () => {
       const ctx: PropResolutionContext = { stateModel: {} };
-      expect(resolvePropValue({ $item: "/title" }, ctx)).toBeUndefined();
+      expect(resolvePropValue({ $item: "title" }, ctx)).toBeUndefined();
     });
 
     it("returns undefined for missing field on item", () => {
@@ -100,7 +100,7 @@ describe("resolvePropValue", () => {
         repeatItem: { title: "Hello" },
         repeatIndex: 0,
       };
-      expect(resolvePropValue({ $item: "/missing" }, ctx)).toBeUndefined();
+      expect(resolvePropValue({ $item: "missing" }, ctx)).toBeUndefined();
     });
   });
 
@@ -267,7 +267,7 @@ describe("resolveElementProps", () => {
       repeatIndex: 2,
     };
     const props = {
-      title: { $item: "/title" },
+      title: { $item: "title" },
       index: { $index: true },
       color: {
         $cond: { $state: "/active" },
@@ -319,7 +319,7 @@ describe("$bindState expressions", () => {
         repeatIndex: 0,
         repeatBasePath: "/todos/0",
       };
-      expect(resolvePropValue({ $bindItem: "/completed" }, ctx)).toBe(true);
+      expect(resolvePropValue({ $bindItem: "completed" }, ctx)).toBe(true);
     });
 
     it('handles "/" as the full item path', () => {
@@ -329,7 +329,7 @@ describe("$bindState expressions", () => {
         repeatIndex: 0,
         repeatBasePath: "/items/0",
       };
-      expect(resolvePropValue({ $bindItem: "/" }, ctx)).toBe("hello");
+      expect(resolvePropValue({ $bindItem: "" }, ctx)).toBe("hello");
     });
 
     it("returns undefined when no repeatBasePath", () => {
@@ -339,9 +339,7 @@ describe("$bindState expressions", () => {
         repeatIndex: 0,
       };
       // Without repeatBasePath, the raw item path won't resolve in stateModel
-      expect(
-        resolvePropValue({ $bindItem: "/completed" }, ctx),
-      ).toBeUndefined();
+      expect(resolvePropValue({ $bindItem: "completed" }, ctx)).toBeUndefined();
     });
   });
 
@@ -388,8 +386,8 @@ describe("$bindState expressions", () => {
         repeatBasePath: "/todos/1",
       };
       const props = {
-        checked: { $bindItem: "/completed" },
-        label: { $item: "/title" },
+        checked: { $bindItem: "completed" },
+        label: { $item: "title" },
       };
       expect(resolveBindings(props, ctx)).toEqual({
         checked: "/todos/1/completed",
@@ -401,7 +399,7 @@ describe("$bindState expressions", () => {
       const props = {
         title: { $state: "/title" },
         index: { $index: true },
-        name: { $item: "/name" },
+        name: { $item: "name" },
         value: { $bindState: "/path" },
       };
       expect(resolveBindings(props, ctx)).toEqual({
@@ -418,7 +416,7 @@ describe("$bindState expressions", () => {
       };
       const props = {
         value: { $bindState: "/form/search" },
-        checked: { $bindItem: "/done" },
+        checked: { $bindItem: "done" },
         label: "Task",
       };
       expect(resolveBindings(props, ctx)).toEqual({

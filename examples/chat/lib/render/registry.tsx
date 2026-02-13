@@ -690,7 +690,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
         variant={props.variant ?? "default"}
         size={props.size ?? "default"}
         disabled={props.disabled ?? false}
-        onClick={() => emit?.("press")}
+        onClick={() => emit("press")}
       >
         {props.label}
       </Button>

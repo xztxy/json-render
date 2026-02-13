@@ -596,7 +596,7 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
     ? findFirstStringProp(comp2Def.props)
     : null;
   const dynamicProps = dynamicPropName
-    ? { ...comp2Props, [dynamicPropName]: { $item: "/title" } }
+    ? { ...comp2Props, [dynamicPropName]: { $item: "title" } }
     : comp2Props;
 
   const exampleOutput = [
@@ -689,7 +689,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     `Example: ${JSON.stringify({ type: comp1, props: comp1Props, repeat: { statePath: "/todos", key: "id" }, children: ["todo-item"] })}`,
   );
   lines.push(
-    'Inside children of a repeated element, use { "$item": "/field" } to read a field from the current item, and { "$index": true } to get the current array index. For two-way binding to an item field use { "$bindItem": "/completed" } on the appropriate prop.',
+    'Inside children of a repeated element, use { "$item": "field" } to read a field from the current item, and { "$index": true } to get the current array index. For two-way binding to an item field use { "$bindItem": "completed" } on the appropriate prop.',
   );
   lines.push(
     "ALWAYS use the repeat field for lists backed by state arrays. NEVER hardcode individual elements for each array item.",
@@ -712,7 +712,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     'Example: on: { "press": { "action": "pushState", "params": { "statePath": "/todos", "value": { "id": "$id", "title": { "$state": "/newTodoText" }, "completed": false }, "clearStatePath": "/newTodoText" } } }',
   );
   lines.push(
-    'Use action "removeState" to remove items from arrays by index. Params: { statePath: "/arrayPath", index: N }. Inside a repeated element\'s children, use { "$index": true } for the current item index.',
+    'Use action "removeState" to remove items from arrays by index. Params: { statePath: "/arrayPath", index: N }. Inside a repeated element\'s children, use { "$index": true } for the current item index. Action params support the same expressions as props: { "$item": "field" } resolves to the absolute state path, { "$index": true } resolves to the index number, and { "$state": "/path" } reads a value from state.',
   );
   lines.push(
     "For lists where users can add/remove items (todos, carts, etc.), use pushState and removeState instead of hardcoding with setState.",
@@ -803,9 +803,15 @@ Note: state patches appear right after the elements that use them, so the UI fil
   lines.push(
     '- `{ "$state": "/path", "gt": N }` / `gte` / `lt` / `lte` - numeric comparisons',
   );
+  lines.push(
+    "- Use ONE operator per condition (eq, neq, gt, gte, lt, lte). Do not combine multiple operators.",
+  );
   lines.push('- Any condition can add `"not": true` to invert its result');
   lines.push(
     "- `[condition, condition]` - all conditions must be true (implicit AND)",
+  );
+  lines.push(
+    '- `{ "$and": [condition, condition] }` - explicit AND (use when nesting inside $or)',
   );
   lines.push(
     '- `{ "$or": [condition, condition] }` - at least one must be true (OR)',
@@ -844,7 +850,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     '   Example: `"value": { "$bindState": "/form/email" }` binds the input value to /form/email.',
   );
   lines.push(
-    '   Inside repeat scopes: `"checked": { "$bindItem": "/completed" }` binds to the current item\'s completed field.',
+    '   Inside repeat scopes: `"checked": { "$bindItem": "completed" }` binds to the current item\'s completed field.',
   );
   lines.push("");
   lines.push(

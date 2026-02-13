@@ -233,7 +233,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
           value={value}
           onValueChange={(v) => {
             setValue(v);
-            emit?.("change");
+            emit("change");
           }}
         >
           <TabsList>
@@ -796,12 +796,12 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") emit?.("submit");
+              if (e.key === "Enter") emit("submit");
             }}
-            onFocus={() => emit?.("focus")}
+            onFocus={() => emit("focus")}
             onBlur={() => {
               if (hasValidation) validate();
-              emit?.("blur");
+              emit("blur");
             }}
           />
           {errors.length > 0 && (
@@ -876,7 +876,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             onValueChange={(v) => {
               setValue(v);
               if (hasValidation) validate();
-              emit?.("change");
+              emit("change");
             }}
           >
             <SelectTrigger className="w-full">
@@ -917,7 +917,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             checked={checked}
             onCheckedChange={(c) => {
               setChecked(c === true);
-              emit?.("change");
+              emit("change");
             }}
           />
           <Label htmlFor={props.name} className="cursor-pointer">
@@ -948,7 +948,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             value={value}
             onValueChange={(v) => {
               setValue(v);
-              emit?.("change");
+              emit("change");
             }}
           >
             {options.map((opt, idx) => (
@@ -993,7 +993,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             checked={checked}
             onCheckedChange={(c) => {
               setChecked(c);
-              emit?.("change");
+              emit("change");
             }}
           />
         </div>
@@ -1025,7 +1025,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
             step={props.step ?? 1}
             onValueChange={(v) => {
               setValue(v[0] ?? 0);
-              emit?.("change");
+              emit("change");
             }}
           />
         </div>
@@ -1046,7 +1046,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
         <Button
           variant={variant}
           disabled={props.disabled ?? false}
-          onClick={() => emit?.("press")}
+          onClick={() => emit("press")}
         >
           {props.label}
         </Button>
@@ -1057,7 +1057,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
       <Button
         variant="link"
         className="h-auto p-0"
-        onClick={() => emit?.("press")}
+        onClick={() => emit("press")}
       >
         {props.label}
       </Button>
@@ -1072,10 +1072,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {items.map((item) => (
-              <DropdownMenuItem
-                key={item.value}
-                onClick={() => emit?.("select")}
-              >
+              <DropdownMenuItem key={item.value} onClick={() => emit("select")}>
                 {item.label}
               </DropdownMenuItem>
             ))}
@@ -1100,7 +1097,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
           pressed={pressed}
           onPressedChange={(v) => {
             setPressed(v);
-            emit?.("change");
+            emit("change");
           }}
         >
           {props.label}
@@ -1139,7 +1136,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
           onValueChange={(v) => {
             if (v) {
               setValue(v);
-              emit?.("change");
+              emit("change");
             }
           }}
         >
@@ -1177,7 +1174,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
               } ${i === buttons.length - 1 ? "rounded-r-md" : ""}`}
               onClick={() => {
                 setValue(btn.value);
-                emit?.("change");
+                emit("change");
               }}
             >
               {btn.label}
@@ -1205,7 +1202,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
                   e.preventDefault();
                   if (currentPage > 1) {
                     setBoundPage(currentPage - 1);
-                    emit?.("change");
+                    emit("change");
                   }
                 }}
               />
@@ -1218,7 +1215,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
                   onClick={(e) => {
                     e.preventDefault();
                     setBoundPage(page);
-                    emit?.("change");
+                    emit("change");
                   }}
                 >
                   {page}
@@ -1232,7 +1229,7 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
                   e.preventDefault();
                   if (currentPage < props.totalPages) {
                     setBoundPage(currentPage + 1);
-                    emit?.("change");
+                    emit("change");
                   }
                 }}
               />

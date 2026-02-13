@@ -53,7 +53,7 @@ Button: ({ props, emit }) => (
 
 ### New: Repeat/List Rendering
 
-Elements can now iterate over state arrays using the `repeat` field. Child elements use `{ "$item": "/field" }` to read from the current item and `{ "$index": true }` for the current array index.
+Elements can now iterate over state arrays using the `repeat` field. Child elements use `{ "$item": "field" }` to read from the current item and `{ "$index": true }` for the current array index.
 
 ```json
 {
@@ -66,7 +66,7 @@ Elements can now iterate over state arrays using the `repeat` field. Child eleme
 ```json
 {
   "type": "Card",
-  "props": { "title": { "$item": "/title" } }
+  "props": { "title": { "$item": "title" } }
 }
 ```
 

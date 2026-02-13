@@ -73,6 +73,7 @@ export {
   resolvePropValue,
   resolveElementProps,
   resolveBindings,
+  resolveActionParam,
 } from "./props";
 
 // Actions

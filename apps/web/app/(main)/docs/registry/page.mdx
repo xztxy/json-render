@@ -69,13 +69,34 @@ Each component receives a `ComponentContext` object:
 interface ComponentContext {
   props: T;                                // Type-safe props from your catalog
   children?: React.ReactNode;              // Rendered children (for slot components)
-  emit?: (event: string) => void;          // Emit a named event (e.g. "press")
+  emit: (event: string) => void;           // Emit a named event (e.g. "press")
   loading?: boolean;                       // Whether the renderer is in a loading state
   bindings?: Record<string, string>;       // State paths from $bindState/$bindItem expressions
 }
 ```
 
 Props are automatically inferred from your catalog, so `props.title` is typed as `string` if your catalog defines it that way.
+
+#### Using `bindings` for two-way binding
+
+When a spec uses `{ "$bindState": "/path" }` or `{ "$bindItem": "field" }` on a prop, the renderer resolves the **value** into `props` and provides the **write-back path** in `bindings`. Use the `useBoundProp` hook to wire both together:
+
+```tsx
+import { useBoundProp, defineRegistry } from '@json-render/react';
+
+// Inside your registry:
+TextInput: ({ props, bindings }) => {
+  const [value, setValue] = useBoundProp<string>(props.value, bindings?.value);
+  return (
+    <input
+      value={value ?? ""}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  );
+},
+```
+
+`useBoundProp` returns `[resolvedValue, setter]`. The setter writes to the bound state path. If no binding exists (the prop is a literal), the setter is a no-op.
 
 ### Action Handlers
 
@@ -141,7 +162,7 @@ export const { handlers, executeAction } = defineRegistry(catalog, {
 
 Most data binding is handled automatically by the renderer — `$state`, `$item`, and `$index` expressions in props are resolved before your component receives them. See the [Data Binding](/docs/data-binding) guide for the full reference.
 
-For two-way binding (form inputs), use `{ "$bindState": "/path" }` on the natural value prop (or `{ "$bindItem": "/field" }` inside repeat scopes). The renderer provides a `bindings` map with the state path for each bound prop. Use `useBoundProp` to get `[value, setValue]`:
+For two-way binding (form inputs), use `{ "$bindState": "/path" }` on the natural value prop (or `{ "$bindItem": "field" }` inside repeat scopes). The renderer provides a `bindings` map with the state path for each bound prop. Use `useBoundProp` to get `[value, setValue]`:
 
 ```tsx
 import { useBoundProp } from '@json-render/react';

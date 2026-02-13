@@ -136,7 +136,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
         <Button
           variant={props.variant ?? "default"}
           disabled={loading || (props.disabled ?? false)}
-          onClick={() => emit?.("press")}
+          onClick={() => emit("press")}
         >
           {loading ? "..." : props.label}
         </Button>
@@ -164,7 +164,7 @@ export const { registry, handlers, executeAction } = defineRegistry(
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            emit?.("submit");
+            emit("submit");
           }}
           className="flex flex-col gap-4"
         >

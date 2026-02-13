@@ -526,7 +526,7 @@ describe("evaluateVisibility", () => {
     it("$item truthiness check", () => {
       expect(
         evaluateVisibility(
-          { $item: "/active" },
+          { $item: "active" },
           { stateModel: {}, repeatItem: { active: true } },
         ),
       ).toBe(true);
@@ -535,7 +535,7 @@ describe("evaluateVisibility", () => {
     it("$item falsy check", () => {
       expect(
         evaluateVisibility(
-          { $item: "/active" },
+          { $item: "active" },
           { stateModel: {}, repeatItem: { active: false } },
         ),
       ).toBe(false);
@@ -544,7 +544,7 @@ describe("evaluateVisibility", () => {
     it("$item equality check", () => {
       expect(
         evaluateVisibility(
-          { $item: "/status", eq: "done" },
+          { $item: "status", eq: "done" },
           { stateModel: {}, repeatItem: { status: "done" } },
         ),
       ).toBe(true);
@@ -553,7 +553,7 @@ describe("evaluateVisibility", () => {
     it("$item equality check fails", () => {
       expect(
         evaluateVisibility(
-          { $item: "/status", eq: "done" },
+          { $item: "status", eq: "done" },
           { stateModel: {}, repeatItem: { status: "pending" } },
         ),
       ).toBe(false);
@@ -562,7 +562,7 @@ describe("evaluateVisibility", () => {
     it("$item root reference", () => {
       expect(
         evaluateVisibility(
-          { $item: "/", eq: "hello" },
+          { $item: "", eq: "hello" },
           { stateModel: {}, repeatItem: "hello" },
         ),
       ).toBe(true);
@@ -571,14 +571,14 @@ describe("evaluateVisibility", () => {
     it("$item with not", () => {
       expect(
         evaluateVisibility(
-          { $item: "/active", not: true },
+          { $item: "active", not: true },
           { stateModel: {}, repeatItem: { active: true } },
         ),
       ).toBe(false);
     });
 
     it("$item returns false when no repeat scope", () => {
-      expect(evaluateVisibility({ $item: "/x" }, { stateModel: {} })).toBe(
+      expect(evaluateVisibility({ $item: "x" }, { stateModel: {} })).toBe(
         false,
       );
     });

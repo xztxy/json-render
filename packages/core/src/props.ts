@@ -10,8 +10,8 @@ import { evaluateVisibility, type VisibilityContext } from "./visibility";
  * A prop expression that resolves to a value based on state.
  *
  * - `{ $state: string }` reads a value from the global state model
- * - `{ $item: string }` reads a field from the current repeat item (path
- *    into the item object; use `"/"` for the whole item)
+ * - `{ $item: string }` reads a field from the current repeat item
+ *    (relative path into the item object; use `""` for the whole item)
  * - `{ $index: true }` returns the current repeat array index. Uses `true`
  *    as a sentinel flag because the index is a scalar with no sub-path to
  *    navigate — unlike `$item` which needs a path into the item object.
@@ -122,8 +122,8 @@ function isCondExpression(
  * Resolve a `$bindItem` path into an absolute state path using the repeat
  * scope's base path.
  *
- * `"/"` resolves to `repeatBasePath` (the whole item).
- * `"/field"` resolves to `repeatBasePath + "/field"`.
+ * `""` resolves to `repeatBasePath` (the whole item).
+ * `"field"` resolves to `repeatBasePath + "/field"`.
  *
  * Returns the raw path unchanged when no `repeatBasePath` is available.
  */
@@ -132,8 +132,8 @@ function resolveBindItemPath(
   ctx: PropResolutionContext,
 ): string {
   if (ctx.repeatBasePath == null) return itemPath;
-  if (itemPath === "/") return ctx.repeatBasePath;
-  return ctx.repeatBasePath + itemPath;
+  if (itemPath === "") return ctx.repeatBasePath;
+  return ctx.repeatBasePath + "/" + itemPath;
 }
 
 // =============================================================================
@@ -160,8 +160,8 @@ export function resolvePropValue(
   // $item: read from current repeat item
   if (isItemExpression(value)) {
     if (ctx.repeatItem === undefined) return undefined;
-    // "/" means the whole item, "/field" means a field on the item
-    return value.$item === "/"
+    // "" means the whole item, "field" means a field on the item
+    return value.$item === ""
       ? ctx.repeatItem
       : getByPath(ctx.repeatItem, value.$item);
   }
@@ -251,4 +251,29 @@ export function resolveBindings(
     }
   }
   return bindings;
+}
+
+/**
+ * Resolve a single action parameter value.
+ *
+ * Like {@link resolvePropValue} but with special handling for path-valued
+ * params: `{ $item: "field" }` resolves to an **absolute state path**
+ * (e.g. `/todos/0/field`) instead of the field's value, so the path can
+ * be passed to `setState` / `pushState` / `removeState`.
+ *
+ * - `{ $item: "field" }` → absolute state path via `repeatBasePath`
+ * - `{ $index: true }` → current repeat index (number)
+ * - Everything else delegates to `resolvePropValue` ($state, $cond, literals).
+ */
+export function resolveActionParam(
+  value: unknown,
+  ctx: PropResolutionContext,
+): unknown {
+  if (isItemExpression(value)) {
+    return resolveBindItemPath(value.$item, ctx);
+  }
+  if (isIndexExpression(value)) {
+    return ctx.repeatIndex;
+  }
+  return resolvePropValue(value, ctx);
 }

@@ -99,7 +99,7 @@ Any prop value can be a data-driven expression resolved by the renderer before c
 
 - **`{ "$state": "/state/key" }`** - reads from state model (one-way read)
 - **`{ "$bindState": "/path" }`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components.
-- **`{ "$bindItem": "/field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
+- **`{ "$bindItem": "field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
 
 ```json
@@ -147,7 +147,7 @@ Note: `statePath` in action params (e.g. `setState.statePath`) targets the mutat
 
 ## useBoundProp
 
-For form components that need two-way binding, use `useBoundProp` with the `bindings` map the renderer provides when a prop uses `{ "$bindState": "/path" }` or `{ "$bindItem": "/field" }`:
+For form components that need two-way binding, use `useBoundProp` with the `bindings` map the renderer provides when a prop uses `{ "$bindState": "/path" }` or `{ "$bindItem": "field" }`:
 
 ```tsx
 import { useBoundProp } from "@json-render/react";

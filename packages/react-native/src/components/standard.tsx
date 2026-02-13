@@ -179,8 +179,8 @@ function SpacerComponent({ element }: ComponentRenderProps) {
 function PressableComponent({ children, emit }: ComponentRenderProps) {
   return (
     <Pressable
-      onPress={() => emit?.("press")}
-      onLongPress={() => emit?.("longPress")}
+      onPress={() => emit("press")}
+      onLongPress={() => emit("longPress")}
       style={({ pressed }) => ({
         opacity: pressed ? 0.7 : 1,
       })}
@@ -436,7 +436,7 @@ function ChipComponent({ element, emit }: ComponentRenderProps) {
 
   return (
     <Pressable
-      onPress={() => emit?.("press")}
+      onPress={() => emit("press")}
       style={{
         flexDirection: "row",
         alignItems: "center",
@@ -449,7 +449,7 @@ function ChipComponent({ element, emit }: ComponentRenderProps) {
     >
       <Text style={{ fontSize: 14, color: textColor }}>{p.label}</Text>
       {hasRemove && (
-        <Pressable onPress={() => emit?.("remove")} style={{ marginLeft: 4 }}>
+        <Pressable onPress={() => emit("remove")} style={{ marginLeft: 4 }}>
           <Text style={{ fontSize: 14, color: textColor, fontWeight: "700" }}>
             x
           </Text>
@@ -506,7 +506,7 @@ function ButtonComponent({ element, emit }: ComponentRenderProps) {
   return (
     <Pressable
       disabled={disabled}
-      onPress={() => emit?.("press")}
+      onPress={() => emit("press")}
       style={({ pressed }) => ({
         backgroundColor: variant.bg,
         paddingHorizontal: size.paddingH,
@@ -741,7 +741,7 @@ function SearchBarComponent({ element, emit }: ComponentRenderProps) {
         placeholder={p.placeholder ?? "Search..."}
         value={p.value ?? undefined}
         returnKeyType="search"
-        onSubmitEditing={() => emit?.("submit")}
+        onSubmitEditing={() => emit("submit")}
         style={{
           flex: 1,
           paddingVertical: 10,
@@ -919,7 +919,7 @@ function ListItemComponent({ element, emit }: ComponentRenderProps) {
   if (hasPress) {
     return (
       <Pressable
-        onPress={() => emit?.("press")}
+        onPress={() => emit("press")}
         style={({ pressed }) => ({
           opacity: pressed ? 0.7 : 1,
           backgroundColor: pressed ? "#f9fafb" : "transparent",

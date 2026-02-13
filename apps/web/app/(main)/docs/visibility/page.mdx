@@ -53,7 +53,7 @@ For signed-out only:
 
 ## Comparison Operators
 
-Compare a state value to a literal or another state path:
+Compare a state value to a literal or another state path. Use **one operator per condition** -- if multiple are provided, only the first one is evaluated (precedence: `eq` > `neq` > `gt` > `gte` > `lt` > `lte`). Add `"not": true` to invert the result of any condition.
 
 ```json
 // Equal
@@ -127,6 +127,25 @@ Use `$or` when at least one condition should be true:
 
 Visible when the user is VIP **or** the cart total exceeds 200. `$or` can contain any visibility conditions, including nested arrays (AND) and comparisons.
 
+## Explicit AND
+
+Use `$and` when you need to nest AND logic inside `$or`:
+
+```json
+{
+  "type": "PromoCard",
+  "visible": { "$or": [
+    { "$and": [
+      { "$state": "/user/isVIP" },
+      { "$state": "/cart/total", "gt": 50 }
+    ]},
+    { "$state": "/promo/active" }
+  ]}
+}
+```
+
+For top-level AND, the implicit array form is simpler: `[condition, condition]`. Use `$and` only when nesting inside `$or`.
+
 ## Always / Never
 
 Use boolean literals for constant visibility:
@@ -155,7 +174,7 @@ Inside a [repeat](/docs/data-binding#repeat), use `$item` and `$index` condition
 {
   "type": "Badge",
   "props": { "label": "Overdue" },
-  "visible": { "$item": "/isOverdue" }
+  "visible": { "$item": "isOverdue" }
 }
 ```
 
@@ -164,7 +183,7 @@ With comparison:
 ```json
 {
   "type": "DiscountTag",
-  "visible": { "$item": "/price", "gt": 100 }
+  "visible": { "$item": "price", "gt": 100 }
 }
 ```
 
@@ -241,11 +260,11 @@ This shows the divider for every item except the first (index 0).
       </tr>
       <tr>
         <td>Item field (repeat)</td>
-        <td><code>{'{ "$item": "/field" }'}</code></td>
+        <td><code>{'{ "$item": "field" }'}</code></td>
       </tr>
       <tr>
         <td>Item comparison</td>
-        <td><code>{'{ "$item": "/field", "eq": value }'}</code></td>
+        <td><code>{'{ "$item": "field", "eq": value }'}</code></td>
       </tr>
       <tr>
         <td>Index (repeat)</td>
