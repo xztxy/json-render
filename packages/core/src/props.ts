@@ -1,4 +1,4 @@
-import type { VisibilityCondition, StateModel, AuthState } from "./types";
+import type { VisibilityCondition, StateModel } from "./types";
 import { getByPath } from "./types";
 import { evaluateVisibility, type VisibilityContext } from "./visibility";
 

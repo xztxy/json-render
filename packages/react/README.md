@@ -187,7 +187,7 @@ Control element visibility based on data:
 {
   "type": "Alert",
   "props": { "message": "Error!" },
-  "visible": { "path": "/form/hasError" }
+  "visible": { "$state": "/form/hasError" }
 }
 ```
 
@@ -226,30 +226,42 @@ const { errors, validate } = useFieldValidation("/form/email", {
 ## Visibility Conditions
 
 ```typescript
-// Simple path check (truthy)
-{ "path": "/user/isAdmin" }
+// Truthiness check
+{ "$state": "/user/isAdmin" }
 
-// Auth state
-{ "auth": "signedIn" }
+// Auth state (use state path)
+{ "$state": "/auth/isSignedIn" }
 
-// Comparisons
-{ "eq": [{ "path": "/status" }, "active"] }
-{ "gt": [{ "path": "/count" }, 10] }
+// Comparisons (flat style)
+{ "$state": "/status", "eq": "active" }
+{ "$state": "/count", "gt": 10 }
 
-// Logical operators
-{
-  "and": [
-    { "path": "/feature/enabled" },
-    { "not": { "path": "/maintenance" } }
-  ]
-}
+// Negation
+{ "$state": "/maintenance", "not": true }
 
-{
-  "or": [
-    { "path": "/user/isAdmin" },
-    { "path": "/user/isModerator" }
-  ]
-}
+// Multiple conditions (implicit AND)
+[
+  { "$state": "/feature/enabled" },
+  { "$state": "/maintenance", "not": true }
+]
+
+// Always / never
+true   // always visible
+false  // never visible
+```
+
+TypeScript helpers from `@json-render/core`:
+
+```typescript
+import { visibility } from "@json-render/core";
+
+visibility.when("/path")       // { $state: "/path" }
+visibility.unless("/path")     // { $state: "/path", not: true }
+visibility.eq("/path", val)    // { $state: "/path", eq: val }
+visibility.neq("/path", val)   // { $state: "/path", neq: val }
+visibility.and(cond1, cond2)  // [cond1, cond2]
+visibility.always             // true
+visibility.never              // false
 ```
 
 ## Dynamic Prop Expressions
@@ -262,7 +274,7 @@ Any prop value can use data-driven expressions that resolve at render time. The 
   "props": {
     "label": { "$state": "/user/role" },
     "color": {
-      "$cond": { "eq": [{ "path": "/user/role" }, "admin"] },
+      "$cond": { "$state": "/user/role", "eq": "admin" },
       "$then": "red",
       "$else": "gray"
     }

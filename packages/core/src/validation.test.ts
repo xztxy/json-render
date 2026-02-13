@@ -275,9 +275,9 @@ describe("runValidation", () => {
     const result = runValidation(
       {
         checks: [{ type: "required", message: "Required" }],
-        enabled: { eq: [1, 2] }, // Always false
+        enabled: { $state: "/enabled", eq: true }, // False because /enabled is not set
       },
-      { value: "", dataModel: {} },
+      { value: "", stateModel: {} },
     );
 
     expect(result.valid).toBe(true);
@@ -288,9 +288,9 @@ describe("runValidation", () => {
     const result = runValidation(
       {
         checks: [{ type: "required", message: "Required" }],
-        enabled: { eq: [1, 1] }, // Always true
+        enabled: { $state: "/enabled" }, // True because /enabled is truthy
       },
-      { value: "", dataModel: {} },
+      { value: "", stateModel: { enabled: true } },
     );
 
     expect(result.valid).toBe(false);

@@ -1,184 +1,138 @@
 import { z } from "zod";
-import type {
-  VisibilityCondition,
-  LogicExpression,
-  StateModel,
-  AuthState,
-  DynamicValue,
-} from "./types";
-import { resolveDynamicValue, DynamicValueSchema } from "./types";
+import type { VisibilityCondition, StateCondition, StateModel } from "./types";
+import { getByPath } from "./types";
 
-// Dynamic value schema for comparisons (number-focused)
-const DynamicNumberValueSchema = z.union([
-  z.number(),
-  z.object({ path: z.string() }),
-]);
+// =============================================================================
+// Schemas
+// =============================================================================
 
 /**
- * Logic expression schema (recursive)
- * Using a more permissive schema that aligns with runtime behavior
+ * Schema for a single state condition.
  */
-export const LogicExpressionSchema: z.ZodType<LogicExpression> = z.lazy(() =>
-  z.union([
-    z.object({ and: z.array(LogicExpressionSchema) }),
-    z.object({ or: z.array(LogicExpressionSchema) }),
-    z.object({ not: LogicExpressionSchema }),
-    z.object({ path: z.string() }),
-    z.object({ eq: z.tuple([DynamicValueSchema, DynamicValueSchema]) }),
-    z.object({ neq: z.tuple([DynamicValueSchema, DynamicValueSchema]) }),
-    z.object({
-      gt: z.tuple([DynamicNumberValueSchema, DynamicNumberValueSchema]),
-    }),
-    z.object({
-      gte: z.tuple([DynamicNumberValueSchema, DynamicNumberValueSchema]),
-    }),
-    z.object({
-      lt: z.tuple([DynamicNumberValueSchema, DynamicNumberValueSchema]),
-    }),
-    z.object({
-      lte: z.tuple([DynamicNumberValueSchema, DynamicNumberValueSchema]),
-    }),
-  ]),
-) as z.ZodType<LogicExpression>;
+const StateConditionSchema = z.object({
+  $state: z.string(),
+  eq: z.unknown().optional(),
+  neq: z.unknown().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  not: z.literal(true).optional(),
+});
 
 /**
- * Visibility condition schema
+ * Visibility condition schema.
  */
 export const VisibilityConditionSchema: z.ZodType<VisibilityCondition> =
-  z.union([
-    z.boolean(),
-    z.object({ path: z.string() }),
-    z.object({ auth: z.enum(["signedIn", "signedOut"]) }),
-    LogicExpressionSchema,
-  ]);
+  z.union([z.boolean(), StateConditionSchema, z.array(StateConditionSchema)]);
+
+// =============================================================================
+// Context
+// =============================================================================
 
 /**
- * Context for evaluating visibility
+ * Context for evaluating visibility conditions.
  */
 export interface VisibilityContext {
   stateModel: StateModel;
-  authState?: AuthState;
+}
+
+// =============================================================================
+// Evaluation
+// =============================================================================
+
+/**
+ * Resolve a comparison value. If it's a `{ $state }` reference, look it up;
+ * otherwise return the literal.
+ */
+function resolveComparisonValue(
+  value: unknown,
+  stateModel: StateModel,
+): unknown {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "$state" in value &&
+    typeof (value as Record<string, unknown>).$state === "string"
+  ) {
+    return getByPath(stateModel, (value as { $state: string }).$state);
+  }
+  return value;
 }
 
 /**
- * Evaluate a logic expression against data and auth state
+ * Evaluate a single state condition against the state model.
  */
-export function evaluateLogicExpression(
-  expr: LogicExpression,
-  ctx: VisibilityContext,
+function evaluateCondition(
+  cond: StateCondition,
+  stateModel: StateModel,
 ): boolean {
-  const { stateModel } = ctx;
+  const value = getByPath(stateModel, cond.$state);
 
-  // AND expression
-  if ("and" in expr) {
-    return expr.and.every((subExpr) => evaluateLogicExpression(subExpr, ctx));
+  // Equality
+  if (cond.eq !== undefined) {
+    const rhs = resolveComparisonValue(cond.eq, stateModel);
+    return value === rhs;
   }
 
-  // OR expression
-  if ("or" in expr) {
-    return expr.or.some((subExpr) => evaluateLogicExpression(subExpr, ctx));
-  }
-
-  // NOT expression
-  if ("not" in expr) {
-    return !evaluateLogicExpression(expr.not, ctx);
-  }
-
-  // Path expression (resolve to boolean)
-  if ("path" in expr) {
-    const value = resolveDynamicValue({ path: expr.path }, stateModel);
-    return Boolean(value);
-  }
-
-  // Equality comparison
-  if ("eq" in expr) {
-    const [left, right] = expr.eq;
-    const leftValue = resolveDynamicValue(left, stateModel);
-    const rightValue = resolveDynamicValue(right, stateModel);
-    return leftValue === rightValue;
-  }
-
-  // Not equal comparison
-  if ("neq" in expr) {
-    const [left, right] = expr.neq;
-    const leftValue = resolveDynamicValue(left, stateModel);
-    const rightValue = resolveDynamicValue(right, stateModel);
-    return leftValue !== rightValue;
+  // Inequality
+  if (cond.neq !== undefined) {
+    const rhs = resolveComparisonValue(cond.neq, stateModel);
+    return value !== rhs;
   }
 
   // Greater than
-  if ("gt" in expr) {
-    const [left, right] = expr.gt;
-    const leftValue = resolveDynamicValue(
-      left as DynamicValue<number>,
-      stateModel,
-    );
-    const rightValue = resolveDynamicValue(
-      right as DynamicValue<number>,
-      stateModel,
-    );
-    if (typeof leftValue === "number" && typeof rightValue === "number") {
-      return leftValue > rightValue;
+  if (cond.gt !== undefined) {
+    const rhs = resolveComparisonValue(cond.gt, stateModel);
+    if (typeof value === "number" && typeof rhs === "number") {
+      return value > rhs;
     }
     return false;
   }
 
   // Greater than or equal
-  if ("gte" in expr) {
-    const [left, right] = expr.gte;
-    const leftValue = resolveDynamicValue(
-      left as DynamicValue<number>,
-      stateModel,
-    );
-    const rightValue = resolveDynamicValue(
-      right as DynamicValue<number>,
-      stateModel,
-    );
-    if (typeof leftValue === "number" && typeof rightValue === "number") {
-      return leftValue >= rightValue;
+  if (cond.gte !== undefined) {
+    const rhs = resolveComparisonValue(cond.gte, stateModel);
+    if (typeof value === "number" && typeof rhs === "number") {
+      return value >= rhs;
     }
     return false;
   }
 
   // Less than
-  if ("lt" in expr) {
-    const [left, right] = expr.lt;
-    const leftValue = resolveDynamicValue(
-      left as DynamicValue<number>,
-      stateModel,
-    );
-    const rightValue = resolveDynamicValue(
-      right as DynamicValue<number>,
-      stateModel,
-    );
-    if (typeof leftValue === "number" && typeof rightValue === "number") {
-      return leftValue < rightValue;
+  if (cond.lt !== undefined) {
+    const rhs = resolveComparisonValue(cond.lt, stateModel);
+    if (typeof value === "number" && typeof rhs === "number") {
+      return value < rhs;
     }
     return false;
   }
 
   // Less than or equal
-  if ("lte" in expr) {
-    const [left, right] = expr.lte;
-    const leftValue = resolveDynamicValue(
-      left as DynamicValue<number>,
-      stateModel,
-    );
-    const rightValue = resolveDynamicValue(
-      right as DynamicValue<number>,
-      stateModel,
-    );
-    if (typeof leftValue === "number" && typeof rightValue === "number") {
-      return leftValue <= rightValue;
+  if (cond.lte !== undefined) {
+    const rhs = resolveComparisonValue(cond.lte, stateModel);
+    if (typeof value === "number" && typeof rhs === "number") {
+      return value <= rhs;
     }
     return false;
   }
 
-  return false;
+  // Negation (truthiness inverted)
+  if (cond.not === true) {
+    return !Boolean(value);
+  }
+
+  // Truthiness
+  return Boolean(value);
 }
 
 /**
- * Evaluate a visibility condition
+ * Evaluate a visibility condition.
+ *
+ * - `undefined` → visible
+ * - `boolean` → that value
+ * - `StateCondition` → evaluate single condition
+ * - `StateCondition[]` → implicit AND (all must be true)
  */
 export function evaluateVisibility(
   condition: VisibilityCondition | undefined,
@@ -194,30 +148,21 @@ export function evaluateVisibility(
     return condition;
   }
 
-  // Path reference
-  if ("path" in condition && !("and" in condition) && !("or" in condition)) {
-    const value = resolveDynamicValue({ path: condition.path }, ctx.stateModel);
-    return Boolean(value);
+  // Array = implicit AND
+  if (Array.isArray(condition)) {
+    return condition.every((c) => evaluateCondition(c, ctx.stateModel));
   }
 
-  // Auth condition
-  if ("auth" in condition) {
-    const isSignedIn = ctx.authState?.isSignedIn ?? false;
-    if (condition.auth === "signedIn") {
-      return isSignedIn;
-    }
-    if (condition.auth === "signedOut") {
-      return !isSignedIn;
-    }
-    return false;
-  }
-
-  // Logic expression
-  return evaluateLogicExpression(condition as LogicExpression, ctx);
+  // Single condition
+  return evaluateCondition(condition, ctx.stateModel);
 }
 
+// =============================================================================
+// Helpers
+// =============================================================================
+
 /**
- * Helper to create visibility conditions
+ * Helper to create visibility conditions.
  */
 export const visibility = {
   /** Always visible */
@@ -226,59 +171,48 @@ export const visibility = {
   /** Never visible */
   never: false as const,
 
-  /** Visible when path is truthy */
-  when: (path: string): VisibilityCondition => ({ path }),
+  /** Visible when state path is truthy */
+  when: (path: string): StateCondition => ({ $state: path }),
 
-  /** Visible when signed in */
-  signedIn: { auth: "signedIn" } as const,
-
-  /** Visible when signed out */
-  signedOut: { auth: "signedOut" } as const,
-
-  /** AND multiple conditions */
-  and: (...conditions: LogicExpression[]): LogicExpression => ({
-    and: conditions,
-  }),
-
-  /** OR multiple conditions */
-  or: (...conditions: LogicExpression[]): LogicExpression => ({
-    or: conditions,
-  }),
-
-  /** NOT a condition */
-  not: (condition: LogicExpression): LogicExpression => ({ not: condition }),
+  /** Visible when state path is falsy */
+  unless: (path: string): StateCondition => ({ $state: path, not: true }),
 
   /** Equality check */
-  eq: (left: DynamicValue, right: DynamicValue): LogicExpression => ({
-    eq: [left, right],
+  eq: (path: string, value: unknown): StateCondition => ({
+    $state: path,
+    eq: value,
   }),
 
   /** Not equal check */
-  neq: (left: DynamicValue, right: DynamicValue): LogicExpression => ({
-    neq: [left, right],
+  neq: (path: string, value: unknown): StateCondition => ({
+    $state: path,
+    neq: value,
   }),
 
   /** Greater than */
-  gt: (
-    left: DynamicValue<number>,
-    right: DynamicValue<number>,
-  ): LogicExpression => ({ gt: [left, right] }),
+  gt: (path: string, value: number): StateCondition => ({
+    $state: path,
+    gt: value,
+  }),
 
   /** Greater than or equal */
-  gte: (
-    left: DynamicValue<number>,
-    right: DynamicValue<number>,
-  ): LogicExpression => ({ gte: [left, right] }),
+  gte: (path: string, value: number): StateCondition => ({
+    $state: path,
+    gte: value,
+  }),
 
   /** Less than */
-  lt: (
-    left: DynamicValue<number>,
-    right: DynamicValue<number>,
-  ): LogicExpression => ({ lt: [left, right] }),
+  lt: (path: string, value: number): StateCondition => ({
+    $state: path,
+    lt: value,
+  }),
 
   /** Less than or equal */
-  lte: (
-    left: DynamicValue<number>,
-    right: DynamicValue<number>,
-  ): LogicExpression => ({ lte: [left, right] }),
+  lte: (path: string, value: number): StateCondition => ({
+    $state: path,
+    lte: value,
+  }),
+
+  /** AND multiple conditions */
+  and: (...conditions: StateCondition[]): StateCondition[] => conditions,
 };

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { DynamicValue, StateModel, LogicExpression } from "./types";
+import type { DynamicValue, StateModel, VisibilityCondition } from "./types";
 import { DynamicValueSchema, resolveDynamicValue } from "./types";
-import { LogicExpressionSchema, evaluateLogicExpression } from "./visibility";
+import { VisibilityConditionSchema, evaluateVisibility } from "./visibility";
 
 /**
  * Validation check definition
@@ -24,7 +24,7 @@ export interface ValidationConfig {
   /** When to run validation */
   validateOn?: "change" | "blur" | "submit";
   /** Condition for when validation is enabled */
-  enabled?: LogicExpression;
+  enabled?: VisibilityCondition;
 }
 
 /**
@@ -42,7 +42,7 @@ export const ValidationCheckSchema = z.object({
 export const ValidationConfigSchema = z.object({
   checks: z.array(ValidationCheckSchema).optional(),
   validateOn: z.enum(["change", "blur", "submit"]).optional(),
-  enabled: LogicExpressionSchema.optional(),
+  enabled: VisibilityConditionSchema.optional(),
 });
 
 /**
@@ -251,9 +251,8 @@ export function runValidation(
 
   // Check if validation is enabled
   if (config.enabled) {
-    const enabled = evaluateLogicExpression(config.enabled, {
+    const enabled = evaluateVisibility(config.enabled, {
       stateModel: ctx.stateModel,
-      authState: ctx.authState,
     });
     if (!enabled) {
       return { valid: true, errors: [], checks: [] };

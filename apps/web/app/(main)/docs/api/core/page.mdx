@@ -218,13 +218,10 @@ const schema = z.object({
 });
 ```
 
-### Visibility & Logic Schemas
+### Visibility Schemas
 
 ```typescript
-import {
-  VisibilityConditionSchema,  // Full visibility condition
-  LogicExpressionSchema,      // Logic operators (and, or, not, eq, gt, etc.)
-} from '@json-render/core';
+import { VisibilityConditionSchema } from '@json-render/core';
 
 // Use in component props that need conditional rendering
 const schema = z.object({
@@ -370,16 +367,16 @@ function evaluateVisibility(
 ): boolean
 
 type VisibilityCondition =
-  | { path: string }
-  | { auth: 'signedIn' | 'signedOut' | string }
-  | { and: VisibilityCondition[] }
-  | { or: VisibilityCondition[] }
-  | { not: VisibilityCondition }
-  | { eq: [DynamicValue, DynamicValue] }
-  | { gt: [DynamicValue, DynamicValue] }
-  | { gte: [DynamicValue, DynamicValue] }
-  | { lt: [DynamicValue, DynamicValue] }
-  | { lte: [DynamicValue, DynamicValue] };
+  | { $state: string }                                    // truthiness
+  | { $state: string; not: true }                         // falsy
+  | { $state: string; eq: unknown }                       // equality
+  | { $state: string; neq: unknown }                      // inequality
+  | { $state: string; gt: number }                        // greater than
+  | { $state: string; gte: number }                       // gte
+  | { $state: string; lt: number }                        // lt
+  | { $state: string; lte: number }                       // lte
+  | VisibilityCondition[]                                 // implicit AND
+  | boolean;                                              // always / never
 ```
 
 ## Types

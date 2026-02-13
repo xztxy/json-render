@@ -84,28 +84,28 @@ export interface FlatElement<
 }
 
 /**
- * Visibility condition types
+ * A single state-based condition.
+ * Resolves `$state` to a value from the state model, then applies the operator.
+ * Without an operator, checks truthiness.
  */
-export type VisibilityCondition =
-  | boolean
-  | { path: string }
-  | { auth: "signedIn" | "signedOut" }
-  | LogicExpression;
+export type StateCondition = {
+  $state: string;
+  eq?: unknown;
+  neq?: unknown;
+  gt?: number;
+  gte?: number;
+  lt?: number;
+  lte?: number;
+  not?: true;
+};
 
 /**
- * Logic expression for complex conditions
+ * Visibility condition types.
+ * - `boolean` — always/never
+ * - `StateCondition` — single condition
+ * - `StateCondition[]` — implicit AND (all must be true)
  */
-export type LogicExpression =
-  | { and: LogicExpression[] }
-  | { or: LogicExpression[] }
-  | { not: LogicExpression }
-  | { path: string }
-  | { eq: [DynamicValue, DynamicValue] }
-  | { neq: [DynamicValue, DynamicValue] }
-  | { gt: [DynamicValue<number>, DynamicValue<number>] }
-  | { gte: [DynamicValue<number>, DynamicValue<number>] }
-  | { lt: [DynamicValue<number>, DynamicValue<number>] }
-  | { lte: [DynamicValue<number>, DynamicValue<number>] };
+export type VisibilityCondition = boolean | StateCondition | StateCondition[];
 
 /**
  * Flat UI tree structure (optimized for LLM generation)

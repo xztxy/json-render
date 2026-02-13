@@ -261,14 +261,17 @@ export function generateCatalogPrompt<
   // Visibility
   lines.push("## Visibility Conditions");
   lines.push("");
-  lines.push("Components can have a `visible` property:");
+  lines.push("Elements can have a `visible` property:");
   lines.push("- `true` / `false` - Always visible/hidden");
-  lines.push('- `{ "path": "/state/path" }` - Visible when path is truthy');
-  lines.push('- `{ "auth": "signedIn" }` - Visible when user is signed in');
-  lines.push('- `{ "and": [...] }` - All conditions must be true');
-  lines.push('- `{ "or": [...] }` - Any condition must be true');
-  lines.push('- `{ "not": {...} }` - Negates a condition');
-  lines.push('- `{ "eq": [a, b] }` - Equality check');
+  lines.push('- `{ "$state": "/path" }` - Visible when state path is truthy');
+  lines.push('- `{ "$state": "/path", "not": true }` - Visible when falsy');
+  lines.push(
+    '- `{ "$state": "/path", "eq": value }` - Visible when state equals value',
+  );
+  lines.push(
+    '- `{ "$state": "/path", "neq": value }` - Visible when state does not equal value',
+  );
+  lines.push("- `[condition, condition]` - All conditions must be true (AND)");
   lines.push("");
 
   // Validation

@@ -22,87 +22,129 @@ function App() {
 }
 ```
 
-## Path-Based Visibility
+## State-Based Visibility
 
-Show/hide based on data values:
+Show/hide based on state values. Use `$state` with a JSON Pointer path:
 
 ```json
 {
   "type": "Alert",
   "props": { "message": "Form has errors" },
-  "visible": { "path": "/form/hasErrors" }
+  "visible": { "$state": "/form/hasErrors" }
 }
-
-// Visible when /form/hasErrors is truthy
 ```
+
+Visible when `/form/hasErrors` is truthy.
+
+### Negation
+
+Use `not: true` to invert a condition:
+
+```json
+{
+  "type": "WelcomeBanner",
+  "visible": { "$state": "/user/hasSeenWelcome", "not": true }
+}
+```
+
+Visible when `/user/hasSeenWelcome` is falsy.
 
 ## Auth-Based Visibility
 
-Show/hide based on authentication state:
+Show/hide based on authentication state. Auth is exposed as state at `/auth/isSignedIn`:
 
 ```json
 {
   "type": "AdminPanel",
-  "visible": { "auth": "signedIn" }
+  "visible": { "$state": "/auth/isSignedIn" }
 }
-
-// Options: "signedIn", "signedOut", "admin", etc.
 ```
 
-## Logic Expressions
-
-Combine conditions with logic operators:
+For signed-out only:
 
 ```json
-// AND - all conditions must be true
 {
-  "type": "SubmitButton",
-  "visible": {
-    "and": [
-      { "path": "/form/isValid" },
-      { "path": "/form/hasChanges" }
-    ]
-  }
-}
-
-// OR - any condition must be true
-{
-  "type": "HelpText",
-  "visible": {
-    "or": [
-      { "path": "/user/isNew" },
-      { "path": "/settings/showHelp" }
-    ]
-  }
-}
-
-// NOT - invert a condition
-{
-  "type": "WelcomeBanner",
-  "visible": {
-    "not": { "path": "/user/hasSeenWelcome" }
-  }
+  "type": "LoginPrompt",
+  "visible": { "$state": "/auth/isSignedIn", "not": true }
 }
 ```
 
 ## Comparison Operators
 
+Compare a state value to a literal or another state path:
+
 ```json
 // Equal
 {
-  "visible": {
-    "eq": [{ "path": "/user/role" }, "admin"]
-  }
+  "visible": { "$state": "/user/role", "eq": "admin" }
+}
+
+// Not equal
+{
+  "visible": { "$state": "/tab", "neq": "home" }
 }
 
 // Greater than
 {
-  "visible": {
-    "gt": [{ "path": "/cart/total" }, 100]
-  }
+  "visible": { "$state": "/cart/total", "gt": 100 }
 }
 
-// Available: eq, ne, gt, gte, lt, lte
+// Greater than or equal
+{
+  "visible": { "$state": "/cart/itemCount", "gte": 1 }
+}
+
+// Less than
+{
+  "visible": { "$state": "/cart/total", "lt": 1000 }
+}
+
+// Less than or equal
+{
+  "visible": { "$state": "/cart/itemCount", "lte": 10 }
+}
+```
+
+Comparison values can be literals or state references:
+
+```json
+{
+  "visible": { "$state": "/user/balance", "gte": { "$state": "/order/minimum" } }
+}
+```
+
+## Combining Conditions (AND)
+
+Place multiple conditions in an array for implicit AND:
+
+```json
+{
+  "type": "SubmitButton",
+  "visible": [
+    { "$state": "/form/isValid" },
+    { "$state": "/form/hasChanges" }
+  ]
+}
+```
+
+All conditions must be true for the element to be visible.
+
+## Always / Never
+
+Use boolean literals for constant visibility:
+
+```json
+{
+  "type": "Footer",
+  "visible": true
+}
+```
+
+```json
+{
+  "type": "DeprecatedPanel",
+  "visible": false
+}
 ```
 
 ## Complex Example
@@ -111,14 +153,12 @@ Combine conditions with logic operators:
 {
   "type": "RefundButton",
   "props": { "label": "Process Refund" },
-  "visible": {
-    "and": [
-      { "auth": "signedIn" },
-      { "eq": [{ "path": "/user/role" }, "support"] },
-      { "gt": [{ "path": "/order/amount" }, 0] },
-      { "not": { "path": "/order/isRefunded" } }
-    ]
-  }
+  "visible": [
+    { "$state": "/auth/isSignedIn" },
+    { "$state": "/user/role", "eq": "support" },
+    { "$state": "/order/amount", "gt": 0 },
+    { "$state": "/order/isRefunded", "not": true }
+  ]
 }
 ```
 
@@ -130,10 +170,32 @@ import { useIsVisible } from '@json-render/react';
 // The Renderer handles visibility automatically, but you can also use the hook
 function ConditionalContent({ condition, children }) {
   const isVisible = useIsVisible(condition);
-  
+
   if (!isVisible) return null;
   return <div>{children}</div>;
 }
+```
+
+## Quick Reference
+
+```
+Truthiness        { "$state": "/path" }
+Falsy (not)       { "$state": "/path", "not": true }
+Equal             { "$state": "/path", "eq": value }
+Not equal         { "$state": "/path", "neq": value }
+Greater than      { "$state": "/path", "gt": number }
+Greater or equal  { "$state": "/path", "gte": number }
+Less than         { "$state": "/path", "lt": number }
+Less or equal     { "$state": "/path", "lte": number }
+AND (multiple)    [ condition, condition ]
+Always            true
+Never             false
+```
+
+Comparison values can be literals or state references for state-to-state comparisons:
+
+```json
+{ "$state": "/a", "eq": { "$state": "/b" } }
 ```
 
 ## Next

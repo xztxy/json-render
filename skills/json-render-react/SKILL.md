@@ -80,6 +80,10 @@ The React schema uses an element tree format:
 }
 ```
 
+## Visibility Conditions
+
+Use `visible` on elements to show/hide based on state. New syntax: `{ "$state": "/path" }`, `{ "$state": "/path", "eq": value }`, `{ "$state": "/path", "not": true }`, `[ cond1, cond2 ]` for AND. Helpers: `visibility.when("/path")`, `visibility.unless("/path")`, `visibility.eq("/path", val)`, `visibility.and(cond1, cond2)`.
+
 ## Providers
 
 | Provider | Purpose |
@@ -99,7 +103,7 @@ Any prop value can be a data-driven expression resolved by the renderer before c
 ```json
 {
   "color": {
-    "$cond": { "eq": [{ "path": "/status" }, "active"] },
+    "$cond": { "$state": "/status", "eq": "active" },
     "$then": "green",
     "$else": "gray"
   }

@@ -167,7 +167,7 @@ Use `$cond` / `$then` / `$else` to pick a prop value based on a condition:
   "type": "Badge",
   "props": {
     "label": {
-      "$cond": { "path": "/user/isAdmin" },
+      "$cond": { "$state": "/user/isAdmin" },
       "$then": "Admin",
       "$else": "Member"
     }

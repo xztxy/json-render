@@ -777,20 +777,25 @@ Note: state patches appear right after the elements that use them, so the UI fil
   // Visibility conditions
   lines.push("VISIBILITY CONDITIONS:");
   lines.push(
-    "Elements can have an optional `visible` field to conditionally show/hide based on data state. IMPORTANT: `visible` is a top-level field on the element object (sibling of type/props/children), NOT inside props.",
+    "Elements can have an optional `visible` field to conditionally show/hide based on state. IMPORTANT: `visible` is a top-level field on the element object (sibling of type/props/children), NOT inside props.",
   );
   lines.push(
-    `Correct: ${JSON.stringify({ type: comp1, props: comp1Props, visible: { eq: [{ path: "/tab" }, "home"] }, children: ["..."] })}`,
+    `Correct: ${JSON.stringify({ type: comp1, props: comp1Props, visible: { $state: "/activeTab", eq: "home" }, children: ["..."] })}`,
   );
   lines.push(
-    '- `{ "eq": [{ "path": "/statePath" }, "value"] }` - visible when state at path equals value',
+    '- `{ "$state": "/path" }` - visible when state at path is truthy',
   );
   lines.push(
-    '- `{ "neq": [{ "path": "/statePath" }, "value"] }` - visible when state at path does not equal value',
+    '- `{ "$state": "/path", "not": true }` - visible when state at path is falsy',
   );
-  lines.push('- `{ "path": "/statePath" }` - visible when path is truthy');
   lines.push(
-    '- `{ "and": [...] }`, `{ "or": [...] }`, `{ "not": {...} }` - combine conditions',
+    '- `{ "$state": "/path", "eq": "value" }` - visible when state equals value',
+  );
+  lines.push(
+    '- `{ "$state": "/path", "neq": "value" }` - visible when state does not equal value',
+  );
+  lines.push(
+    "- `[condition, condition]` - all conditions must be true (implicit AND)",
   );
   lines.push("- `true` / `false` - always visible/hidden");
   lines.push("");
@@ -798,7 +803,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     "Use a component with on.press bound to setState to update state and drive visibility.",
   );
   lines.push(
-    `Example: A ${comp1} with on: { "press": { "action": "setState", "params": { "path": "/activeTab", "value": "home" } } } sets state, then a container with visible: { "eq": [{ "path": "/activeTab" }, "home"] } shows only when that tab is active.`,
+    `Example: A ${comp1} with on: { "press": { "action": "setState", "params": { "path": "/activeTab", "value": "home" } } } sets state, then a container with visible: { "$state": "/activeTab", "eq": "home" } shows only when that tab is active.`,
   );
   lines.push("");
 
@@ -819,10 +824,10 @@ Note: state patches appear right after the elements that use them, so the UI fil
     '2. Conditional: `{ "$cond": <condition>, "$then": <value>, "$else": <value> }` - evaluates the condition (same syntax as visibility conditions) and picks the matching value.',
   );
   lines.push(
-    '   Example: `"color": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "#007AFF", "$else": "#8E8E93" }`',
+    '   Example: `"color": { "$cond": { "$state": "/activeTab", "eq": "home" }, "$then": "#007AFF", "$else": "#8E8E93" }`',
   );
   lines.push(
-    '   Example: `"name": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "home", "$else": "home-outline" }`',
+    '   Example: `"name": { "$cond": { "$state": "/activeTab", "eq": "home" }, "$then": "home", "$else": "home-outline" }`',
   );
   lines.push("");
   lines.push(

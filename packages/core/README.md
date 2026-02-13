@@ -229,12 +229,12 @@ Evaluate a condition (same syntax as visibility conditions) and pick a value:
 ```json
 {
   "color": {
-    "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+    "$cond": { "$state": "/activeTab", "eq": "home" },
     "$then": "#007AFF",
     "$else": "#8E8E93"
   },
   "name": {
-    "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+    "$cond": { "$state": "/activeTab", "eq": "home" },
     "$then": "home",
     "$else": "home-outline"
   }
@@ -246,7 +246,7 @@ Evaluate a condition (same syntax as visibility conditions) and pick a value:
 ```json
 {
   "label": {
-    "$cond": { "path": "/user/isAdmin" },
+    "$cond": { "$state": "/user/isAdmin" },
     "$then": { "$state": "/admin/greeting" },
     "$else": "Welcome"
   }
@@ -260,12 +260,46 @@ import { resolvePropValue, resolveElementProps } from "@json-render/core";
 
 // Resolve a single value
 const color = resolvePropValue(
-  { $cond: { eq: [{ path: "/active" }, "yes"] }, $then: "blue", $else: "gray" },
+  { $cond: { $state: "/active", eq: "yes" }, $then: "blue", $else: "gray" },
   { stateModel: myState }
 );
 
 // Resolve all props on an element
 const resolved = resolveElementProps(element.props, { stateModel: myState });
+```
+
+## Visibility Conditions
+
+Visibility conditions control when elements are shown. `VisibilityContext` is `{ stateModel: StateModel }`.
+
+### Syntax
+
+```typescript
+{ "$state": "/path" }                          // truthiness
+{ "$state": "/path", "not": true }             // falsy
+{ "$state": "/path", "eq": value }             // equality
+{ "$state": "/path", "neq": value }            // inequality
+{ "$state": "/path", "gt": number }            // greater than
+[ condition, condition ]                       // implicit AND
+true / false                                   // always / never
+```
+
+### TypeScript Helpers
+
+```typescript
+import { visibility } from "@json-render/core";
+
+visibility.always              // true
+visibility.never               // false
+visibility.when("/path")       // { $state: "/path" }
+visibility.unless("/path")     // { $state: "/path", not: true }
+visibility.eq("/path", val)    // { $state: "/path", eq: val }
+visibility.neq("/path", val)   // { $state: "/path", neq: val }
+visibility.gt("/path", n)      // { $state: "/path", gt: n }
+visibility.gte("/path", n)     // { $state: "/path", gte: n }
+visibility.lt("/path", n)      // { $state: "/path", lt: n }
+visibility.lte("/path", n)     // { $state: "/path", lte: n }
+visibility.and(cond1, cond2)   // [cond1, cond2]
 ```
 
 ## User Prompt Builder

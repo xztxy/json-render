@@ -91,6 +91,10 @@ function App({ spec }) {
 - `ListItem` - list row with title, subtitle, accessory
 - `Modal` - bottom sheet modal
 
+## Visibility Conditions
+
+Use `visible` on elements. Syntax: `{ "$state": "/path" }`, `{ "$state": "/path", "eq": value }`, `{ "$state": "/path", "not": true }`, `[ cond1, cond2 ]` for AND.
+
 ## Pressable + setState Pattern
 
 Use `Pressable` with the built-in `setState` action for interactive UIs like tab bars:
@@ -116,7 +120,7 @@ Any prop value can be a data-driven expression resolved at render time:
 ```json
 {
   "color": {
-    "$cond": { "eq": [{ "path": "/activeTab" }, "home"] },
+    "$cond": { "$state": "/activeTab", "eq": "home" },
     "$then": "#007AFF",
     "$else": "#8E8E93"
   }

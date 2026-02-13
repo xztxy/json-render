@@ -37,6 +37,8 @@ interface AuthState {
 }
 ```
 
+Conditions in specs use the `VisibilityCondition` format with `$state` paths (e.g. `{ "$state": "/path" }`, `{ "$state": "/path", "eq": value }`). See [visibility](/docs/visibility) for the full syntax.
+
 ### ValidationProvider
 
 ```tsx

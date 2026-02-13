@@ -64,7 +64,7 @@ interface Element {
   type: string;                // Component type from catalog
   props: Record<string, any>;  // Component properties
   children: string[];          // Array of child element keys
-  visible?: VisibilityRule;    // Conditional display
+  visible?: VisibilityCondition;  // Conditional display
 }
 ```
 

@@ -99,14 +99,14 @@ describe("flatToTree", () => {
         type: "text",
         props: {},
         parentKey: null,
-        visible: { path: "/isVisible" },
+        visible: { $state: "/isVisible" },
       },
     ];
 
     const tree = flatToTree(elements);
 
     expect(tree.elements["conditional"].visible).toEqual({
-      path: "/isVisible",
+      $state: "/isVisible",
     });
   });
 

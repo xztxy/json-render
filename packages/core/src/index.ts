@@ -8,7 +8,7 @@ export type {
   FlatElement,
   Spec,
   VisibilityCondition,
-  LogicExpression,
+  StateCondition,
   AuthState,
   StateModel,
   ComponentSchema,
@@ -56,9 +56,7 @@ export type { VisibilityContext } from "./visibility";
 
 export {
   VisibilityConditionSchema,
-  LogicExpressionSchema,
   evaluateVisibility,
-  evaluateLogicExpression,
   visibility,
 } from "./visibility";
 

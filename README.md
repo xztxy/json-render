@@ -213,12 +213,10 @@ const systemPrompt = catalog.prompt();
 {
   "type": "Alert",
   "props": { "message": "Error occurred" },
-  "visible": {
-    "and": [
-      { "path": "/form/hasError" },
-      { "not": { "path": "/form/errorDismissed" } }
-    ]
-  }
+  "visible": [
+    { "$state": "/form/hasError" },
+    { "$state": "/form/errorDismissed", "not": true }
+  ]
 }
 ```
 
@@ -230,8 +228,8 @@ Any prop value can be data-driven using expressions:
 {
   "type": "Icon",
   "props": {
-    "name": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "home", "$else": "home-outline" },
-    "color": { "$cond": { "eq": [{ "path": "/activeTab" }, "home"] }, "$then": "#007AFF", "$else": "#8E8E93" }
+    "name": { "$cond": { "$state": "/activeTab", "eq": "home" }, "$then": "home", "$else": "home-outline" },
+    "color": { "$cond": { "$state": "/activeTab", "eq": "home" }, "$then": "#007AFF", "$else": "#8E8E93" }
   }
 }
 ```

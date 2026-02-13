@@ -86,13 +86,34 @@ export function collectStatePaths(spec: Spec): Set<string> {
       }
     }
 
-    // Check visibility conditions for paths
-    if (element.visible && typeof element.visible === "object") {
+    // Check visibility conditions for $state paths
+    if (element.visible != null && typeof element.visible !== "boolean") {
       collectPathsFromCondition(element.visible, paths);
     }
   });
 
   return paths;
+}
+
+function collectPathFromItem(
+  item: Record<string, unknown>,
+  paths: Set<string>,
+): void {
+  if (typeof item.$state === "string") {
+    paths.add(item.$state);
+  }
+  // Also collect $state references in comparison values (eq, neq, etc.)
+  for (const op of ["eq", "neq", "gt", "gte", "lt", "lte"]) {
+    const val = item[op];
+    if (
+      val &&
+      typeof val === "object" &&
+      "$state" in (val as Record<string, unknown>) &&
+      typeof (val as Record<string, unknown>).$state === "string"
+    ) {
+      paths.add((val as { $state: string }).$state);
+    }
+  }
 }
 
 function collectPathsFromCondition(
@@ -101,43 +122,18 @@ function collectPathsFromCondition(
 ): void {
   if (!condition || typeof condition !== "object") return;
 
-  const cond = condition as Record<string, unknown>;
-
-  if ("path" in cond && typeof cond.path === "string") {
-    paths.add(cond.path);
-  }
-
-  if ("and" in cond && Array.isArray(cond.and)) {
-    for (const sub of cond.and) {
-      collectPathsFromCondition(sub, paths);
-    }
-  }
-
-  if ("or" in cond && Array.isArray(cond.or)) {
-    for (const sub of cond.or) {
-      collectPathsFromCondition(sub, paths);
-    }
-  }
-
-  if ("not" in cond) {
-    collectPathsFromCondition(cond.not, paths);
-  }
-
-  // Check comparison operators
-  for (const op of ["eq", "neq", "gt", "gte", "lt", "lte"]) {
-    if (op in cond && Array.isArray(cond[op])) {
-      for (const operand of cond[op] as unknown[]) {
-        if (
-          operand &&
-          typeof operand === "object" &&
-          "path" in operand &&
-          typeof (operand as { path: unknown }).path === "string"
-        ) {
-          paths.add((operand as { path: string }).path);
-        }
+  // Array = implicit AND
+  if (Array.isArray(condition)) {
+    for (const item of condition) {
+      if (item && typeof item === "object") {
+        collectPathFromItem(item as Record<string, unknown>, paths);
       }
     }
+    return;
   }
+
+  // Single StateCondition
+  collectPathFromItem(condition as Record<string, unknown>, paths);
 }
 
 /**
