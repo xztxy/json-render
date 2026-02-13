@@ -411,9 +411,9 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     },
 
     Tabs: ({ props, children }) => (
-      <Tabs defaultValue={props.defaultValue ?? props.tabs[0]?.value}>
+      <Tabs defaultValue={props.defaultValue ?? (props.tabs ?? [])[0]?.value}>
         <TabsList>
-          {props.tabs.map((tab) => (
+          {(props.tabs ?? []).map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
               {tab.label}
             </TabsTrigger>
@@ -493,7 +493,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
         collapsible={props.type === "single" ? true : undefined}
         className="w-full"
       >
-        {props.items.map((item, i) => (
+        {(props.items ?? []).map((item, i) => (
           <AccordionItem key={i} value={`item-${i}`}>
             <AccordionTrigger>{item.title}</AccordionTrigger>
             <AccordionContent>
@@ -508,7 +508,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
       <div className="relative pl-6">
         <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border" />
         <div className="flex flex-col gap-6">
-          {props.items.map((item, i) => {
+          {(props.items ?? []).map((item, i) => {
             const dotColor =
               item.status === "completed"
                 ? "bg-emerald-500"
