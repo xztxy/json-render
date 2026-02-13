@@ -119,9 +119,9 @@ const finalSpec = compiler.getResult();
 SpecStream format uses [RFC 6902 JSON Patch](https://datatracker.ietf.org/doc/html/rfc6902) operations (each line is a patch):
 
 ```jsonl
-{"op":"add","path":"/root/type","value":"Card"}
-{"op":"add","path":"/root/props","value":{"title":"Hello"}}
-{"op":"add","path":"/root/children/0","value":{"type":"Button","props":{"label":"Click"}}}
+{"op":"add","path":"/root","value":"card-1"}
+{"op":"add","path":"/elements/card-1","value":{"type":"Card","props":{"title":"Hello"},"children":["btn-1"]}}
+{"op":"add","path":"/elements/btn-1","value":{"type":"Button","props":{"label":"Click"},"children":[]}}
 ```
 
 All six RFC 6902 operations are supported: `add`, `remove`, `replace`, `move`, `copy`, `test`.
@@ -253,6 +253,26 @@ Evaluate a condition (same syntax as visibility conditions) and pick a value:
 }
 ```
 
+### Repeat Item (`$item`)
+
+Inside children of a repeated element, read a field from the current array item:
+
+```json
+{ "$item": "/title" }
+```
+
+Use `"/"` to get the entire item object. `$item` takes a path string because items are typically objects with nested fields to navigate.
+
+### Repeat Index (`$index`)
+
+Get the current array index inside a repeat:
+
+```json
+{ "$index": true }
+```
+
+`$index` uses `true` as a sentinel flag because the index is a scalar value with no sub-path to navigate (unlike `$item` which needs a path).
+
 ### API
 
 ```typescript
@@ -347,8 +367,8 @@ const fixed = autoFixSpec(spec);
 json-render supports completely different spec formats for different renderers:
 
 ```typescript
-// React: Element tree
-{ root: { type: "Card", props: {...}, children: [...] } }
+// React: Flat element map
+{ root: "card-1", elements: { "card-1": { type: "Card", props: {...}, children: [...] } } }
 
 // Remotion: Timeline
 { composition: {...}, tracks: [...], clips: [...] }

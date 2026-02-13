@@ -813,6 +813,10 @@ Note: state patches appear right after the elements that use them, so the UI fil
     `Example: A ${comp1} with on: { "press": { "action": "setState", "params": { "path": "/activeTab", "value": "home" } } } sets state, then a container with visible: { "$state": "/activeTab", "eq": "home" } shows only when that tab is active.`,
   );
   lines.push("");
+  lines.push(
+    'For tab patterns where the first/default tab should be visible when no tab is selected yet, use $or to handle both cases: visible: { "$or": [{ "$state": "/activeTab", "eq": "home" }, { "$state": "/activeTab", "not": true }] }. This ensures the first tab is visible both when explicitly selected AND when /activeTab is not yet set.',
+  );
+  lines.push("");
 
   // Dynamic prop expressions
   lines.push("DYNAMIC PROPS:");

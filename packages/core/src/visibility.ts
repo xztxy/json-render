@@ -2,6 +2,7 @@ import { z } from "zod";
 import type {
   VisibilityCondition,
   StateCondition,
+  AndCondition,
   OrCondition,
   StateModel,
 } from "./types";
@@ -14,14 +15,19 @@ import { getByPath } from "./types";
 /**
  * Schema for a single state condition.
  */
+const numericOrStateRef = z.union([
+  z.number(),
+  z.object({ $state: z.string() }),
+]);
+
 const StateConditionSchema = z.object({
   $state: z.string(),
   eq: z.unknown().optional(),
   neq: z.unknown().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
+  gt: numericOrStateRef.optional(),
+  gte: numericOrStateRef.optional(),
+  lt: numericOrStateRef.optional(),
+  lte: numericOrStateRef.optional(),
   not: z.literal(true).optional(),
 });
 
@@ -36,6 +42,7 @@ export const VisibilityConditionSchema: z.ZodType<VisibilityCondition> = z.lazy(
       z.boolean(),
       StateConditionSchema,
       z.array(StateConditionSchema),
+      z.object({ $and: z.array(VisibilityConditionSchema) }),
       z.object({ $or: z.array(VisibilityConditionSchema) }),
     ]),
 );
@@ -142,6 +149,20 @@ function evaluateCondition(
 }
 
 /**
+ * Type guard for AndCondition
+ */
+function isAndCondition(
+  condition: VisibilityCondition,
+): condition is AndCondition {
+  return (
+    typeof condition === "object" &&
+    condition !== null &&
+    !Array.isArray(condition) &&
+    "$and" in condition
+  );
+}
+
+/**
  * Type guard for OrCondition
  */
 function isOrCondition(
@@ -181,6 +202,11 @@ export function evaluateVisibility(
   // Array = implicit AND
   if (Array.isArray(condition)) {
     return condition.every((c) => evaluateCondition(c, ctx.stateModel));
+  }
+
+  // Explicit AND condition
+  if (isAndCondition(condition)) {
+    return condition.$and.every((child) => evaluateVisibility(child, ctx));
   }
 
   // OR condition
@@ -225,25 +251,25 @@ export const visibility = {
   }),
 
   /** Greater than */
-  gt: (path: string, value: number): StateCondition => ({
+  gt: (path: string, value: number | { $state: string }): StateCondition => ({
     $state: path,
     gt: value,
   }),
 
   /** Greater than or equal */
-  gte: (path: string, value: number): StateCondition => ({
+  gte: (path: string, value: number | { $state: string }): StateCondition => ({
     $state: path,
     gte: value,
   }),
 
   /** Less than */
-  lt: (path: string, value: number): StateCondition => ({
+  lt: (path: string, value: number | { $state: string }): StateCondition => ({
     $state: path,
     lt: value,
   }),
 
   /** Less than or equal */
-  lte: (path: string, value: number): StateCondition => ({
+  lte: (path: string, value: number | { $state: string }): StateCondition => ({
     $state: path,
     lte: value,
   }),

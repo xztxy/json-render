@@ -106,18 +106,20 @@ function App({ spec }) {
 
 ## Spec Format
 
-The React renderer uses an element tree format:
+The React renderer uses a flat element map format:
 
 ```typescript
 interface Spec {
-  root: Element;
+  root: string;                          // Key of the root element
+  elements: Record<string, UIElement>;   // Flat map of elements by key
+  state?: Record<string, unknown>;       // Optional initial state
 }
 
-interface Element {
-  type: string;           // Component name from catalog
-  props: object;          // Component props
-  children?: Element[];   // Nested elements
-  visible?: VisibilityCondition;
+interface UIElement {
+  type: string;                          // Component name from catalog
+  props: Record<string, unknown>;        // Component props
+  children?: string[];                   // Keys of child elements
+  visible?: VisibilityCondition;         // Visibility condition
 }
 ```
 
@@ -125,19 +127,22 @@ Example spec:
 
 ```json
 {
-  "root": {
-    "type": "Card",
-    "props": { "title": "Welcome" },
-    "children": [
-      {
-        "type": "Input",
-        "props": { "label": "Name", "placeholder": "Enter name" }
-      },
-      {
-        "type": "Button",
-        "props": { "label": "Submit", "action": "submit" }
-      }
-    ]
+  "root": "card-1",
+  "elements": {
+    "card-1": {
+      "type": "Card",
+      "props": { "title": "Welcome" },
+      "children": ["input-1", "btn-1"]
+    },
+    "input-1": {
+      "type": "Input",
+      "props": { "label": "Name", "placeholder": "Enter name" }
+    },
+    "btn-1": {
+      "type": "Button",
+      "props": { "label": "Submit" },
+      "children": []
+    }
   }
 }
 ```
@@ -165,9 +170,9 @@ Handle actions from components:
 
 ```tsx
 <ActionProvider
-  onAction={(action) => {
-    if (action === "submit") handleSubmit();
-    if (action === "cancel") handleCancel();
+  handlers={{
+    submit: (params) => handleSubmit(params),
+    cancel: () => handleCancel(),
   }}
 >
   {children}
@@ -213,11 +218,10 @@ const { errors, validate } = useFieldValidation("/form/email", {
 
 | Hook | Purpose |
 |------|---------|
-| `useStateStore()` | Access data context (`data`, `get`, `set`) |
-| `useStateValue(path)` | Get single value from data |
+| `useStateStore()` | Access state context (`state`, `get`, `set`, `update`) |
+| `useStateValue(path)` | Get single value from state |
 | `useStateBinding(path)` | Two-way data binding (returns `[value, setValue]`) |
-| `useVisibility()` | Access visibility evaluation |
-| `useIsVisible(condition)` | Check if condition is met |
+| `useIsVisible(condition)` | Check if a visibility condition is met |
 | `useActions()` | Access action context |
 | `useAction(name)` | Get a single action dispatch function |
 | `useFieldValidation(path, config)` | Field validation state |
@@ -286,16 +290,19 @@ See [@json-render/core](../core/README.md) for full expression syntax.
 
 ## Built-in Actions
 
-The `setState` action is handled automatically by `ActionProvider`. It updates the state model, which triggers re-evaluation of visibility conditions and dynamic prop expressions:
+The `setState`, `pushState`, and `removeState` actions are handled automatically by `ActionProvider`. They update the state model, which triggers re-evaluation of visibility conditions and dynamic prop expressions:
 
 ```json
 {
   "type": "Button",
-  "props": {
-    "label": "Switch Tab",
-    "action": "setState",
-    "actionParams": { "path": "/activeTab", "value": "settings" }
-  }
+  "props": { "label": "Switch Tab" },
+  "on": {
+    "press": {
+      "action": "setState",
+      "params": { "path": "/activeTab", "value": "settings" }
+    }
+  },
+  "children": []
 }
 ```
 
@@ -343,9 +350,13 @@ const { registry } = defineRegistry(catalog, {
 });
 
 const spec = {
-  root: {
-    type: "Greeting",
-    props: { name: "World" },
+  root: "greeting-1",
+  elements: {
+    "greeting-1": {
+      type: "Greeting",
+      props: { name: "World" },
+      children: [],
+    },
   },
 };
 

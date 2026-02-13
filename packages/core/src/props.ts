@@ -10,8 +10,11 @@ import { evaluateVisibility, type VisibilityContext } from "./visibility";
  * A prop expression that resolves to a value based on state.
  *
  * - `{ $state: string }` reads a value from the global state model
- * - `{ $item: string }` reads a value from the current repeat item
- * - `{ $index: true }` returns the current repeat array index
+ * - `{ $item: string }` reads a field from the current repeat item (path
+ *    into the item object; use `"/"` for the whole item)
+ * - `{ $index: true }` returns the current repeat array index. Uses `true`
+ *    as a sentinel flag because the index is a scalar with no sub-path to
+ *    navigate — unlike `$item` which needs a path into the item object.
  * - `{ $cond, $then, $else }` conditionally picks a value
  * - Any other value is a literal (passthrough)
  */

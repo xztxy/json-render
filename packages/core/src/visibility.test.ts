@@ -327,7 +327,7 @@ describe("evaluateVisibility", () => {
     it("lt with $state reference on right", () => {
       expect(
         evaluateVisibility(
-          { $state: "/count", lt: { $state: "/limit" } as unknown as number },
+          { $state: "/count", lt: { $state: "/limit" } },
           { stateModel: { count: 3, limit: 5 } },
         ),
       ).toBe(true);
@@ -358,6 +358,94 @@ describe("evaluateVisibility", () => {
         evaluateVisibility(
           [{ $state: "/isAdmin" }, { $state: "/tab", eq: "settings" }],
           { stateModel: { isAdmin: false, tab: "home" } },
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe("$and condition (explicit AND)", () => {
+    it("returns true when all children are true", () => {
+      expect(
+        evaluateVisibility(
+          {
+            $and: [{ $state: "/isAdmin" }, { $state: "/tab", eq: "settings" }],
+          },
+          { stateModel: { isAdmin: true, tab: "settings" } },
+        ),
+      ).toBe(true);
+    });
+
+    it("returns false when one child is false", () => {
+      expect(
+        evaluateVisibility(
+          {
+            $and: [{ $state: "/isAdmin" }, { $state: "/tab", eq: "settings" }],
+          },
+          { stateModel: { isAdmin: false, tab: "settings" } },
+        ),
+      ).toBe(false);
+    });
+
+    it("returns false when all children are false", () => {
+      expect(
+        evaluateVisibility(
+          {
+            $and: [{ $state: "/isAdmin" }, { $state: "/tab", eq: "settings" }],
+          },
+          { stateModel: { isAdmin: false, tab: "home" } },
+        ),
+      ).toBe(false);
+    });
+
+    it("supports nested $or inside $and", () => {
+      // AND( OR(isAdmin, isModerator), tab=settings )
+      expect(
+        evaluateVisibility(
+          {
+            $and: [
+              { $or: [{ $state: "/isAdmin" }, { $state: "/isModerator" }] },
+              { $state: "/tab", eq: "settings" },
+            ],
+          },
+          {
+            stateModel: {
+              isAdmin: false,
+              isModerator: true,
+              tab: "settings",
+            },
+          },
+        ),
+      ).toBe(true);
+      expect(
+        evaluateVisibility(
+          {
+            $and: [
+              { $or: [{ $state: "/isAdmin" }, { $state: "/isModerator" }] },
+              { $state: "/tab", eq: "settings" },
+            ],
+          },
+          {
+            stateModel: {
+              isAdmin: false,
+              isModerator: false,
+              tab: "settings",
+            },
+          },
+        ),
+      ).toBe(false);
+    });
+
+    it("supports booleans inside $and", () => {
+      expect(
+        evaluateVisibility(
+          { $and: [true, { $state: "/ok" }] },
+          { stateModel: { ok: true } },
+        ),
+      ).toBe(true);
+      expect(
+        evaluateVisibility(
+          { $and: [false, { $state: "/ok" }] },
+          { stateModel: { ok: true } },
         ),
       ).toBe(false);
     });

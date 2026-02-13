@@ -9,6 +9,7 @@ export type {
   Spec,
   VisibilityCondition,
   StateCondition,
+  AndCondition,
   OrCondition,
   StateModel,
   ComponentSchema,

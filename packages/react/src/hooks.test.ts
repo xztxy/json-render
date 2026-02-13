@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { flatToTree } from "./hooks";
+import { flatToTree, buildSpecFromParts, getTextFromParts } from "./hooks";
 
 describe("flatToTree", () => {
   it("converts array of elements to tree structure", () => {
@@ -147,5 +147,184 @@ describe("flatToTree", () => {
 
     expect(tree.elements["parent"].children).toHaveLength(4);
     expect(tree.elements["parent"].children).toEqual(["a", "b", "c", "d"]);
+  });
+});
+
+// =============================================================================
+// buildSpecFromParts
+// =============================================================================
+
+describe("buildSpecFromParts", () => {
+  it("returns null when no data-spec parts are present", () => {
+    const parts = [
+      { type: "text", text: "Hello there" },
+      { type: "text", text: "How can I help?" },
+    ];
+    expect(buildSpecFromParts(parts)).toBeNull();
+  });
+
+  it("builds a spec from patch parts", () => {
+    const parts = [
+      {
+        type: "data-spec",
+        data: {
+          type: "patch",
+          patch: { op: "add", path: "/root", value: "main" },
+        },
+      },
+      {
+        type: "data-spec",
+        data: {
+          type: "patch",
+          patch: {
+            op: "add",
+            path: "/elements/main",
+            value: { type: "Card", props: { title: "Hello" }, children: [] },
+          },
+        },
+      },
+    ];
+
+    const spec = buildSpecFromParts(parts);
+    expect(spec).not.toBeNull();
+    expect(spec!.root).toBe("main");
+    expect(spec!.elements.main).toEqual({
+      type: "Card",
+      props: { title: "Hello" },
+      children: [],
+    });
+  });
+
+  it("handles flat spec parts", () => {
+    const parts = [
+      {
+        type: "data-spec",
+        data: {
+          type: "flat",
+          spec: {
+            root: "card-1",
+            elements: {
+              "card-1": { type: "Card", props: {}, children: [] },
+            },
+          },
+        },
+      },
+    ];
+
+    const spec = buildSpecFromParts(parts);
+    expect(spec).not.toBeNull();
+    expect(spec!.root).toBe("card-1");
+    expect(spec!.elements["card-1"]).toBeDefined();
+  });
+
+  it("ignores non-spec parts", () => {
+    const parts = [
+      { type: "text", text: "Some text" },
+      {
+        type: "data-spec",
+        data: {
+          type: "patch",
+          patch: { op: "add", path: "/root", value: "main" },
+        },
+      },
+      { type: "tool-invocation", data: { toolName: "search" } },
+    ];
+
+    const spec = buildSpecFromParts(parts);
+    expect(spec).not.toBeNull();
+    expect(spec!.root).toBe("main");
+  });
+
+  it("applies patches incrementally", () => {
+    const parts = [
+      {
+        type: "data-spec",
+        data: {
+          type: "patch",
+          patch: { op: "add", path: "/root", value: "main" },
+        },
+      },
+      {
+        type: "data-spec",
+        data: {
+          type: "patch",
+          patch: {
+            op: "add",
+            path: "/elements/main",
+            value: { type: "Stack", props: {}, children: ["child"] },
+          },
+        },
+      },
+      {
+        type: "data-spec",
+        data: {
+          type: "patch",
+          patch: {
+            op: "add",
+            path: "/elements/child",
+            value: { type: "Text", props: { content: "Hi" }, children: [] },
+          },
+        },
+      },
+    ];
+
+    const spec = buildSpecFromParts(parts);
+    expect(spec).not.toBeNull();
+    expect(Object.keys(spec!.elements)).toHaveLength(2);
+    expect(spec!.elements.child!.props.content).toBe("Hi");
+  });
+});
+
+// =============================================================================
+// getTextFromParts
+// =============================================================================
+
+describe("getTextFromParts", () => {
+  it("extracts text from text parts", () => {
+    const parts = [
+      { type: "text", text: "Hello" },
+      { type: "text", text: "World" },
+    ];
+    expect(getTextFromParts(parts)).toBe("Hello\n\nWorld");
+  });
+
+  it("returns empty string when no text parts", () => {
+    const parts = [
+      {
+        type: "data-spec",
+        data: {
+          type: "patch",
+          patch: { op: "add", path: "/root", value: "x" },
+        },
+      },
+    ];
+    expect(getTextFromParts(parts)).toBe("");
+  });
+
+  it("ignores non-text parts", () => {
+    const parts = [
+      { type: "text", text: "Before" },
+      { type: "data-spec", data: {} },
+      { type: "tool-invocation", data: {} },
+      { type: "text", text: "After" },
+    ];
+    expect(getTextFromParts(parts)).toBe("Before\n\nAfter");
+  });
+
+  it("trims whitespace from text parts", () => {
+    const parts = [
+      { type: "text", text: "  Hello  " },
+      { type: "text", text: "  World  " },
+    ];
+    expect(getTextFromParts(parts)).toBe("Hello\n\nWorld");
+  });
+
+  it("skips empty text parts", () => {
+    const parts = [
+      { type: "text", text: "Hello" },
+      { type: "text", text: "   " },
+      { type: "text", text: "World" },
+    ];
+    expect(getTextFromParts(parts)).toBe("Hello\n\nWorld");
   });
 });

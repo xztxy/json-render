@@ -6,9 +6,12 @@ import {
   addByPath,
   removeByPath,
   applySpecStreamPatch,
+  applySpecPatch,
   compileSpecStream,
   createSpecStreamCompiler,
+  createMixedStreamParser,
 } from "./types";
+import type { Spec, SpecStreamLine } from "./types";
 
 describe("getByPath", () => {
   it("gets nested values with JSON pointer paths", () => {
@@ -555,5 +558,192 @@ describe("createSpecStreamCompiler", () => {
     compiler.push('{"op":"remove","path":"/y"}\n');
     const result = compiler.getResult();
     expect(result).toEqual({ z: 1, w: 2 });
+  });
+});
+
+// =============================================================================
+// applySpecPatch
+// =============================================================================
+
+describe("applySpecPatch", () => {
+  it("sets the root element", () => {
+    const spec: Spec = { root: "", elements: {} };
+    applySpecPatch(spec, { op: "add", path: "/root", value: "main" });
+    expect(spec.root).toBe("main");
+  });
+
+  it("adds an element to the elements map", () => {
+    const spec: Spec = { root: "main", elements: {} };
+    applySpecPatch(spec, {
+      op: "add",
+      path: "/elements/main",
+      value: { type: "Card", props: { title: "Hello" }, children: [] },
+    });
+    expect(spec.elements.main).toEqual({
+      type: "Card",
+      props: { title: "Hello" },
+      children: [],
+    });
+  });
+
+  it("replaces an existing element", () => {
+    const spec: Spec = {
+      root: "main",
+      elements: {
+        main: { type: "Card", props: { title: "Old" }, children: [] },
+      },
+    };
+    applySpecPatch(spec, {
+      op: "replace",
+      path: "/elements/main/props/title",
+      value: "New",
+    });
+    expect(spec.elements.main!.props.title).toBe("New");
+  });
+
+  it("removes an element", () => {
+    const spec: Spec = {
+      root: "main",
+      elements: {
+        main: { type: "Card", props: {}, children: [] },
+        child: { type: "Text", props: {}, children: [] },
+      },
+    };
+    applySpecPatch(spec, { op: "remove", path: "/elements/child" });
+    expect(spec.elements.child).toBeUndefined();
+    expect(spec.elements.main).toBeDefined();
+  });
+
+  it("adds state data", () => {
+    const spec: Spec = { root: "main", elements: {} };
+    applySpecPatch(spec, {
+      op: "add",
+      path: "/state",
+      value: { count: 0 },
+    });
+    expect(spec.state).toEqual({ count: 0 });
+  });
+
+  it("returns the mutated spec", () => {
+    const spec: Spec = { root: "", elements: {} };
+    const result = applySpecPatch(spec, {
+      op: "add",
+      path: "/root",
+      value: "main",
+    });
+    expect(result).toBe(spec);
+  });
+});
+
+// =============================================================================
+// createMixedStreamParser
+// =============================================================================
+
+describe("createMixedStreamParser", () => {
+  it("classifies JSONL lines as patches", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    parser.push('{"op":"add","path":"/root","value":"main"}\n');
+    expect(patches).toHaveLength(1);
+    expect(patches[0]!.op).toBe("add");
+    expect(patches[0]!.path).toBe("/root");
+    expect(texts).toHaveLength(0);
+  });
+
+  it("classifies non-JSONL lines as text", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    parser.push("Hello, here is your UI:\n");
+    expect(texts).toHaveLength(1);
+    expect(texts[0]).toBe("Hello, here is your UI:");
+    expect(patches).toHaveLength(0);
+  });
+
+  it("handles mixed text and JSONL", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    parser.push(
+      'Here is the dashboard:\n{"op":"add","path":"/root","value":"dash"}\n',
+    );
+    expect(texts).toHaveLength(1);
+    expect(texts[0]).toBe("Here is the dashboard:");
+    expect(patches).toHaveLength(1);
+    expect(patches[0]!.path).toBe("/root");
+  });
+
+  it("buffers partial lines across chunks", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    parser.push('{"op":"add","path":"/ro');
+    expect(patches).toHaveLength(0);
+
+    parser.push('ot","value":"main"}\n');
+    expect(patches).toHaveLength(1);
+    expect(patches[0]!.path).toBe("/root");
+  });
+
+  it("flushes remaining buffer on flush()", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    // No trailing newline — stuck in buffer
+    parser.push('{"op":"add","path":"/root","value":"main"}');
+    expect(patches).toHaveLength(0);
+
+    parser.flush();
+    expect(patches).toHaveLength(1);
+  });
+
+  it("flushes text buffer on flush()", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    parser.push("Some trailing text");
+    expect(texts).toHaveLength(0);
+
+    parser.flush();
+    expect(texts).toHaveLength(1);
+    expect(texts[0]).toBe("Some trailing text");
+  });
+
+  it("skips empty lines", () => {
+    const patches: SpecStreamLine[] = [];
+    const texts: string[] = [];
+    const parser = createMixedStreamParser({
+      onPatch: (p) => patches.push(p),
+      onText: (t) => texts.push(t),
+    });
+
+    parser.push("\n\n\n");
+    expect(patches).toHaveLength(0);
+    expect(texts).toHaveLength(0);
   });
 });

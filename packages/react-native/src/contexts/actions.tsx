@@ -164,7 +164,7 @@ export function ActionProvider({
       }
 
       // Built-in: pushState appends an item to an array in state.
-      // Supports dynamic values inside the value object via { path: "/..." } syntax.
+      // Supports dynamic values inside the value object via { $state: "/..." } syntax.
       if (resolved.action === "pushState" && resolved.params) {
         const path = resolved.params.path as string;
         const rawValue = resolved.params.value;

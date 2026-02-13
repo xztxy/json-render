@@ -58,6 +58,38 @@ export interface ValidationProviderProps {
 }
 
 /**
+ * Structural equality check for ValidationConfig.
+ * Avoids JSON.stringify which is sensitive to key ordering.
+ */
+function validationConfigEqual(
+  a: ValidationConfig,
+  b: ValidationConfig,
+): boolean {
+  if (a === b) return true;
+
+  // Compare validateOn
+  if (a.validateOn !== b.validateOn) return false;
+
+  // Compare checks arrays
+  const ac = a.checks ?? [];
+  const bc = b.checks ?? [];
+  if (ac.length !== bc.length) return false;
+
+  for (let i = 0; i < ac.length; i++) {
+    const ca = ac[i]!;
+    const cb = bc[i]!;
+    if (ca.type !== cb.type) return false;
+    if (ca.message !== cb.message) return false;
+    // Compare args by stringifying (small objects, order-insensitive is overkill here)
+    const argsA = ca.args ? JSON.stringify(ca.args) : undefined;
+    const argsB = cb.args ? JSON.stringify(cb.args) : undefined;
+    if (argsA !== argsB) return false;
+  }
+
+  return true;
+}
+
+/**
  * Provider for validation
  */
 export function ValidationProvider({
@@ -74,14 +106,32 @@ export function ValidationProvider({
 
   const registerField = useCallback(
     (path: string, config: ValidationConfig) => {
-      setFieldConfigs((prev) => ({ ...prev, [path]: config }));
+      setFieldConfigs((prev) => {
+        const existing = prev[path];
+        // Bail out (return same reference) if config is unchanged to avoid
+        // infinite re-render loops when callers pass a fresh object each render.
+        if (existing && validationConfigEqual(existing, config)) {
+          return prev;
+        }
+        return { ...prev, [path]: config };
+      });
     },
     [],
   );
 
   const validate = useCallback(
     (path: string, config: ValidationConfig): ValidationResult => {
-      const value = state[path.split("/").filter(Boolean).join(".")];
+      // Walk the nested state object using JSON Pointer segments
+      const segments = path.split("/").filter(Boolean);
+      let value: unknown = state;
+      for (const seg of segments) {
+        if (value != null && typeof value === "object") {
+          value = (value as Record<string, unknown>)[seg];
+        } else {
+          value = undefined;
+          break;
+        }
+      }
       const result = runValidation(config, {
         value,
         stateModel: state,

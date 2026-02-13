@@ -98,12 +98,19 @@ export type StateCondition = {
   $state: string;
   eq?: unknown;
   neq?: unknown;
-  gt?: number;
-  gte?: number;
-  lt?: number;
-  lte?: number;
+  gt?: number | { $state: string };
+  gte?: number | { $state: string };
+  lt?: number | { $state: string };
+  lte?: number | { $state: string };
   not?: true;
 };
+
+/**
+ * AND wrapper — all child conditions must be true.
+ * This is the explicit form of the implicit array AND (`StateCondition[]`).
+ * Unlike the implicit form, `$and` supports nested `$or` and `$and` conditions.
+ */
+export type AndCondition = { $and: VisibilityCondition[] };
 
 /**
  * OR wrapper — at least one child condition must be true.
@@ -115,12 +122,14 @@ export type OrCondition = { $or: VisibilityCondition[] };
  * - `boolean` — always/never
  * - `StateCondition` — single condition
  * - `StateCondition[]` — implicit AND (all must be true)
+ * - `AndCondition` — `{ $and: [...] }`, explicit AND (all must be true)
  * - `OrCondition` — `{ $or: [...] }`, at least one must be true
  */
 export type VisibilityCondition =
   | boolean
   | StateCondition
   | StateCondition[]
+  | AndCondition
   | OrCondition;
 
 /**
@@ -1022,8 +1031,8 @@ export type SpecDataPart =
  * return createUIMessageStreamResponse({ stream });
  * ```
  */
-export function pipeJsonRender<T extends ReadableStream<StreamChunk>>(
-  stream: T,
-): T {
-  return stream.pipeThrough(createJsonRenderTransform()) as T;
+export function pipeJsonRender(
+  stream: ReadableStream<StreamChunk>,
+): ReadableStream<StreamChunk> {
+  return stream.pipeThrough(createJsonRenderTransform());
 }
