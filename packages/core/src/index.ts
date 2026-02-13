@@ -42,6 +42,7 @@ export {
   parseSpecStreamLine,
   applySpecStreamPatch,
   applySpecPatch,
+  nestedToFlat,
   compileSpecStream,
   createSpecStreamCompiler,
   // Mixed stream parser (chat + GenUI)

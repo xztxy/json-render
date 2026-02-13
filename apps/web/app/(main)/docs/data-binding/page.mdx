@@ -104,7 +104,7 @@ The `repeat` field on an element renders its children once per item in a state a
     "todo-list": {
       "type": "Column",
       "props": { "gap": 8 },
-      "repeat": { "path": "/todos", "key": "id" },
+      "repeat": { "statePath": "/todos", "key": "id" },
       "children": ["todo-item"]
     },
     "todo-item": {
@@ -125,7 +125,7 @@ The `repeat` field on an element renders its children once per item in a state a
 }
 ```
 
-- `repeat.path` — JSON Pointer to the state array
+- `repeat.statePath` — JSON Pointer to the state array
 - `repeat.key` — field name on each item to use as a stable key for rendering
 
 Inside `todo-item`, `{ "$item": "/title" }` reads the `title` field from whichever array item is currently being rendered. `{ "$index": true }` would return `0` for the first item, `1` for the second, and so on.

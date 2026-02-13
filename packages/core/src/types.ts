@@ -68,7 +68,7 @@ export interface UIElement<
   /** Event bindings — maps event names to action bindings */
   on?: Record<string, ActionBinding | ActionBinding[]>;
   /** Repeat children once per item in a state array */
-  repeat?: { path: string; key?: string };
+  repeat?: { statePath: string; key?: string };
 }
 
 /**
@@ -573,6 +573,108 @@ export function applySpecStreamPatch<T extends Record<string, unknown>>(
  */
 export function applySpecPatch(spec: Spec, patch: SpecStreamLine): Spec {
   applySpecStreamPatch(spec as unknown as Record<string, unknown>, patch);
+  return spec;
+}
+
+// =============================================================================
+// Nested-to-Flat Conversion
+// =============================================================================
+
+/**
+ * A nested spec node. This is the tree format that humans naturally write —
+ * each node has inline `children` as an array of child node objects rather
+ * than string keys.
+ */
+interface NestedNode {
+  type: string;
+  props: Record<string, unknown>;
+  children?: NestedNode[];
+  /** Any other top-level fields (visible, on, repeat, etc.) */
+  [key: string]: unknown;
+}
+
+/**
+ * Convert a nested (tree-structured) spec into the flat `Spec` format used
+ * by json-render renderers.
+ *
+ * In the nested format each node has inline `children` as an array of child
+ * objects. This function walks the tree, assigns auto-generated keys
+ * (`el-0`, `el-1`, ...), and produces a flat `{ root, elements, state }` spec.
+ *
+ * The top-level `state` field (if present on the root node) is hoisted to
+ * `spec.state`.
+ *
+ * @example
+ * ```ts
+ * const nested = {
+ *   type: "Card",
+ *   props: { title: "Hello" },
+ *   children: [
+ *     { type: "Text", props: { content: "World" } },
+ *   ],
+ *   state: { count: 0 },
+ * };
+ * const spec = nestedToFlat(nested);
+ * // {
+ * //   root: "el-0",
+ * //   elements: {
+ * //     "el-0": { type: "Card", props: { title: "Hello" }, children: ["el-1"] },
+ * //     "el-1": { type: "Text", props: { content: "World" }, children: [] },
+ * //   },
+ * //   state: { count: 0 },
+ * // }
+ * ```
+ */
+export function nestedToFlat(nested: Record<string, unknown>): Spec {
+  const elements: Record<string, UIElement> = {};
+  let counter = 0;
+
+  function walk(node: Record<string, unknown>): string {
+    const key = `el-${counter++}`;
+    const { type, props, children: rawChildren, ...rest } = node as NestedNode;
+
+    // Recursively flatten children
+    const childKeys: string[] = [];
+    if (Array.isArray(rawChildren)) {
+      for (const child of rawChildren) {
+        if (child && typeof child === "object" && "type" in child) {
+          childKeys.push(walk(child as Record<string, unknown>));
+        }
+      }
+    }
+
+    // Build the flat element, preserving extra fields (visible, on, repeat, etc.)
+    // but excluding `state` which is hoisted to spec-level.
+    const element: UIElement = {
+      type: type ?? "unknown",
+      props: (props as Record<string, unknown>) ?? {},
+      children: childKeys,
+    };
+
+    // Copy extra fields (visible, on, repeat) but not state
+    for (const [k, v] of Object.entries(rest)) {
+      if (k !== "state" && v !== undefined) {
+        (element as unknown as Record<string, unknown>)[k] = v;
+      }
+    }
+
+    elements[key] = element;
+    return key;
+  }
+
+  const root = walk(nested);
+
+  const spec: Spec = { root, elements };
+
+  // Hoist state from root node if present
+  if (
+    nested.state &&
+    typeof nested.state === "object" &&
+    !Array.isArray(nested.state)
+  ) {
+    spec.state = nested.state as Record<string, unknown>;
+  }
+
   return spec;
 }
 

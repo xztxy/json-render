@@ -15,6 +15,7 @@ import {
   removeByPath,
   createMixedStreamParser,
   applySpecPatch,
+  nestedToFlat,
 } from "@json-render/core";
 
 /**
@@ -474,8 +475,8 @@ export function buildSpecFromParts(parts: DataPart[]): Spec | null {
         Object.assign(spec, payload.spec);
       } else if (payload.type === "nested") {
         hasSpec = true;
-        // TODO: nested-to-flat conversion (future)
-        Object.assign(spec, payload.spec);
+        const flat = nestedToFlat(payload.spec);
+        Object.assign(spec, flat);
       }
     }
   }

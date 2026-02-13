@@ -7,6 +7,7 @@ import {
   removeByPath,
   applySpecStreamPatch,
   applySpecPatch,
+  nestedToFlat,
   compileSpecStream,
   createSpecStreamCompiler,
   createMixedStreamParser,
@@ -745,5 +746,127 @@ describe("createMixedStreamParser", () => {
     parser.push("\n\n\n");
     expect(patches).toHaveLength(0);
     expect(texts).toHaveLength(0);
+  });
+});
+
+// =============================================================================
+// nestedToFlat
+// =============================================================================
+
+describe("nestedToFlat", () => {
+  it("converts a single node with no children", () => {
+    const spec = nestedToFlat({
+      type: "Text",
+      props: { content: "Hello" },
+    });
+    expect(spec.root).toBe("el-0");
+    expect(spec.elements["el-0"]).toEqual({
+      type: "Text",
+      props: { content: "Hello" },
+      children: [],
+    });
+  });
+
+  it("converts a tree with children", () => {
+    const spec = nestedToFlat({
+      type: "Card",
+      props: { title: "Hello" },
+      children: [
+        { type: "Text", props: { content: "World" }, children: [] },
+        { type: "Button", props: { label: "Click" } },
+      ],
+    });
+
+    expect(spec.root).toBe("el-0");
+    expect(Object.keys(spec.elements)).toHaveLength(3);
+    expect(spec.elements["el-0"]!.type).toBe("Card");
+    expect(spec.elements["el-0"]!.children).toEqual(["el-1", "el-2"]);
+    expect(spec.elements["el-1"]!.type).toBe("Text");
+    expect(spec.elements["el-1"]!.children).toEqual([]);
+    expect(spec.elements["el-2"]!.type).toBe("Button");
+    expect(spec.elements["el-2"]!.children).toEqual([]);
+  });
+
+  it("hoists state from root node", () => {
+    const spec = nestedToFlat({
+      type: "Card",
+      props: { title: "Hello" },
+      children: [],
+      state: { count: 0, items: [] },
+    });
+
+    expect(spec.state).toEqual({ count: 0, items: [] });
+    // state should not appear as a field on the element
+    expect(
+      (spec.elements["el-0"] as Record<string, unknown>).state,
+    ).toBeUndefined();
+  });
+
+  it("preserves extra fields like visible and on", () => {
+    const spec = nestedToFlat({
+      type: "Panel",
+      props: {},
+      visible: { $state: "/showPanel" },
+      on: { press: { action: "setState", params: { path: "/x", value: 1 } } },
+      children: [],
+    });
+
+    const el = spec.elements["el-0"] as Record<string, unknown>;
+    expect(el.visible).toEqual({ $state: "/showPanel" });
+    expect(el.on).toEqual({
+      press: { action: "setState", params: { path: "/x", value: 1 } },
+    });
+  });
+
+  it("handles deeply nested trees", () => {
+    const spec = nestedToFlat({
+      type: "A",
+      props: {},
+      children: [
+        {
+          type: "B",
+          props: {},
+          children: [
+            {
+              type: "C",
+              props: {},
+              children: [{ type: "D", props: {} }],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(Object.keys(spec.elements)).toHaveLength(4);
+    expect(spec.elements["el-0"]!.children).toEqual(["el-1"]);
+    expect(spec.elements["el-1"]!.children).toEqual(["el-2"]);
+    expect(spec.elements["el-2"]!.children).toEqual(["el-3"]);
+    expect(spec.elements["el-3"]!.children).toEqual([]);
+  });
+
+  it("returns empty elements for empty children array", () => {
+    const spec = nestedToFlat({
+      type: "Empty",
+      props: {},
+      children: [],
+    });
+
+    expect(Object.keys(spec.elements)).toHaveLength(1);
+    expect(spec.elements["el-0"]!.children).toEqual([]);
+  });
+
+  it("does not hoist state from non-root nodes", () => {
+    const spec = nestedToFlat({
+      type: "Root",
+      props: {},
+      children: [{ type: "Child", props: {}, state: { shouldNotHoist: true } }],
+    });
+
+    // Only root state hoists to spec.state
+    expect(spec.state).toBeUndefined();
+    // The child's state is not a standard field, so it should not leak
+    expect(
+      (spec.elements["el-1"] as Record<string, unknown>).state,
+    ).toBeUndefined();
   });
 });

@@ -58,8 +58,42 @@ export interface ValidationProviderProps {
 }
 
 /**
+ * Compare two DynamicValue args records shallowly.
+ * Values are primitives or { $state: string }, so shallow comparison suffices.
+ */
+function dynamicArgsEqual(
+  a: Record<string, unknown> | undefined,
+  b: Record<string, unknown> | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    const va = a[key];
+    const vb = b[key];
+    if (va === vb) continue;
+    // Handle { $state: string } objects
+    if (
+      typeof va === "object" &&
+      va !== null &&
+      typeof vb === "object" &&
+      vb !== null
+    ) {
+      const sa = (va as Record<string, unknown>).$state;
+      const sb = (vb as Record<string, unknown>).$state;
+      if (typeof sa === "string" && sa === sb) continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+/**
  * Structural equality check for ValidationConfig.
- * Avoids JSON.stringify which is sensitive to key ordering.
  */
 function validationConfigEqual(
   a: ValidationConfig,
@@ -80,10 +114,7 @@ function validationConfigEqual(
     const cb = bc[i]!;
     if (ca.type !== cb.type) return false;
     if (ca.message !== cb.message) return false;
-    // Compare args by stringifying (small objects, order-insensitive is overkill here)
-    const argsA = ca.args ? JSON.stringify(ca.args) : undefined;
-    const argsB = cb.args ? JSON.stringify(cb.args) : undefined;
-    if (argsA !== argsB) return false;
+    if (!dynamicArgsEqual(ca.args, cb.args)) return false;
   }
 
   return true;

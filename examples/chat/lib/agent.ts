@@ -44,7 +44,7 @@ DATA BINDING:
 INTERACTIVITY:
 - You can use visible, repeat, on.press, and $cond/$then/$else freely.
 - visible: Conditionally show/hide elements based on state. e.g. "visible": { "$state": "/q1/answer", "eq": "a" }
-- repeat: Iterate over state arrays. e.g. "repeat": { "path": "/items" }
+- repeat: Iterate over state arrays. e.g. "repeat": { "statePath": "/items" }
 - on.press: Trigger actions on button clicks. e.g. "on": { "press": { "action": "setState", "params": { "path": "/submitted", "value": true } } }
 - $cond/$then/$else: Conditional prop values. e.g. { "$cond": { "$state": "/correct" }, "$then": "Correct!", "$else": "Try again" }
 

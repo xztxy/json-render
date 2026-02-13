@@ -271,7 +271,7 @@ function RepeatChildren({
 }) {
   const { state } = useStateStore();
   const repeat = element.repeat!;
-  const statePath = repeat.path;
+  const statePath = repeat.statePath;
 
   const items = (getByPath(state, statePath) as unknown[] | undefined) ?? [];
 

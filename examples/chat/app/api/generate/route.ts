@@ -28,7 +28,8 @@ export async function POST(req: Request) {
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
-      writer.merge(pipeJsonRender(result.toUIMessageStream()));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      writer.merge(pipeJsonRender(result.toUIMessageStream()) as any);
     },
   });
 

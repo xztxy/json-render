@@ -615,7 +615,7 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
       value: {
         type: comp1,
         props: comp1Props,
-        repeat: { path: "/items", key: "id" },
+        repeat: { statePath: "/items", key: "id" },
         children: ["item"],
       },
     }),
@@ -674,13 +674,13 @@ Note: state patches appear right after the elements that use them, so the UI fil
   lines.push("");
   lines.push("DYNAMIC LISTS (repeat field):");
   lines.push(
-    'Any element can have a top-level "repeat" field to render its children once per item in a state array: { "repeat": { "path": "/arrayPath", "key": "id" } }.',
+    'Any element can have a top-level "repeat" field to render its children once per item in a state array: { "repeat": { "statePath": "/arrayPath", "key": "id" } }.',
   );
   lines.push(
-    'The element itself renders once (as the container), and its children are expanded once per array item. "path" is the state array path. "key" is an optional field name on each item for stable React keys.',
+    'The element itself renders once (as the container), and its children are expanded once per array item. "statePath" is the state array path. "key" is an optional field name on each item for stable React keys.',
   );
   lines.push(
-    `Example: ${JSON.stringify({ type: comp1, props: comp1Props, repeat: { path: "/todos", key: "id" }, children: ["todo-item"] })}`,
+    `Example: ${JSON.stringify({ type: comp1, props: comp1Props, repeat: { statePath: "/todos", key: "id" }, children: ["todo-item"] })}`,
   );
   lines.push(
     'Inside children of a repeated element, use { "$item": "/field" } to read a field from the current item, and { "$index": true } to get the current array index. For two-way binding use statePath:"$item/completed".',
