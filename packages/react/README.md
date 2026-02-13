@@ -154,7 +154,7 @@ Share data across components with JSON Pointer paths:
 </StateProvider>
 
 // In components:
-const { data, get, set } = useStateStore();
+const { state, get, set } = useStateStore();
 const name = get("/user/name");  // "John"
 set("/user/age", 25);
 ```

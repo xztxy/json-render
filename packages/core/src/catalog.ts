@@ -7,7 +7,7 @@ import type {
   VisibilityCondition,
 } from "./types";
 import { VisibilityConditionSchema } from "./visibility";
-import { ActionSchema, type ActionDefinition } from "./actions";
+import { type ActionDefinition } from "./actions";
 import { ValidationConfigSchema, type ValidationFunction } from "./validation";
 
 /**

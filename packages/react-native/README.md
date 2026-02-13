@@ -218,8 +218,8 @@ const systemPrompt = catalog.prompt({
 
 | Hook | Purpose |
 |------|---------|
-| `useStateStore()` | Access data context (`data`, `get`, `set`) |
-| `useStateValue(path)` | Get single value from data |
+| `useStateStore()` | Access state context (`state`, `get`, `set`, `update`) |
+| `useStateValue(path)` | Get single value from state |
 | `useStateBinding(path)` | Two-way data binding (returns `[value, setValue]`) |
 | `useVisibility()` | Access visibility evaluation |
 | `useIsVisible(condition)` | Check if condition is met |

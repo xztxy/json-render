@@ -650,18 +650,21 @@ export function createRenderer<
     authState,
     fallback,
   }: CreateRendererProps) {
-    // Wrap onAction to match internal API
+    // Wrap onAction with a Proxy so any action name routes to the callback
     const actionHandlers = onAction
-      ? {
-          __default__: (params: Record<string, unknown>) => {
-            const actionName = params.__actionName__ as string;
-            const actionParams = params.__actionParams__ as Record<
-              string,
-              unknown
-            >;
-            return onAction(actionName, actionParams);
+      ? new Proxy(
+          {} as Record<
+            string,
+            (params: Record<string, unknown>) => void | Promise<void>
+          >,
+          {
+            get: (_target, prop: string) => {
+              return (params: Record<string, unknown>) =>
+                onAction(prop, params);
+            },
+            has: () => true,
           },
-        }
+        )
       : undefined;
 
     return (

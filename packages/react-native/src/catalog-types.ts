@@ -5,7 +5,10 @@ import type {
   InferCatalogActions,
   InferComponentProps,
   InferActionParams,
+  StateModel,
 } from "@json-render/core";
+
+export type { StateModel };
 
 // =============================================================================
 // State Types
@@ -17,11 +20,6 @@ import type {
 export type SetState = (
   updater: (prev: Record<string, unknown>) => Record<string, unknown>,
 ) => void;
-
-/**
- * State model type (generic record)
- */
-export type StateModel = Record<string, unknown>;
 
 // =============================================================================
 // Component Types
