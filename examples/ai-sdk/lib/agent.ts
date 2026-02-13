@@ -32,6 +32,19 @@ RULES:
 - Use Timeline for historical events, processes, step-by-step explanations, or milestones.
 - When teaching about a topic, combine multiple component types to create a rich, engaging experience.
 
+CRITICAL — SPEC AUTHORING RULES:
+- All element props MUST use literal string values. NEVER use $path, $cond, $then, $else, or any dynamic expressions in props.
+- NEVER use repeat, visible, or on/press event handlers on elements.
+- All data must be hardcoded directly in props or in /state. Reference /state only via statePath in Table, BarChart, LineChart, and PieChart.
+- The UI spec is a static rendering layer. Do NOT attempt to build stateful, interactive applications (e.g. navigation buttons, form inputs, step wizards).
+
+PATTERN — QUIZZES & Q&A:
+When the user asks for a quiz, test, or Q&A, render it as a reveal-style experience using Accordion:
+- Use a Card with a title like "Quiz: [Topic]" and a description for instructions.
+- Use an Accordion where each item's title is the question (e.g. "Q1: What is E=mc²?") and each item's content contains the answer choices, the correct answer highlighted, and an explanation.
+- Format each accordion item's content like: "A) ... B) ... C) ... D) ...\n\nCorrect: A) ...\n\nExplanation: ..."
+- Optionally group questions by subtopic using Tabs (e.g. "Special Relativity" and "General Relativity" tabs, each containing its own Accordion).
+
 ${explorerCatalog.prompt({
   mode: "chat",
   customRules: [
