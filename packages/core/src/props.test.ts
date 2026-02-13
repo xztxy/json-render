@@ -3,6 +3,7 @@ import {
   resolvePropValue,
   resolveElementProps,
   resolveBindings,
+  resolveActionParam,
 } from "./props";
 import type { PropResolutionContext } from "./props";
 
@@ -424,5 +425,76 @@ describe("$bindState expressions", () => {
         checked: "/todos/0/done",
       });
     });
+  });
+});
+
+// =============================================================================
+// resolveActionParam
+// =============================================================================
+
+describe("resolveActionParam", () => {
+  it("resolves $item to an absolute state path via repeatBasePath", () => {
+    const ctx: PropResolutionContext = {
+      stateModel: { todos: [{ title: "Buy milk" }] },
+      repeatItem: { title: "Buy milk" },
+      repeatIndex: 0,
+      repeatBasePath: "/todos/0",
+    };
+    expect(resolveActionParam({ $item: "title" }, ctx)).toBe("/todos/0/title");
+  });
+
+  it("resolves $item with empty string to the repeatBasePath itself", () => {
+    const ctx: PropResolutionContext = {
+      stateModel: { items: ["a", "b"] },
+      repeatItem: "a",
+      repeatIndex: 0,
+      repeatBasePath: "/items/0",
+    };
+    expect(resolveActionParam({ $item: "" }, ctx)).toBe("/items/0");
+  });
+
+  it("returns undefined for $item when no repeatBasePath", () => {
+    const ctx: PropResolutionContext = {
+      stateModel: {},
+      repeatItem: { title: "Hello" },
+      repeatIndex: 0,
+    };
+    expect(resolveActionParam({ $item: "title" }, ctx)).toBeUndefined();
+  });
+
+  it("resolves $index to the current repeat index", () => {
+    const ctx: PropResolutionContext = {
+      stateModel: {},
+      repeatItem: { id: "1" },
+      repeatIndex: 5,
+    };
+    expect(resolveActionParam({ $index: true }, ctx)).toBe(5);
+  });
+
+  it("returns undefined for $index when no repeat context", () => {
+    const ctx: PropResolutionContext = { stateModel: {} };
+    expect(resolveActionParam({ $index: true }, ctx)).toBeUndefined();
+  });
+
+  it("delegates $state expressions to resolvePropValue", () => {
+    const ctx: PropResolutionContext = {
+      stateModel: { form: { id: "abc-123" } },
+    };
+    expect(resolveActionParam({ $state: "/form/id" }, ctx)).toBe("abc-123");
+  });
+
+  it("passes through literal strings", () => {
+    const ctx: PropResolutionContext = { stateModel: {} };
+    expect(resolveActionParam("submit", ctx)).toBe("submit");
+  });
+
+  it("passes through literal numbers", () => {
+    const ctx: PropResolutionContext = { stateModel: {} };
+    expect(resolveActionParam(42, ctx)).toBe(42);
+  });
+
+  it("passes through null", () => {
+    const ctx: PropResolutionContext = { stateModel: {} };
+    expect(resolveActionParam(null, ctx)).toBeNull();
   });
 });

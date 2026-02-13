@@ -140,7 +140,12 @@ export function useStateValue<T>(path: string): T | undefined {
 }
 
 /**
- * Hook to get and set a value from the state model (like useState)
+ * Hook to get and set a value from the state model (like useState).
+ *
+ * @deprecated Use {@link useBoundProp} with `$bindState` expressions instead.
+ * `useStateBinding` takes a raw state path string, while `useBoundProp` works
+ * with the renderer's `bindings` map and supports both `$bindState` and
+ * `$bindItem` expressions.
  */
 export function useStateBinding<T>(
   path: string,

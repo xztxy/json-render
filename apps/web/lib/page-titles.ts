@@ -32,6 +32,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/openapi": "OpenAPI Integration",
   "docs/a2ui": "A2UI Integration",
   "docs/ag-ui": "AG-UI Integration",
+  "docs/migration": "Migration Guide",
   "docs/changelog": "Changelog",
 
   // API references

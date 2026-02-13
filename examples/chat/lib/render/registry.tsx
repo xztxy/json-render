@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useStateStore, defineRegistry } from "@json-render/react";
+import { useBoundProp, defineRegistry } from "@json-render/react";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -604,9 +604,11 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     },
 
     RadioGroup: ({ props, bindings }) => {
-      const { set } = useStateStore();
-      const path = bindings?.value;
-      const current = props.value ?? "";
+      const [value, setValue] = useBoundProp<string>(
+        props.value as string | undefined,
+        bindings?.value,
+      );
+      const current = value ?? "";
 
       return (
         <div className="flex flex-col gap-2">
@@ -615,16 +617,13 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
           )}
           <RadioGroup
             value={current}
-            onValueChange={(value: string) => path && set(path, value)}
+            onValueChange={(v: string) => setValue(v)}
           >
             {(props.options ?? []).map((opt) => (
               <div key={opt.value} className="flex items-center gap-2">
-                <RadioGroupItem
-                  value={opt.value}
-                  id={`${path ?? "rg"}-${opt.value}`}
-                />
+                <RadioGroupItem value={opt.value} id={`rg-${opt.value}`} />
                 <Label
-                  htmlFor={`${path ?? "rg"}-${opt.value}`}
+                  htmlFor={`rg-${opt.value}`}
                   className="font-normal cursor-pointer"
                 >
                   {opt.label}
@@ -637,19 +636,18 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     },
 
     SelectInput: ({ props, bindings }) => {
-      const { set } = useStateStore();
-      const path = bindings?.value;
-      const current = props.value ?? "";
+      const [value, setValue] = useBoundProp<string>(
+        props.value as string | undefined,
+        bindings?.value,
+      );
+      const current = value ?? "";
 
       return (
         <div className="flex flex-col gap-2">
           {props.label && (
             <Label className="text-sm font-medium">{props.label}</Label>
           )}
-          <Select
-            value={current}
-            onValueChange={(value: string) => path && set(path, value)}
-          >
+          <Select value={current} onValueChange={(v: string) => setValue(v)}>
             <SelectTrigger>
               <SelectValue placeholder={props.placeholder ?? "Select..."} />
             </SelectTrigger>
@@ -666,9 +664,11 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     },
 
     TextInput: ({ props, bindings }) => {
-      const { set } = useStateStore();
-      const path = bindings?.value;
-      const current = props.value ?? "";
+      const [value, setValue] = useBoundProp<string>(
+        props.value as string | undefined,
+        bindings?.value,
+      );
+      const current = value ?? "";
 
       return (
         <div className="flex flex-col gap-2">
@@ -679,7 +679,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
             type={props.type ?? "text"}
             placeholder={props.placeholder ?? ""}
             value={current}
-            onChange={(e) => path && set(path, e.target.value)}
+            onChange={(e) => setValue(e.target.value)}
           />
         </div>
       );

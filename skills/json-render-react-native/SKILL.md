@@ -159,9 +159,10 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 | `standardActionDefinitions` | Catalog definitions for standard actions |
 | `standardComponents` | Pre-built component implementations |
 | `createStandardActionHandlers` | Create handlers for standard actions |
-| `useStateStore` | Access data context |
-| `useStateValue` | Get single value from data |
-| `useStateBinding` | Two-way data binding |
+| `useStateStore` | Access state context |
+| `useStateValue` | Get single value from state |
+| `useBoundProp` | Two-way state binding via `$bindState`/`$bindItem` |
+| `useStateBinding` | _(deprecated)_ Legacy two-way binding by path |
 | `useActions` | Access actions context |
 | `useAction` | Get a single action dispatch function |
 | `useUIStream` | Stream specs from an API endpoint |

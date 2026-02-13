@@ -584,6 +584,14 @@ export function getTextFromParts(parts: DataPart[]): string {
  * message's parts array. Combines `buildSpecFromParts` and `getTextFromParts`
  * into a single call with memoized results.
  *
+ * **Memoization behavior:** Results are recomputed only when the `parts` array
+ * reference changes **and** either the length differs or the last element is a
+ * different object. This is optimized for the typical AI SDK streaming pattern
+ * where parts are appended incrementally. Mid-array edits (e.g. replacing an
+ * earlier part without appending) may not trigger recomputation. If you need to
+ * force a recompute after such edits, pass a new array reference with a
+ * different last element.
+ *
  * @example
  * ```tsx
  * import { useJsonRenderMessage } from "@json-render/react";

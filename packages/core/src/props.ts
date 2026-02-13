@@ -125,15 +125,16 @@ function isCondExpression(
  * `""` resolves to `repeatBasePath` (the whole item).
  * `"field"` resolves to `repeatBasePath + "/field"`.
  *
- * Returns the raw path unchanged when no `repeatBasePath` is available.
+ * Returns `undefined` when no `repeatBasePath` is available (i.e. `$bindItem`
+ * is used outside a repeat scope).
  */
 function resolveBindItemPath(
   itemPath: string,
   ctx: PropResolutionContext,
-): string {
+): string | undefined {
   if (ctx.repeatBasePath == null) {
     console.warn(`$bindItem used outside repeat scope: "${itemPath}"`);
-    return itemPath;
+    return undefined;
   }
   if (itemPath === "") return ctx.repeatBasePath;
   return ctx.repeatBasePath + "/" + itemPath;
@@ -182,6 +183,7 @@ export function resolvePropValue(
   // $bindItem: two-way binding to repeat item field
   if (isBindItemExpression(value)) {
     const resolvedPath = resolveBindItemPath(value.$bindItem, ctx);
+    if (resolvedPath === undefined) return undefined;
     return getByPath(ctx.stateModel, resolvedPath);
   }
 
@@ -249,8 +251,11 @@ export function resolveBindings(
       if (!bindings) bindings = {};
       bindings[key] = value.$bindState;
     } else if (isBindItemExpression(value)) {
-      if (!bindings) bindings = {};
-      bindings[key] = resolveBindItemPath(value.$bindItem, ctx);
+      const resolved = resolveBindItemPath(value.$bindItem, ctx);
+      if (resolved !== undefined) {
+        if (!bindings) bindings = {};
+        bindings[key] = resolved;
+      }
     }
   }
   return bindings;

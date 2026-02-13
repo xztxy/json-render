@@ -152,6 +152,7 @@ visibility.when("/path")                 // { $state: "/path" }
 visibility.unless("/path")               // { $state: "/path", not: true }
 visibility.eq("/path", val)              // { $state: "/path", eq: val }
 visibility.and(cond1, cond2)             // { $and: [cond1, cond2] }
+visibility.or(cond1, cond2)              // { $or: [cond1, cond2] }
 visibility.always                        // true
 visibility.never                         // false
 ```
