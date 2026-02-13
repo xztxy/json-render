@@ -31,14 +31,11 @@ export type PropExpression<T = unknown> =
 
 /**
  * Context for resolving prop expressions.
- * Extends VisibilityContext with optional repeat scope.
+ * Identical to {@link VisibilityContext} (which already includes
+ * `repeatItem` and `repeatIndex`). Kept as a named alias so call-sites
+ * can express intent — "I'm resolving props" vs "I'm evaluating visibility".
  */
-export interface PropResolutionContext extends VisibilityContext {
-  /** The current repeat item object (set inside a repeat) */
-  repeatItem?: unknown;
-  /** The current repeat array index (set inside a repeat) */
-  repeatIndex?: number;
-}
+export interface PropResolutionContext extends VisibilityContext {}
 
 // =============================================================================
 // Type Guards

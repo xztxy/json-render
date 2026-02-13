@@ -569,7 +569,7 @@ function generatePrompt<TDef extends SchemaDefinition, TCatalog>(
   } else {
     lines.push("OUTPUT FORMAT (JSONL, RFC 6902 JSON Patch):");
     lines.push(
-      "Output JSONL (one JSON object per line) using RFC 6902 JSON Patch operations to build a UI tree. Wrap all JSONL in a ```spec code fence.",
+      "Output JSONL (one JSON object per line) using RFC 6902 JSON Patch operations to build a UI tree.",
     );
   }
   lines.push(
@@ -913,7 +913,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
           "Use unique keys for the element map entries (e.g., 'header', 'metric-1', 'chart-revenue')",
         ]
       : [
-          "Output ONLY JSONL patches wrapped in a ```spec code fence - one JSON object per line inside the fence",
+          "Output ONLY JSONL patches - one JSON object per line, no markdown, no code fences",
           'First set root: {"op":"add","path":"/root","value":"<root-key>"}',
           'Then add each element: {"op":"add","path":"/elements/<key>","value":{...}}',
           "Output /state patches right after the elements that use them, one per array item for progressive loading. REQUIRED whenever using $state, $item, $index, repeat, or statePath.",

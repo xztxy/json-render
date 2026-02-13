@@ -16,6 +16,7 @@ import type {
 } from "@json-render/core";
 import {
   resolveElementProps,
+  resolvePropValue,
   evaluateVisibility,
   getByPath,
   type PropResolutionContext,
@@ -173,11 +174,28 @@ const ElementRenderer = React.memo(function ElementRenderer({
       const binding = onBindings?.[eventName];
       if (!binding) return;
       const bindings = Array.isArray(binding) ? binding : [binding];
-      for (const b of bindings) {
+      for (let b of bindings) {
+        // Resolve $item/$index in action params inside repeat scope
+        if (repeatScope && b.params) {
+          const resolved: Record<string, unknown> = {};
+          for (const [key, val] of Object.entries(b.params)) {
+            if (
+              typeof val === "string" &&
+              (val === "$item" || val.startsWith("$item/"))
+            ) {
+              // Rewrite $item-prefixed config paths to absolute paths
+              resolved[key] = repeatScope.basePath + val.slice("$item".length);
+            } else {
+              // Resolve $item/$index/$state/$cond expressions in values
+              resolved[key] = resolvePropValue(val, fullCtx);
+            }
+          }
+          b = { ...b, params: resolved };
+        }
         execute(b);
       }
     },
-    [onBindings, execute],
+    [onBindings, execute, repeatScope, fullCtx],
   );
 
   // Don't render if not visible
