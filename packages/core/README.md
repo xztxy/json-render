@@ -222,6 +222,22 @@ Read a value directly from the state model:
 }
 ```
 
+### Two-Way Binding (`$bind`)
+
+Use `{ "$bind": "/path" }` on the natural value prop for form components that need read/write access. The component reads from and writes to the state path:
+
+```json
+{
+  "type": "Input",
+  "props": {
+    "value": { "$bind": "/form/email" },
+    "placeholder": "Email"
+  }
+}
+```
+
+Inside a repeat scope, use `{ "$bind": "$item/completed" }` to bind to the current item's field.
+
 ### Conditional (`$cond` / `$then` / `$else`)
 
 Evaluate a condition (same syntax as visibility conditions) and pick a value:

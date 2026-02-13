@@ -18,12 +18,14 @@ json-render includes common validation functions:
 
 ## Using Validation in JSON
 
+Use `{ "$bind": "/path" }` on the value prop for two-way binding. Validation checks run against the value at the bound path (available as `bindings?.value` in components):
+
 ```json
 {
   "type": "TextField",
   "props": {
     "label": "Email",
-    "statePath": "/form/email",
+    "value": { "$bind": "/form/email" },
     "checks": [
       { "type": "required", "message": "Email is required" },
       { "type": "email", "message": "Invalid email format" }
@@ -40,7 +42,7 @@ json-render includes common validation functions:
   "type": "TextField",
   "props": {
     "label": "Password",
-    "statePath": "/form/password",
+    "value": { "$bind": "/form/password" },
     "checks": [
       { "type": "required", "message": "Password is required" },
       { 
@@ -110,25 +112,24 @@ function App() {
 
 ### Using in Components
 
-The `useFieldValidation` and `useStateStore` hooks wire validation into your registry components:
+The `useFieldValidation` and `useStateBinding` hooks wire validation into your registry components. Validation uses the path from `bindings?.value` (the bound state path):
 
 ```tsx
-import { useFieldValidation, useStateStore } from '@json-render/react';
+import { useFieldValidation, useStateBinding } from '@json-render/react';
 
-function TextField({ props }) {
-  const { state, set } = useStateStore();
+function TextField({ props, bindings }) {
+  const [value, setValue] = useStateBinding(bindings?.value ?? null);
   const { errors, isValid, validate, touch, clear } = useFieldValidation(
-    props.statePath,
+    bindings?.value ?? null,
     { checks: props.checks, validateOn: props.validateOn }
   );
-  const value = state[props.statePath] as string;
 
   return (
     <div>
       <label>{props.label}</label>
       <input
         value={value || ''}
-        onChange={(e) => set(props.statePath, e.target.value)}
+        onChange={(e) => setValue(e.target.value)}
         onBlur={() => validate()}
       />
       {errors.map((error, i) => (

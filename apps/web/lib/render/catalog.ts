@@ -67,11 +67,11 @@ export const playgroundCatalog = defineCatalog(schema, {
           }),
         ),
         defaultValue: z.string().nullable(),
-        statePath: z.string().nullable(),
+        value: z.string().nullable(),
       }),
       events: ["change"],
       description:
-        "Tab navigation. Use statePath to bind the active tab value.",
+        "Tab navigation. Use { $bind } on value for active tab binding.",
     },
 
     Accordion: {
@@ -297,7 +297,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         name: z.string(),
         type: z.enum(["text", "email", "password", "number"]).nullable(),
         placeholder: z.string().nullable(),
-        statePath: z.string().nullable(),
+        value: z.string().nullable(),
         checks: z
           .array(
             z.object({
@@ -310,7 +310,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       }),
       events: ["submit", "focus", "blur"],
       description:
-        "Text input field. Use statePath for two-way binding. Use checks for validation (e.g. required, email, minLength).",
+        "Text input field. Use { $bind } on value for two-way binding. Use checks for validation (e.g. required, email, minLength).",
       example: {
         label: "Email",
         name: "email",
@@ -325,7 +325,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         name: z.string(),
         placeholder: z.string().nullable(),
         rows: z.number().nullable(),
-        statePath: z.string().nullable(),
+        value: z.string().nullable(),
         checks: z
           .array(
             z.object({
@@ -337,7 +337,7 @@ export const playgroundCatalog = defineCatalog(schema, {
           .nullable(),
       }),
       description:
-        "Multi-line text input. Use statePath for binding. Use checks for validation.",
+        "Multi-line text input. Use { $bind } on value for binding. Use checks for validation.",
     },
 
     Select: {
@@ -346,7 +346,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         name: z.string(),
         options: z.array(z.string()),
         placeholder: z.string().nullable(),
-        statePath: z.string().nullable(),
+        value: z.string().nullable(),
         checks: z
           .array(
             z.object({
@@ -359,7 +359,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       }),
       events: ["change"],
       description:
-        "Dropdown select input. Use statePath for binding. Use checks for validation.",
+        "Dropdown select input. Use { $bind } on value for binding. Use checks for validation.",
     },
 
     Checkbox: {
@@ -367,10 +367,9 @@ export const playgroundCatalog = defineCatalog(schema, {
         label: z.string(),
         name: z.string(),
         checked: z.boolean().nullable(),
-        statePath: z.string().nullable(),
       }),
       events: ["change"],
-      description: "Checkbox input. Use statePath for binding.",
+      description: "Checkbox input. Use { $bind } on checked for binding.",
     },
 
     Radio: {
@@ -378,10 +377,10 @@ export const playgroundCatalog = defineCatalog(schema, {
         label: z.string(),
         name: z.string(),
         options: z.array(z.string()),
-        statePath: z.string().nullable(),
+        value: z.string().nullable(),
       }),
       events: ["change"],
-      description: "Radio button group. Use statePath for binding.",
+      description: "Radio button group. Use { $bind } on value for binding.",
     },
 
     Switch: {
@@ -389,10 +388,9 @@ export const playgroundCatalog = defineCatalog(schema, {
         label: z.string(),
         name: z.string(),
         checked: z.boolean().nullable(),
-        statePath: z.string().nullable(),
       }),
       events: ["change"],
-      description: "Toggle switch. Use statePath for binding.",
+      description: "Toggle switch. Use { $bind } on checked for binding.",
     },
 
     Slider: {
@@ -401,10 +399,10 @@ export const playgroundCatalog = defineCatalog(schema, {
         min: z.number().nullable(),
         max: z.number().nullable(),
         step: z.number().nullable(),
-        statePath: z.string().nullable(),
+        value: z.number().nullable(),
       }),
       events: ["change"],
-      description: "Range slider input. Use statePath for binding.",
+      description: "Range slider input. Use { $bind } on value for binding.",
     },
 
     // ── Actions ─────────────────────────────────────────────────────────
@@ -446,11 +444,10 @@ export const playgroundCatalog = defineCatalog(schema, {
       props: z.object({
         label: z.string(),
         pressed: z.boolean().nullable(),
-        statePath: z.string().nullable(),
         variant: z.enum(["default", "outline"]).nullable(),
       }),
       events: ["change"],
-      description: "Toggle button. Use statePath for pressed state binding.",
+      description: "Toggle button. Use { $bind } on pressed for state binding.",
     },
 
     ToggleGroup: {
@@ -462,11 +459,11 @@ export const playgroundCatalog = defineCatalog(schema, {
           }),
         ),
         type: z.enum(["single", "multiple"]).nullable(),
-        statePath: z.string().nullable(),
+        value: z.string().nullable(),
       }),
       events: ["change"],
       description:
-        "Group of toggle buttons. Type 'single' (default) or 'multiple'.",
+        "Group of toggle buttons. Type 'single' (default) or 'multiple'. Use { $bind } on value.",
     },
 
     ButtonGroup: {
@@ -477,45 +474,46 @@ export const playgroundCatalog = defineCatalog(schema, {
             value: z.string(),
           }),
         ),
-        statePath: z.string().nullable(),
+        selected: z.string().nullable(),
       }),
       events: ["change"],
-      description: "Segmented button group. Use statePath for selected value.",
+      description:
+        "Segmented button group. Use { $bind } on selected for selected value.",
     },
 
     Pagination: {
       props: z.object({
         totalPages: z.number(),
-        statePath: z.string(),
+        page: z.number().nullable(),
       }),
       events: ["change"],
       description:
-        "Page navigation. Bind statePath to a number for current page.",
+        "Page navigation. Use { $bind } on page for current page number.",
     },
   },
 
   actions: {
     setState: {
       params: z.object({
-        path: z.string(),
+        statePath: z.string(),
         value: z.unknown(),
       }),
-      description: "Update a value in the state model at the given path.",
+      description: "Update a value in the state model at the given statePath.",
     },
 
     pushState: {
       params: z.object({
-        path: z.string(),
+        statePath: z.string(),
         value: z.unknown(),
-        clearPath: z.string().optional(),
+        clearStatePath: z.string().optional(),
       }),
       description:
-        'Append an item to an array in state. Value can contain {path:"/statePath"} refs and "$id" for auto IDs. clearPath resets another path after pushing.',
+        'Append an item to an array in state. Value can contain {"$state":"/statePath"} refs and "$id" for auto IDs. clearStatePath resets another path after pushing.',
     },
 
     removeState: {
       params: z.object({
-        path: z.string(),
+        statePath: z.string(),
         index: z.number(),
       }),
       description: "Remove an item from an array in state at the given index.",

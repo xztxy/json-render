@@ -130,33 +130,65 @@ The `repeat` field on an element renders its children once per item in a state a
 
 Inside `todo-item`, `{ "$item": "/title" }` reads the `title` field from whichever array item is currently being rendered. `{ "$index": true }` would return `0` for the first item, `1` for the second, and so on.
 
-## Two-Way Binding with `statePath`
+## Two-Way Binding with `$bind`
 
-Form components like `TextInput`, `Switch`, and `Slider` accept a `statePath` prop for two-way binding. The component reads its value from that state path and writes updates back to it:
+Form components use `{ "$bind": "/path" }` on their natural value prop for two-way binding. The component reads from and writes to the state path.
+
+### Value prop (text inputs)
 
 ```json
 {
   "type": "TextInput",
   "props": {
-    "placeholder": "Enter your email",
-    "statePath": "/form/email"
+    "value": { "$bind": "/form/email" },
+    "placeholder": "Enter your email"
   },
   "children": []
 }
 ```
 
-Inside a repeat, prefix statePath with `$item` to bind to the current item:
+### Checked prop (switches, checkboxes)
+
+```json
+{
+  "type": "Switch",
+  "props": {
+    "label": "Enable notifications",
+    "checked": { "$bind": "/settings/notifications" }
+  },
+  "children": []
+}
+```
+
+### Pressed prop (toggle buttons)
+
+```json
+{
+  "type": "ToggleButton",
+  "props": {
+    "label": "Bold",
+    "pressed": { "$bind": "/editor/bold" }
+  },
+  "children": []
+}
+```
+
+### Inside a repeat
+
+Inside a repeat scope, use `{ "$bind": "$item/field" }` to bind to the current item:
 
 ```json
 {
   "type": "Switch",
   "props": {
     "label": "Done",
-    "statePath": "$item/done"
+    "checked": { "$bind": "$item/completed" }
   },
   "children": []
 }
 ```
+
+`statePath` is not used for component binding. It remains for `repeat.statePath` (array iteration path) and action params like `setState.statePath` (target path for mutations).
 
 ## Conditional Props
 
@@ -211,9 +243,9 @@ The condition uses the same [visibility](/docs/visibility) expression format.
         <td>Anywhere</td>
       </tr>
       <tr>
-        <td><code>{"statePath"}</code></td>
-        <td><code>{'"statePath": "/path"'}</code></td>
-        <td>Form components</td>
+        <td><code>{"$bind"}</code></td>
+        <td><code>{'{ "$bind": "/path" }'}</code></td>
+        <td>Form components (value, checked, pressed)</td>
       </tr>
     </tbody>
   </table>

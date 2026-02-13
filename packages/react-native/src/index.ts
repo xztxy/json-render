@@ -92,6 +92,7 @@ export {
 // Hooks
 export {
   useUIStream,
+  useBoundProp,
   flatToTree,
   type UseUIStreamOptions,
   type UseUIStreamReturn,

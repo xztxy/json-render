@@ -460,20 +460,17 @@ export const MenuGroup: FunctionComponent<ExtendedRenderProps> = ({
 // =========================================================================
 export const TextField: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  getValue,
 }) => {
   const {
     label,
     placeholder,
     description,
     error,
-    statePath,
+    value = "",
     size = "medium",
     disabled,
     required,
   } = element.props as Record<string, unknown>;
-  const value =
-    getValue && statePath ? (getValue(String(statePath)) as string) : "";
 
   return (
     <UITextField
@@ -481,7 +478,7 @@ export const TextField: FunctionComponent<ExtendedRenderProps> = ({
       placeholder={placeholder ? String(placeholder) : undefined}
       description={description ? String(description) : undefined}
       error={error ? String(error) : undefined}
-      value={value || ""}
+      value={String(value ?? "")}
       size={size as "small" | "medium" | "large"}
       disabled={Boolean(disabled) || undefined}
       required={Boolean(required) || undefined}
@@ -492,20 +489,17 @@ export const TextField: FunctionComponent<ExtendedRenderProps> = ({
 
 export const TextArea: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  getValue,
 }) => {
   const {
     label,
     placeholder,
     description,
     error,
-    statePath,
+    value = "",
     rows = 3,
     disabled,
     required,
   } = element.props as Record<string, unknown>;
-  const value =
-    getValue && statePath ? (getValue(String(statePath)) as string) : "";
 
   return (
     <UITextArea
@@ -513,7 +507,7 @@ export const TextArea: FunctionComponent<ExtendedRenderProps> = ({
       placeholder={placeholder ? String(placeholder) : undefined}
       description={description ? String(description) : undefined}
       error={error ? String(error) : undefined}
-      value={value || ""}
+      value={String(value ?? "")}
       rows={Number(rows)}
       disabled={Boolean(disabled) || undefined}
       required={Boolean(required) || undefined}
@@ -522,22 +516,17 @@ export const TextArea: FunctionComponent<ExtendedRenderProps> = ({
   );
 };
 
-export const Select: FunctionComponent<ExtendedRenderProps> = ({
-  element,
-  getValue,
-}) => {
+export const Select: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
   const {
     label,
     description,
     error,
-    statePath,
+    value = "",
     options = [],
     size = "medium",
     disabled,
     required,
   } = element.props as Record<string, unknown>;
-  const value =
-    getValue && statePath ? (getValue(String(statePath)) as string) : "";
   const opts = options as Array<{ value: string; label: string }>;
 
   return (
@@ -545,7 +534,7 @@ export const Select: FunctionComponent<ExtendedRenderProps> = ({
       label={String(label || "")}
       description={description ? String(description) : undefined}
       error={error ? String(error) : undefined}
-      value={value || ""}
+      value={String(value ?? "")}
       size={size as "small" | "medium" | "large"}
       disabled={Boolean(disabled) || undefined}
       required={Boolean(required) || undefined}
@@ -562,65 +551,56 @@ export const Select: FunctionComponent<ExtendedRenderProps> = ({
 
 export const Checkbox: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  getValue,
 }) => {
-  const { label, description, error, statePath, defaultChecked, disabled } =
+  const { label, description, error, checked, defaultChecked, disabled } =
     element.props as Record<string, unknown>;
-  const checked =
-    getValue && statePath
-      ? (getValue(String(statePath)) as boolean)
-      : Boolean(defaultChecked);
+  const isChecked = checked ?? defaultChecked;
 
   return (
     <UICheckbox
       label={String(label || "")}
       description={description ? String(description) : undefined}
       error={error ? String(error) : undefined}
-      checked={checked || undefined}
+      checked={Boolean(isChecked) || undefined}
       disabled={Boolean(disabled) || undefined}
       onChange={() => undefined}
     />
   );
 };
 
-export const Radio: FunctionComponent<ExtendedRenderProps> = ({
-  element,
-  getValue,
-}) => {
-  const { label, description, statePath, value, name, disabled } =
-    element.props as Record<string, unknown>;
-  const currentValue =
-    getValue && statePath ? (getValue(String(statePath)) as string) : "";
+export const Radio: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
+  const {
+    label,
+    description,
+    value: selectedValue,
+    optionValue,
+    name,
+    disabled,
+  } = element.props as Record<string, unknown>;
 
   return (
     <UIRadio
       label={String(label || "")}
       description={description ? String(description) : undefined}
-      value={String(value || "")}
+      value={String(optionValue ?? "")}
       name={String(name || "")}
-      checked={currentValue === value}
+      checked={String(selectedValue ?? "") === String(optionValue ?? "")}
       disabled={Boolean(disabled) || undefined}
       onChange={() => undefined}
     />
   );
 };
 
-export const Switch: FunctionComponent<ExtendedRenderProps> = ({
-  element,
-  getValue,
-}) => {
-  const { label, description, statePath, defaultChecked, disabled } =
+export const Switch: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
+  const { label, description, checked, defaultChecked, disabled } =
     element.props as Record<string, unknown>;
-  const checked =
-    getValue && statePath
-      ? (getValue(String(statePath)) as boolean)
-      : Boolean(defaultChecked);
+  const isChecked = checked ?? defaultChecked;
 
   return (
     <UISwitch
       label={String(label || "")}
       description={description ? String(description) : undefined}
-      checked={checked || undefined}
+      checked={Boolean(isChecked) || undefined}
       disabled={Boolean(disabled) || undefined}
       onChange={() => undefined}
     />
@@ -629,25 +609,22 @@ export const Switch: FunctionComponent<ExtendedRenderProps> = ({
 
 export const DateField: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  getValue,
 }) => {
   const {
     label,
     description,
     error,
-    statePath,
+    value = "",
     size = "medium",
     disabled,
   } = element.props as Record<string, unknown>;
-  const value =
-    getValue && statePath ? (getValue(String(statePath)) as string) : "";
 
   return (
     <UIDateField
       label={String(label || "")}
       description={description ? String(description) : undefined}
       error={error ? String(error) : undefined}
-      value={value || ""}
+      value={String(value ?? "")}
       size={size as "small" | "medium" | "large"}
       disabled={Boolean(disabled) || undefined}
       onChange={() => undefined}
@@ -716,10 +693,9 @@ export const Link: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
 // =========================================================================
 export const BarChart: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  state,
 }) => {
   const {
-    statePath,
+    data = [],
     xKey,
     yKey,
     colorKey,
@@ -729,11 +705,7 @@ export const BarChart: FunctionComponent<ExtendedRenderProps> = ({
     showTooltip = true,
   } = element.props as Record<string, unknown>;
 
-  // Get data from path
-  const chartData =
-    statePath && state
-      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
-      : [];
+  const chartData = Array.isArray(data) ? data : [];
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
     return (
@@ -757,10 +729,9 @@ export const BarChart: FunctionComponent<ExtendedRenderProps> = ({
 
 export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  state,
 }) => {
   const {
-    statePath,
+    data = [],
     xKey,
     yKey,
     colorKey,
@@ -770,10 +741,7 @@ export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
     showTooltip = true,
   } = element.props as Record<string, unknown>;
 
-  const chartData =
-    statePath && state
-      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
-      : [];
+  const chartData = Array.isArray(data) ? data : [];
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
     return (
@@ -797,17 +765,15 @@ export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
 
 export const Sparkline: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  state,
 }) => {
-  const { statePath, xKey, yKey, showTooltip } = element.props as Record<
-    string,
-    unknown
-  >;
+  const {
+    data = [],
+    xKey,
+    yKey,
+    showTooltip,
+  } = element.props as Record<string, unknown>;
 
-  const chartData =
-    statePath && state
-      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
-      : [];
+  const chartData = Array.isArray(data) ? data : [];
 
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
     return <Box css={{ color: "secondary", font: "caption" }}>—</Box>;
@@ -828,19 +794,15 @@ export const Sparkline: FunctionComponent<ExtendedRenderProps> = ({
 // =========================================================================
 export const DataTable: FunctionComponent<ExtendedRenderProps> = ({
   element,
-  state,
 }) => {
   const {
     title,
-    statePath,
+    data = [],
     columns = [],
     emptyMessage,
   } = element.props as Record<string, unknown>;
 
-  const tableData =
-    statePath && state
-      ? (getNestedValue(state, String(statePath)) as Record<string, unknown>[])
-      : [];
+  const tableData = Array.isArray(data) ? data : [];
   const cols = columns as Array<{ key: string; label: string }>;
 
   if (!tableData || tableData.length === 0) {
@@ -1310,22 +1272,6 @@ export const Fallback: FunctionComponent<ExtendedRenderProps> = ({
     </Box>
   );
 };
-
-// =========================================================================
-// Utility Functions
-// =========================================================================
-function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  const parts = path.replace(/^\//, "").split("/");
-  let current: unknown = obj;
-  for (const part of parts) {
-    if (current && typeof current === "object" && part in current) {
-      current = (current as Record<string, unknown>)[part];
-    } else {
-      return undefined;
-    }
-  }
-  return current;
-}
 
 // =========================================================================
 // Component Map Export

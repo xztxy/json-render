@@ -16,6 +16,7 @@ import type {
 } from "@json-render/core";
 import {
   resolveElementProps,
+  resolveBindings,
   resolvePropValue,
   evaluateVisibility,
   getByPath,
@@ -49,6 +50,12 @@ export interface ComponentRenderProps<P = Record<string, unknown>> {
   children?: ReactNode;
   /** Emit a named event. The renderer resolves the event to action binding(s) from the element's `on` field. */
   emit?: (event: string) => void;
+  /**
+   * Two-way binding paths resolved from `$bind` expressions.
+   * Maps prop name → absolute state path for write-back.
+   * Only present when at least one prop uses `{ $bind: "..." }`.
+   */
+  bindings?: Record<string, string>;
   /** Whether the parent is loading */
   loading?: boolean;
 }
@@ -148,13 +155,14 @@ const ElementRenderer = React.memo(function ElementRenderer({
   const { execute } = useActions();
 
   // Build context with repeat scope (used for both visibility and props)
-  const fullCtx: CoreVisibilityContext & PropResolutionContext = useMemo(
+  const fullCtx: PropResolutionContext = useMemo(
     () =>
       repeatScope
         ? {
             ...ctx,
             repeatItem: repeatScope.item,
             repeatIndex: repeatScope.index,
+            repeatBasePath: repeatScope.basePath,
           }
         : ctx,
     [ctx, repeatScope],
@@ -166,6 +174,10 @@ const ElementRenderer = React.memo(function ElementRenderer({
       ? true
       : evaluateVisibility(element.visible, fullCtx);
 
+  // Action params that are state paths (not values).
+  // These get $item prefix rewriting inside repeat scopes.
+  const ACTION_PATH_PARAMS = ["statePath", "clearStatePath"];
+
   // Create emit function that resolves events to action bindings.
   // Must be called before any early return to satisfy Rules of Hooks.
   const onBindings = element.on;
@@ -173,26 +185,30 @@ const ElementRenderer = React.memo(function ElementRenderer({
     (eventName: string) => {
       const binding = onBindings?.[eventName];
       if (!binding) return;
-      const bindings = Array.isArray(binding) ? binding : [binding];
-      for (let b of bindings) {
-        // Resolve $item/$index in action params inside repeat scope
-        if (repeatScope && b.params) {
-          const resolved: Record<string, unknown> = {};
-          for (const [key, val] of Object.entries(b.params)) {
-            if (
-              typeof val === "string" &&
-              (val === "$item" || val.startsWith("$item/"))
-            ) {
-              // Rewrite $item-prefixed config paths to absolute paths
-              resolved[key] = repeatScope.basePath + val.slice("$item".length);
-            } else {
-              // Resolve $item/$index/$state/$cond expressions in values
-              resolved[key] = resolvePropValue(val, fullCtx);
-            }
-          }
-          b = { ...b, params: resolved };
+      const actionBindings = Array.isArray(binding) ? binding : [binding];
+      for (const b of actionBindings) {
+        if (!b.params) {
+          execute(b);
+          continue;
         }
-        execute(b);
+        // Resolve action params: path params get $item rewriting,
+        // other params get full expression resolution.
+        const resolved: Record<string, unknown> = {};
+        for (const [key, val] of Object.entries(b.params)) {
+          if (
+            repeatScope &&
+            ACTION_PATH_PARAMS.includes(key) &&
+            typeof val === "string" &&
+            (val === "$item" || val.startsWith("$item/"))
+          ) {
+            // Rewrite $item-prefixed path params to absolute state paths
+            resolved[key] = repeatScope.basePath + val.slice("$item".length);
+          } else {
+            // Resolve $item/$index/$state/$cond/$bind expressions to values
+            resolved[key] = resolvePropValue(val, fullCtx);
+          }
+        }
+        execute({ ...b, params: resolved });
       }
     },
     [onBindings, execute, repeatScope, fullCtx],
@@ -203,28 +219,12 @@ const ElementRenderer = React.memo(function ElementRenderer({
     return null;
   }
 
-  // Prop resolution context (same as fullCtx, includes repeat scope)
-  const propCtx: PropResolutionContext = fullCtx;
+  // Resolve $bind expressions → bindings map (prop name → state path)
+  const rawProps = element.props as Record<string, unknown>;
+  const elementBindings = resolveBindings(rawProps, fullCtx);
 
-  // Resolve dynamic prop expressions ($state, $item, $index, $cond/$then/$else)
-  let resolvedProps = resolveElementProps(
-    element.props as Record<string, unknown>,
-    propCtx,
-  );
-  // Rewrite statePath for two-way binding inside repeat scope
-  // statePath:"$item/field" → statePath:"/todos/0/field"
-  if (
-    repeatScope &&
-    typeof resolvedProps.statePath === "string" &&
-    (resolvedProps.statePath === "$item" ||
-      resolvedProps.statePath.startsWith("$item/"))
-  ) {
-    const suffix = resolvedProps.statePath.slice("$item".length); // e.g. "/completed"
-    resolvedProps = {
-      ...resolvedProps,
-      statePath: repeatScope.basePath + suffix,
-    };
-  }
+  // Resolve dynamic prop expressions ($state, $item, $index, $bind, $cond/$then/$else)
+  const resolvedProps = resolveElementProps(rawProps, fullCtx);
 
   const resolvedElement =
     resolvedProps !== element.props
@@ -274,7 +274,12 @@ const ElementRenderer = React.memo(function ElementRenderer({
 
   return (
     <ElementErrorBoundary elementType={resolvedElement.type}>
-      <Component element={resolvedElement} emit={emit} loading={loading}>
+      <Component
+        element={resolvedElement}
+        emit={emit}
+        bindings={elementBindings}
+        loading={loading}
+      >
         {children}
       </Component>
     </ElementErrorBoundary>
@@ -519,12 +524,14 @@ export function defineRegistry<C extends Catalog>(
         element,
         children,
         emit,
+        bindings,
         loading,
       }: ComponentRenderProps) => {
         return (componentFn as DefineRegistryComponentFn)({
           props: element.props,
           children,
           emit,
+          bindings,
           loading,
         });
       };
@@ -580,6 +587,7 @@ type DefineRegistryComponentFn = (ctx: {
   props: unknown;
   children?: React.ReactNode;
   emit?: (event: string) => void;
+  bindings?: Record<string, string>;
   loading?: boolean;
 }) => React.ReactNode;
 

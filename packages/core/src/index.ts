@@ -69,7 +69,11 @@ export {
 // Prop Expressions
 export type { PropExpression, PropResolutionContext } from "./props";
 
-export { resolvePropValue, resolveElementProps } from "./props";
+export {
+  resolvePropValue,
+  resolveElementProps,
+  resolveBindings,
+} from "./props";
 
 // Actions
 export type {

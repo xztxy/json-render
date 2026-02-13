@@ -97,20 +97,23 @@ Use `visible` on elements to show/hide based on state. New syntax: `{ "$state": 
 
 Any prop value can be a data-driven expression resolved by the renderer before components receive props:
 
-- **`{ "$state": "/state/key" }`** - reads from state model
+- **`{ "$state": "/state/key" }`** - reads from state model (one-way read)
+- **`{ "$bind": "/path" }`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components. In repeat scopes use `{ "$bind": "$item/completed" }`.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
 
 ```json
 {
-  "color": {
-    "$cond": { "$state": "/status", "eq": "active" },
-    "$then": "green",
-    "$else": "gray"
+  "type": "Input",
+  "props": {
+    "value": { "$bind": "/form/email" },
+    "placeholder": "Email"
   }
 }
 ```
 
-Components receive already-resolved props. No changes needed to component implementations.
+Components do not use a `statePath` prop for two-way binding. Use `{ "$bind": "/path" }` on the natural value prop instead.
+
+Components receive already-resolved props. For two-way bound props, use the `useBoundProp` hook with the `bindings` map the renderer provides.
 
 ## Event System
 
@@ -139,6 +142,31 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 { "action": "setState", "actionParams": { "statePath": "/activeTab", "value": "home" } }
 ```
 
+Note: `statePath` in action params (e.g. `setState.statePath`) targets the mutation path. Two-way binding in component props uses `{ "$bind": "/path" }` on the value prop, not `statePath`.
+
+## useBoundProp
+
+For form components that need two-way binding, use `useBoundProp` with the `bindings` map the renderer provides when a prop uses `{ "$bind": "/path" }`:
+
+```tsx
+import { useBoundProp } from "@json-render/react";
+
+Input: ({ element, bindings }) => {
+  const [value, setValue] = useBoundProp<string>(
+    element.props.value,
+    bindings?.value
+  );
+  return (
+    <input
+      value={value ?? ""}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  );
+},
+```
+
+`useBoundProp(propValue, bindingPath)` returns `[value, setValue]`. The `value` is the resolved prop; `setValue` writes back to the bound state path (no-op if not bound).
+
 ## Key Exports
 
 | Export | Purpose |
@@ -148,7 +176,7 @@ The `setState` action is handled automatically by `ActionProvider` and updates t
 | `schema` | Element tree schema |
 | `useStateStore` | Access state context |
 | `useStateValue` | Get single value from state |
-| `useStateBinding` | Two-way state binding |
+| `useBoundProp` | Two-way binding for `$bind` expressions |
 | `useActions` | Access actions context |
 | `useAction` | Get a single action dispatch function |
 | `useUIStream` | Stream specs from an API endpoint |

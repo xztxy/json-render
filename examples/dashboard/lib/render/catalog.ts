@@ -57,14 +57,14 @@ export const dashboardCatalog = defineCatalog(schema, {
     Input: {
       props: z.object({
         label: z.string().nullable(),
-        statePath: z.string(),
+        value: z.string().nullable(),
         placeholder: z.string().nullable(),
         type: z.enum(["text", "email", "password", "number", "tel"]).nullable(),
       }),
-      description: "Text input field",
+      description: "Text input field. Use value with $bind for two-way binding",
       example: {
         label: "Email",
-        statePath: "/form/email",
+        value: "/form/email",
         placeholder: "you@example.com",
         type: "email",
       },
@@ -118,10 +118,10 @@ export const dashboardCatalog = defineCatalog(schema, {
     Checkbox: {
       props: z.object({
         label: z.string().nullable(),
-        statePath: z.string(),
+        checked: z.boolean().nullable(),
         defaultChecked: z.boolean().nullable(),
       }),
-      description: "Checkbox input",
+      description: "Checkbox input. Use checked with $bind for two-way binding",
     },
 
     Dialog: {
@@ -194,7 +194,7 @@ export const dashboardCatalog = defineCatalog(schema, {
 
     RadioGroup: {
       props: z.object({
-        statePath: z.string(),
+        value: z.string().nullable(),
         options: z.array(
           z.object({
             value: z.string(),
@@ -203,12 +203,13 @@ export const dashboardCatalog = defineCatalog(schema, {
         ),
         defaultValue: z.string().nullable(),
       }),
-      description: "Radio button group",
+      description:
+        "Radio button group. Use value with $bind for two-way binding",
     },
 
     Select: {
       props: z.object({
-        statePath: z.string(),
+        value: z.string().nullable(),
         placeholder: z.string().nullable(),
         options: z.array(
           z.object({
@@ -217,7 +218,8 @@ export const dashboardCatalog = defineCatalog(schema, {
           }),
         ),
       }),
-      description: "Dropdown select input",
+      description:
+        "Dropdown select input. Use value with $bind for two-way binding",
     },
 
     Skeleton: {
@@ -238,10 +240,10 @@ export const dashboardCatalog = defineCatalog(schema, {
     Switch: {
       props: z.object({
         label: z.string().nullable(),
-        statePath: z.string(),
+        checked: z.boolean().nullable(),
         defaultChecked: z.boolean().nullable(),
       }),
-      description: "Toggle switch",
+      description: "Toggle switch. Use checked with $bind for two-way binding",
     },
 
     Tabs: {
@@ -269,11 +271,12 @@ export const dashboardCatalog = defineCatalog(schema, {
     Textarea: {
       props: z.object({
         label: z.string().nullable(),
-        statePath: z.string(),
+        value: z.string().nullable(),
         placeholder: z.string().nullable(),
         rows: z.number().nullable(),
       }),
-      description: "Multi-line text input",
+      description:
+        "Multi-line text input. Use value with $bind for two-way binding",
     },
 
     Tooltip: {
@@ -286,7 +289,7 @@ export const dashboardCatalog = defineCatalog(schema, {
 
     Table: {
       props: z.object({
-        statePath: z.string(),
+        data: z.array(z.record(z.string(), z.unknown())),
         columns: z.array(
           z.object({
             key: z.string(),
@@ -312,9 +315,10 @@ export const dashboardCatalog = defineCatalog(schema, {
           .nullable(),
         emptyMessage: z.string().nullable(),
       }),
-      description: "Data table with optional row actions (delete, edit, etc.)",
+      description:
+        "Data table with optional row actions. Use { $state } on data to bind to an array of objects.",
       example: {
-        statePath: "/customers/data",
+        data: { $state: "/customers/data" },
         columns: [
           { key: "name", label: "Name" },
           { key: "email", label: "Email" },
@@ -345,7 +349,7 @@ export const dashboardCatalog = defineCatalog(schema, {
     BarChart: {
       props: z.object({
         title: z.string().nullable(),
-        statePath: z.string(),
+        data: z.array(z.record(z.string(), z.unknown())),
         xKey: z.string(),
         yKey: z.string(),
         aggregate: z.enum(["sum", "count", "avg"]).nullable(),
@@ -353,13 +357,13 @@ export const dashboardCatalog = defineCatalog(schema, {
         height: z.number().nullable(),
       }),
       description:
-        "Bar chart visualization. statePath points to array of objects, xKey is the category/group field, yKey is the numeric value field. Use aggregate='count' to count items grouped by xKey (yKey becomes the count). For dates, xKey values are auto-formatted.",
+        "Bar chart visualization. Use { $state } on data to point to array of objects, xKey is the category/group field, yKey is the numeric value field. Use aggregate='count' to count items grouped by xKey (yKey becomes the count). For dates, xKey values are auto-formatted.",
     },
 
     LineChart: {
       props: z.object({
         title: z.string().nullable(),
-        statePath: z.string(),
+        data: z.array(z.record(z.string(), z.unknown())),
         xKey: z.string(),
         yKey: z.string(),
         aggregate: z.enum(["sum", "count", "avg"]).nullable(),
@@ -367,7 +371,7 @@ export const dashboardCatalog = defineCatalog(schema, {
         height: z.number().nullable(),
       }),
       description:
-        "Line chart visualization. statePath points to array of objects, xKey is the x-axis field, yKey is the numeric value field. Use aggregate='count' to count items grouped by xKey. For dates, xKey values are auto-formatted.",
+        "Line chart visualization. Use { $state } on data to point to array of objects, xKey is the x-axis field, yKey is the numeric value field. Use aggregate='count' to count items grouped by xKey. For dates, xKey values are auto-formatted.",
     },
   },
 

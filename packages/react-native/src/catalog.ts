@@ -258,7 +258,6 @@ export const standardComponentDefinitions = {
     props: z.object({
       placeholder: z.string().nullable(),
       value: z.string().nullable(),
-      statePath: z.string().nullable(),
       secureTextEntry: z.boolean().nullable(),
       keyboardType: z
         .enum(["default", "email-address", "numeric", "phone-pad", "url"])
@@ -271,37 +270,34 @@ export const standardComponentDefinitions = {
     events: ["submit", "focus", "blur"],
     slots: [],
     description:
-      "Text input field. Use statePath to bind to the state model for two-way binding. The value typed by the user is stored at the statePath.",
+      "Text input field. Use $bind to bind to the state model for two-way binding. The value typed by the user is stored at the bound path.",
     example: {
       placeholder: "Enter text...",
-      statePath: "/inputValue",
       label: "Name",
     },
   },
 
   Switch: {
     props: z.object({
-      value: z.boolean().nullable(),
-      statePath: z.string().nullable(),
+      checked: z.boolean().nullable(),
       label: z.string().nullable(),
       disabled: z.boolean().nullable(),
     }),
     events: ["change"],
     slots: [],
-    description: "Toggle switch. Use statePath to bind to the state model.",
+    description: "Toggle switch. Use $bind to bind to the state model.",
   },
 
   Checkbox: {
     props: z.object({
       checked: z.boolean().nullable(),
-      statePath: z.string().nullable(),
       label: z.string().nullable(),
       disabled: z.boolean().nullable(),
     }),
     events: ["change"],
     slots: [],
     description:
-      "Checkbox for boolean selections. Use statePath to bind to the state model.",
+      "Checkbox for boolean selections. Use $bind to bind to the state model.",
   },
 
   Slider: {
@@ -310,20 +306,18 @@ export const standardComponentDefinitions = {
       max: z.number().nullable(),
       step: z.number().nullable(),
       value: z.number().nullable(),
-      statePath: z.string().nullable(),
       label: z.string().nullable(),
       color: z.string().nullable(),
     }),
     slots: [],
     description:
-      "Range slider for numeric values. Use statePath to bind to the state model.",
+      "Range slider for numeric values. Use $bind to bind to the state model.",
   },
 
   SearchBar: {
     props: z.object({
       placeholder: z.string().nullable(),
       value: z.string().nullable(),
-      statePath: z.string().nullable(),
     }),
     events: ["submit"],
     slots: [],
@@ -398,11 +392,10 @@ export const standardComponentDefinitions = {
       visible: z.boolean(),
       title: z.string().nullable(),
       animationType: z.enum(["slide", "fade", "none"]).nullable(),
-      statePath: z.string().nullable(),
     }),
     slots: ["default"],
     description:
-      "Modal overlay dialog. Use statePath to bind visibility to the state model.",
+      "Modal overlay dialog. Use $bind on visible to bind visibility to the state model.",
   },
 };
 

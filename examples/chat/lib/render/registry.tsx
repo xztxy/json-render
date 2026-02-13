@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { getByPath } from "@json-render/core";
 import { useStateStore, defineRegistry } from "@json-render/react";
 import {
   Bar,
@@ -179,10 +178,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     },
 
     Table: ({ props }) => {
-      const { state } = useStateStore();
-      const path = props.statePath.replace(/\./g, "/");
-      const rawData = getByPath(state, path);
-
+      const rawData = props.data;
       const items: Array<Record<string, unknown>> = Array.isArray(rawData)
         ? rawData
         : Array.isArray((rawData as Record<string, unknown>)?.data)
@@ -280,10 +276,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     ),
 
     BarChart: ({ props }) => {
-      const { state } = useStateStore();
-      const path = props.statePath.replace(/\./g, "/");
-      const rawData = getByPath(state, path);
-
+      const rawData = props.data;
       const rawItems: Array<Record<string, unknown>> = Array.isArray(rawData)
         ? rawData
         : Array.isArray((rawData as Record<string, unknown>)?.data)
@@ -347,10 +340,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     },
 
     LineChart: ({ props }) => {
-      const { state } = useStateStore();
-      const path = props.statePath.replace(/\./g, "/");
-      const rawData = getByPath(state, path);
-
+      const rawData = props.data;
       const rawItems: Array<Record<string, unknown>> = Array.isArray(rawData)
         ? rawData
         : Array.isArray((rawData as Record<string, unknown>)?.data)
@@ -553,10 +543,7 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     ),
 
     PieChart: ({ props }) => {
-      const { state } = useStateStore();
-      const path = props.statePath.replace(/\./g, "/");
-      const rawData = getByPath(state, path);
-
+      const rawData = props.data;
       const items: Array<Record<string, unknown>> = Array.isArray(rawData)
         ? rawData
         : Array.isArray((rawData as Record<string, unknown>)?.data)
@@ -616,10 +603,10 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
       );
     },
 
-    RadioGroup: ({ props }) => {
-      const { state, set } = useStateStore();
-      const path = props.statePath.replace(/\./g, "/");
-      const current = getByPath(state, path) as string | undefined;
+    RadioGroup: ({ props, bindings }) => {
+      const { set } = useStateStore();
+      const path = bindings?.value;
+      const current = props.value ?? "";
 
       return (
         <div className="flex flex-col gap-2">
@@ -627,14 +614,17 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
             <Label className="text-sm font-medium">{props.label}</Label>
           )}
           <RadioGroup
-            value={current ?? ""}
-            onValueChange={(value: string) => set(path, value)}
+            value={current}
+            onValueChange={(value: string) => path && set(path, value)}
           >
             {(props.options ?? []).map((opt) => (
               <div key={opt.value} className="flex items-center gap-2">
-                <RadioGroupItem value={opt.value} id={`${path}-${opt.value}`} />
+                <RadioGroupItem
+                  value={opt.value}
+                  id={`${path ?? "rg"}-${opt.value}`}
+                />
                 <Label
-                  htmlFor={`${path}-${opt.value}`}
+                  htmlFor={`${path ?? "rg"}-${opt.value}`}
                   className="font-normal cursor-pointer"
                 >
                   {opt.label}
@@ -646,10 +636,10 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
       );
     },
 
-    SelectInput: ({ props }) => {
-      const { state, set } = useStateStore();
-      const path = props.statePath.replace(/\./g, "/");
-      const current = getByPath(state, path) as string | undefined;
+    SelectInput: ({ props, bindings }) => {
+      const { set } = useStateStore();
+      const path = bindings?.value;
+      const current = props.value ?? "";
 
       return (
         <div className="flex flex-col gap-2">
@@ -657,8 +647,8 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
             <Label className="text-sm font-medium">{props.label}</Label>
           )}
           <Select
-            value={current ?? ""}
-            onValueChange={(value: string) => set(path, value)}
+            value={current}
+            onValueChange={(value: string) => path && set(path, value)}
           >
             <SelectTrigger>
               <SelectValue placeholder={props.placeholder ?? "Select..."} />
@@ -675,10 +665,10 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
       );
     },
 
-    TextInput: ({ props }) => {
-      const { state, set } = useStateStore();
-      const path = props.statePath.replace(/\./g, "/");
-      const current = getByPath(state, path) as string | undefined;
+    TextInput: ({ props, bindings }) => {
+      const { set } = useStateStore();
+      const path = bindings?.value;
+      const current = props.value ?? "";
 
       return (
         <div className="flex flex-col gap-2">
@@ -688,8 +678,8 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
           <Input
             type={props.type ?? "text"}
             placeholder={props.placeholder ?? ""}
-            value={current ?? ""}
-            onChange={(e) => set(path, e.target.value)}
+            value={current}
+            onChange={(e) => path && set(path, e.target.value)}
           />
         </div>
       );

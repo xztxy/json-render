@@ -114,20 +114,21 @@ Use `Pressable` with the built-in `setState` action for interactive UIs like tab
 
 Any prop value can be a data-driven expression resolved at render time:
 
-- **`{ "$state": "/state/key" }`** - reads from state model
+- **`{ "$state": "/state/key" }`** - reads from state model (one-way read)
+- **`{ "$bind": "/path" }`** - two-way binding: use on the natural value prop (value, checked, pressed, etc.) of form components. In repeat scopes use `{ "$bind": "$item/completed" }`.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
 
 ```json
 {
-  "color": {
-    "$cond": { "$state": "/activeTab", "eq": "home" },
-    "$then": "#007AFF",
-    "$else": "#8E8E93"
+  "type": "TextInput",
+  "props": {
+    "value": { "$bind": "/form/email" },
+    "placeholder": "Email"
   }
 }
 ```
 
-Components receive already-resolved props. No changes needed to component implementations.
+Components do not use a `statePath` prop for two-way binding. Use `{ "$bind": "/path" }` on the natural value prop instead.
 
 ## Built-in Actions
 

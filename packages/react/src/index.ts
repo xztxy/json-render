@@ -90,6 +90,7 @@ export {
 export {
   useUIStream,
   useChatUI,
+  useBoundProp,
   flatToTree,
   buildSpecFromParts,
   getTextFromParts,

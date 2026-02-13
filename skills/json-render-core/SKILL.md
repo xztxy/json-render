@@ -81,10 +81,13 @@ const finalSpec = compiler.getResult();
 
 Any prop value can be a dynamic expression resolved at render time:
 
-- **`{ "$state": "/state/key" }`** - reads a value from the state model
+- **`{ "$state": "/state/key" }`** - reads a value from the state model (one-way read)
+- **`{ "$bind": "/path" }`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components. In repeat scopes use `{ "$bind": "$item/completed" }` to bind to the current item.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - evaluates a visibility condition and picks a branch
 
 `$cond` uses the same syntax as visibility conditions (`$state`, `eq`, `neq`, `not`, arrays for AND). `$then` and `$else` can themselves be expressions (recursive).
+
+Components do not use a `statePath` prop for two-way binding. Instead, use `{ "$bind": "/path" }` on the natural value prop (e.g. `value`, `checked`, `pressed`).
 
 ```json
 {

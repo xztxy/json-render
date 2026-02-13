@@ -106,7 +106,7 @@ export const explorerCatalog = defineCatalog(schema, {
 
     Table: {
       props: z.object({
-        statePath: z.string(),
+        data: z.array(z.record(z.string(), z.unknown())),
         columns: z.array(
           z.object({
             key: z.string(),
@@ -116,9 +116,9 @@ export const explorerCatalog = defineCatalog(schema, {
         emptyMessage: z.string().nullable(),
       }),
       description:
-        "Data table. statePath points to an array of objects in state.",
+        'Data table. Use { "$state": "/path" } to bind read-only data from state.',
       example: {
-        statePath: "/stories",
+        data: { $state: "/stories" },
         columns: [
           { key: "title", label: "Title" },
           { key: "score", label: "Score" },
@@ -139,7 +139,7 @@ export const explorerCatalog = defineCatalog(schema, {
     BarChart: {
       props: z.object({
         title: z.string().nullable(),
-        statePath: z.string(),
+        data: z.array(z.record(z.string(), z.unknown())),
         xKey: z.string(),
         yKey: z.string(),
         aggregate: z.enum(["sum", "count", "avg"]).nullable(),
@@ -147,13 +147,13 @@ export const explorerCatalog = defineCatalog(schema, {
         height: z.number().nullable(),
       }),
       description:
-        "Bar chart visualization. statePath points to an array of objects. xKey is the category field, yKey is the numeric value field.",
+        'Bar chart visualization. Use { "$state": "/path" } to bind read-only data. xKey is the category field, yKey is the numeric value field.',
     },
 
     LineChart: {
       props: z.object({
         title: z.string().nullable(),
-        statePath: z.string(),
+        data: z.array(z.record(z.string(), z.unknown())),
         xKey: z.string(),
         yKey: z.string(),
         aggregate: z.enum(["sum", "count", "avg"]).nullable(),
@@ -161,7 +161,7 @@ export const explorerCatalog = defineCatalog(schema, {
         height: z.number().nullable(),
       }),
       description:
-        "Line chart visualization. statePath points to an array of objects. xKey is the x-axis field, yKey is the numeric value field.",
+        'Line chart visualization. Use { "$state": "/path" } to bind read-only data. xKey is the x-axis field, yKey is the numeric value field.',
     },
 
     // Interactive
@@ -265,20 +265,20 @@ export const explorerCatalog = defineCatalog(schema, {
     PieChart: {
       props: z.object({
         title: z.string().nullable(),
-        statePath: z.string(),
+        data: z.array(z.record(z.string(), z.unknown())),
         nameKey: z.string(),
         valueKey: z.string(),
         height: z.number().nullable(),
       }),
       description:
-        "Pie/donut chart for proportional data. statePath points to an array of objects. nameKey is the label field, valueKey is the numeric value field.",
+        'Pie/donut chart for proportional data. Use { "$state": "/path" } to bind read-only data. nameKey is the label field, valueKey is the numeric value field.',
     },
 
     // Interactive / Input
     RadioGroup: {
       props: z.object({
         label: z.string().nullable(),
-        statePath: z.string(),
+        value: z.string().nullable(),
         options: z.array(
           z.object({
             value: z.string(),
@@ -287,10 +287,10 @@ export const explorerCatalog = defineCatalog(schema, {
         ),
       }),
       description:
-        "Radio button group for single selection. Writes the selected value to statePath. Use for multiple-choice questions, settings, or any single-select input.",
+        'Radio button group for single selection. Use { "$bind": "/path" } for two-way binding. Use for multiple-choice questions, settings, or any single-select input.',
       example: {
         label: "Choose one",
-        statePath: "/answer",
+        value: { $bind: "/answer" },
         options: [
           { value: "a", label: "Option A" },
           { value: "b", label: "Option B" },
@@ -301,7 +301,7 @@ export const explorerCatalog = defineCatalog(schema, {
     SelectInput: {
       props: z.object({
         label: z.string().nullable(),
-        statePath: z.string(),
+        value: z.string().nullable(),
         placeholder: z.string().nullable(),
         options: z.array(
           z.object({
@@ -311,10 +311,10 @@ export const explorerCatalog = defineCatalog(schema, {
         ),
       }),
       description:
-        "Dropdown select input. Writes the selected value to statePath. Use when there are many options and a dropdown is more compact than radio buttons.",
+        'Dropdown select input. Use { "$bind": "/path" } for two-way binding. Use when there are many options and a dropdown is more compact than radio buttons.',
       example: {
         label: "Country",
-        statePath: "/selectedCountry",
+        value: { $bind: "/selectedCountry" },
         placeholder: "Select a country",
         options: [
           { value: "us", label: "United States" },
@@ -326,15 +326,15 @@ export const explorerCatalog = defineCatalog(schema, {
     TextInput: {
       props: z.object({
         label: z.string().nullable(),
-        statePath: z.string(),
+        value: z.string().nullable(),
         placeholder: z.string().nullable(),
         type: z.enum(["text", "email", "number", "password", "url"]).nullable(),
       }),
       description:
-        "Text input field. Writes the entered value to statePath. Use for free-text entry like names, emails, search, etc.",
+        'Text input field. Use { "$bind": "/path" } for two-way binding. Use for free-text entry like names, emails, search, etc.',
       example: {
         label: "Your name",
-        statePath: "/userName",
+        value: { $bind: "/userName" },
         placeholder: "Enter your name",
         type: "text",
       },

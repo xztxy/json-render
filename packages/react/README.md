@@ -35,10 +35,11 @@ export const catalog = defineCatalog(schema, {
     },
     Input: {
       props: z.object({
+        value: z.union([z.string(), z.record(z.unknown())]).nullable(),
         label: z.string(),
         placeholder: z.string().nullable(),
       }),
-      description: "Text input field",
+      description: "Text input field with optional value binding",
     },
   },
   actions: {
@@ -51,7 +52,7 @@ export const catalog = defineCatalog(schema, {
 ### 2. Define Component Implementations
 
 ```tsx
-import { defineRegistry, useStateStore } from "@json-render/react";
+import { defineRegistry, useStateBinding } from "@json-render/react";
 import { catalog } from "./catalog";
 
 export const { registry } = defineRegistry(catalog, {
@@ -68,15 +69,15 @@ export const { registry } = defineRegistry(catalog, {
         {props.label}
       </button>
     ),
-    Input: ({ props }) => {
-      const { get, set } = useStateStore();
+    Input: ({ props, bindings }) => {
+      const [value, setValue] = useStateBinding(bindings?.value ?? null);
       return (
         <label>
           {props.label}
           <input
             placeholder={props.placeholder ?? ""}
-            value={get("/form/value") ?? ""}
-            onChange={(e) => set("/form/value", e.target.value)}
+            value={value ?? ""}
+            onChange={(e) => setValue(e.target.value)}
           />
         </label>
       );
@@ -93,7 +94,7 @@ import { registry } from "./registry";
 
 function App({ spec }) {
   return (
-    <StateProvider initialState={{ form: { value: "" } }}>
+    <StateProvider initialState={{ form: { name: "" } }}>
       <ActionProvider handlers={{
         submit: () => console.log("Submit"),
       }}>
@@ -136,7 +137,11 @@ Example spec:
     },
     "input-1": {
       "type": "Input",
-      "props": { "label": "Name", "placeholder": "Enter name" }
+      "props": {
+        "value": { "$bind": "/form/name" },
+        "label": "Name",
+        "placeholder": "Enter name"
+      }
     },
     "btn-1": {
       "type": "Button",
@@ -286,6 +291,8 @@ Any prop value can use data-driven expressions that resolve at render time. The 
 }
 ```
 
+For two-way binding, use `{ "$bind": "/path" }` on the natural value prop (e.g. `value`, `checked`, `pressed`). Components receive resolved `bindings` with the state path for each bound prop; use `useStateBinding(bindings?.value)` to get `[value, setValue]`.
+
 See [@json-render/core](../core/README.md) for full expression syntax.
 
 ## Built-in Actions
@@ -312,12 +319,15 @@ When using `defineRegistry`, components receive these props:
 
 ```typescript
 interface ComponentContext<P> {
-  props: P;                    // Typed props from the catalog
+  props: P;                    // Typed props from the catalog (expressions resolved)
   children?: React.ReactNode;  // Rendered children
   emit?: (event: string) => void;  // Emit a named event
   loading?: boolean;           // Whether the parent is loading
+  bindings?: Record<string, string>;  // State paths for $bind expressions (e.g. bindings.value)
 }
 ```
+
+Use `bindings?.value`, `bindings?.checked`, etc. with `useStateBinding()` for two-way bound form components.
 
 ## Generate AI Prompts
 
