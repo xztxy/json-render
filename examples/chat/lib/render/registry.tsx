@@ -644,8 +644,9 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
     ),
 
     Timeline: ({ props }) => (
-      <div className="relative pl-6">
-        <div className="absolute left-[9px] top-2 bottom-2 w-px bg-border" />
+      <div className="relative pl-8">
+        {/* Vertical line centered on dots: dot is 12px wide starting at 0px, center = 6px */}
+        <div className="absolute left-[5.5px] top-3 bottom-3 w-px bg-border" />
         <div className="flex flex-col gap-6">
           {(props.items ?? []).map((item, i) => {
             const dotColor =
@@ -655,9 +656,9 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
                   ? "bg-blue-500"
                   : "bg-muted-foreground/30";
             return (
-              <div key={i} className="relative flex gap-3">
+              <div key={i} className="relative">
                 <div
-                  className={`absolute -left-6 top-1.5 h-[10px] w-[10px] rounded-full ${dotColor} ring-2 ring-background`}
+                  className={`absolute -left-8 top-0.5 h-3 w-3 rounded-full ${dotColor} ring-2 ring-background`}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

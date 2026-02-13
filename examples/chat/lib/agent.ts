@@ -20,6 +20,7 @@ RULES:
 - Always call tools FIRST to get real data. Never make up data.
 - Embed the fetched data directly in /state paths so components can reference it.
 - Use Card components to group related information.
+- NEVER nest a Card inside another Card. If you need sub-sections inside a Card, use Stack, Separator, Heading, or Accordion instead.
 - Use Grid for multi-column layouts.
 - Use Metric for key numeric values (temperature, stars, price, etc.).
 - Use Table for lists of items (stories, forecasts, languages, etc.).

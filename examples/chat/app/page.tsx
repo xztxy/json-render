@@ -426,7 +426,7 @@ export default function ChatPage() {
           </div>
         ) : (
           /* Message thread */
-          <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+          <div className="max-w-4xl mx-auto px-10 py-6 space-y-6">
             {messages.map((message, index) => (
               <MessageBubble
                 key={message.id}
