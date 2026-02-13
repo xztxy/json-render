@@ -124,28 +124,33 @@ export type {
 
 export { validateSpec, autoFixSpec, formatSpecIssues } from "./spec-validator";
 
-// Schema (new API)
+// Schema — defines the grammar (how specs and catalogs are structured)
 export type {
   SchemaBuilder,
   SchemaType,
   SchemaDefinition,
   Schema,
+  PromptTemplate,
+  SchemaOptions,
+} from "./schema";
+
+export { defineSchema } from "./schema";
+
+// Catalog — defines the vocabulary (what components and actions are available)
+export type {
   Catalog,
   PromptOptions,
   PromptContext,
-  PromptTemplate,
-  SchemaOptions,
   SpecValidationResult,
   InferCatalogInput,
   InferSpec,
-  // Catalog type inference
   InferCatalogComponents,
   InferCatalogActions,
   InferComponentProps,
   InferActionParams,
 } from "./schema";
 
-export { defineSchema, defineCatalog } from "./schema";
+export { defineCatalog } from "./schema";
 
 // User Prompt Builder
 export type { UserPromptOptions } from "./prompt";
