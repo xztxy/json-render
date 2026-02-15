@@ -6,6 +6,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import {
@@ -137,6 +138,11 @@ export function ActionProvider({
   children,
 }: ActionProviderProps) {
   const { state, get, set } = useStateStore();
+  // Keep a ref to the latest state so `execute` doesn't change on every
+  // state update — preventing the entire action context from churning.
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
   const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
@@ -152,7 +158,7 @@ export function ActionProvider({
 
   const execute = useCallback(
     async (binding: ActionBinding) => {
-      const resolved = resolveAction(binding, state);
+      const resolved = resolveAction(binding, stateRef.current);
 
       // Built-in: setState updates the StateProvider state directly
       if (resolved.action === "setState" && resolved.params) {
@@ -299,7 +305,7 @@ export function ActionProvider({
         });
       }
     },
-    [state, handlers, get, set, navigate],
+    [handlers, get, set, navigate],
   );
 
   const confirm = useCallback(() => {

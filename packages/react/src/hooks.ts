@@ -250,6 +250,13 @@ export function useUIStream({
   const [rawLines, setRawLines] = useState<string[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Keep refs to callbacks so `send` doesn't recreate when consumers
+  // pass inline arrow functions.
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   const clear = useCallback(() => {
     setSpec(null);
     setError(null);
@@ -350,19 +357,19 @@ export function useUIStream({
           }
         }
 
-        onComplete?.(currentSpec);
+        onCompleteRef.current?.(currentSpec);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
           return;
         }
         const error = err instanceof Error ? err : new Error(String(err));
         setError(error);
-        onError?.(error);
+        onErrorRef.current?.(error);
       } finally {
         setIsStreaming(false);
       }
     },
-    [api, onComplete, onError],
+    [api],
   );
 
   // Cleanup on unmount

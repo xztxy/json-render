@@ -781,9 +781,10 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
       const setValue = isBound ? setBoundValue : setLocalValue;
 
       const hasValidation = !!(bindings?.value && props.checks?.length);
-      const { errors, validate } = useFieldValidation(bindings?.value ?? "", {
-        checks: props.checks ?? [],
-      });
+      const { errors, validate } = useFieldValidation(
+        bindings?.value ?? "",
+        hasValidation ? { checks: props.checks ?? [] } : undefined,
+      );
 
       return (
         <div className="space-y-2">
@@ -822,9 +823,10 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
       const setValue = isBound ? setBoundValue : setLocalValue;
 
       const hasValidation = !!(bindings?.value && props.checks?.length);
-      const { errors, validate } = useFieldValidation(bindings?.value ?? "", {
-        checks: props.checks ?? [],
-      });
+      const { errors, validate } = useFieldValidation(
+        bindings?.value ?? "",
+        hasValidation ? { checks: props.checks ?? [] } : undefined,
+      );
 
       return (
         <div className="space-y-2">
@@ -864,9 +866,10 @@ export const { registry, executeAction } = defineRegistry(playgroundCatalog, {
       );
 
       const hasValidation = !!(bindings?.value && props.checks?.length);
-      const { errors, validate } = useFieldValidation(bindings?.value ?? "", {
-        checks: props.checks ?? [],
-      });
+      const { errors, validate } = useFieldValidation(
+        bindings?.value ?? "",
+        hasValidation ? { checks: props.checks ?? [] } : undefined,
+      );
 
       return (
         <div className="space-y-2">

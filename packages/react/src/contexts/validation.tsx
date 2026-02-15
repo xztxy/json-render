@@ -6,6 +6,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import {
@@ -130,6 +131,11 @@ export function ValidationProvider({
   children,
 }: ValidationProviderProps) {
   const { state } = useStateStore();
+  // Keep a ref to the latest state so `validate` doesn't change on every
+  // state update — preventing the entire validation context from churning.
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   const [fieldStates, setFieldStates] = useState<
     Record<string, FieldValidationState>
   >({});
@@ -155,8 +161,9 @@ export function ValidationProvider({
   const validate = useCallback(
     (path: string, config: ValidationConfig): ValidationResult => {
       // Walk the nested state object using JSON Pointer segments
+      const currentState = stateRef.current;
       const segments = path.split("/").filter(Boolean);
-      let value: unknown = state;
+      let value: unknown = currentState;
       for (const seg of segments) {
         if (value != null && typeof value === "object") {
           value = (value as Record<string, unknown>)[seg];
@@ -167,7 +174,7 @@ export function ValidationProvider({
       }
       const result = runValidation(config, {
         value,
-        stateModel: state,
+        stateModel: currentState,
         customFunctions,
       });
 
@@ -182,7 +189,7 @@ export function ValidationProvider({
 
       return result;
     },
-    [state, customFunctions],
+    [customFunctions],
   );
 
   const touch = useCallback((path: string) => {
@@ -280,7 +287,7 @@ export function useFieldValidation(
 
   // Register field on mount
   React.useEffect(() => {
-    if (config) {
+    if (path && config) {
       registerField(path, config);
     }
   }, [path, config, registerField]);
