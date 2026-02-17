@@ -151,7 +151,7 @@ import {
   shadcnComponentDefinitions,
   shadcnActionDefinitions,
 } from "@json-render/shadcn/catalog";
-import { shadcnComponents, shadcnActions } from "@json-render/shadcn";
+import { shadcnComponents } from "@json-render/shadcn";
 
 // Pick components from the 30+ standard definitions
 const catalog = defineCatalog(schema, {
@@ -173,9 +173,6 @@ const { registry } = defineRegistry(catalog, {
     Stack: shadcnComponents.Stack,
     Heading: shadcnComponents.Heading,
     Button: shadcnComponents.Button,
-  },
-  actions: {
-    setState: shadcnActions.setState,
   },
 });
 

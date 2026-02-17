@@ -70,6 +70,7 @@ export const shadcnComponentDefinitions = {
       defaultValue: z.string().nullable(),
       value: z.string().nullable(),
     }),
+    slots: ["default"],
     events: ["change"],
     description:
       "Tab navigation. Use { $bindState } on value for active tab binding.",
@@ -195,10 +196,12 @@ export const shadcnComponentDefinitions = {
   Badge: {
     props: z.object({
       text: z.string(),
-      variant: z.enum(["default", "success", "warning", "danger"]).nullable(),
+      variant: z
+        .enum(["default", "secondary", "destructive", "outline"])
+        .nullable(),
     }),
     description: "Status badge",
-    example: { text: "Active", variant: "success" },
+    example: { text: "Active", variant: "default" },
   },
 
   Alert: {

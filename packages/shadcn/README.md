@@ -45,7 +45,7 @@ Import standard implementations from `@json-render/shadcn` and pass them to `def
 
 ```typescript
 import { defineRegistry } from "@json-render/react";
-import { shadcnComponents, shadcnActions } from "@json-render/shadcn";
+import { shadcnComponents } from "@json-render/shadcn";
 
 const { registry } = defineRegistry(catalog, {
   components: {
@@ -54,11 +54,6 @@ const { registry } = defineRegistry(catalog, {
     Heading: shadcnComponents.Heading,
     Button: shadcnComponents.Button,
     Input: shadcnComponents.Input,
-  },
-  actions: {
-    setState: shadcnActions.setState,
-    pushState: shadcnActions.pushState,
-    removeState: shadcnActions.removeState,
   },
 });
 ```
@@ -120,11 +115,6 @@ const { registry } = defineRegistry(catalog, {
         <span>{props.value}</span>
       </div>
     ),
-  },
-  actions: {
-    setState: shadcnActions.setState,
-    pushState: shadcnActions.pushState,
-    removeState: shadcnActions.removeState,
   },
 });
 ```
@@ -209,7 +199,7 @@ const { registry } = defineRegistry(catalog, {
 
 | Entry Point | Exports |
 |-------------|---------|
-| `@json-render/shadcn` | `shadcnComponents`, `shadcnActions` |
+| `@json-render/shadcn` | `shadcnComponents` |
 | `@json-render/shadcn/catalog` | `shadcnComponentDefinitions`, `shadcnActionDefinitions` |
 
 The `/catalog` entry point contains only Zod schemas (no React dependency), so it can be used in server-side code for prompt generation.

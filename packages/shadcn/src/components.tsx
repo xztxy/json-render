@@ -95,7 +95,12 @@ import {
 } from "./ui/popover";
 import { Skeleton } from "./ui/skeleton";
 import { Slider } from "./ui/slider";
-import { Tabs as TabsPrimitive, TabsList, TabsTrigger } from "./ui/tabs";
+import {
+  Tabs as TabsPrimitive,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "./ui/tabs";
 import { Toggle } from "./ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 import {
@@ -188,7 +193,7 @@ interface CarouselComponentProps {
 
 interface TableComponentProps {
   columns?: string[] | null;
-  rows?: unknown[] | null;
+  rows?: string[][] | null;
   caption?: string | null;
 }
 
@@ -217,7 +222,7 @@ interface AvatarComponentProps {
 
 interface BadgeComponentProps {
   text?: string | null;
-  variant?: "default" | "success" | "warning" | "danger" | null;
+  variant?: "default" | "secondary" | "destructive" | "outline" | null;
 }
 
 interface AlertComponentProps {
@@ -494,7 +499,12 @@ export const shadcnComponents = {
     );
   },
 
-  Tabs: ({ props, bindings, emit }: ComponentProps<TabsComponentProps>) => {
+  Tabs: ({
+    props,
+    children,
+    bindings,
+    emit,
+  }: ComponentProps<TabsComponentProps>) => {
     const tabs = props.tabs ?? [];
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
@@ -522,6 +532,7 @@ export const shadcnComponents = {
             </TabsTrigger>
           ))}
         </TabsList>
+        {children}
       </TabsPrimitive>
     );
   },
@@ -648,18 +659,7 @@ export const shadcnComponents = {
 
   Table: ({ props }: ComponentProps<TableComponentProps>) => {
     const columns = props.columns ?? [];
-    const rawRows: unknown[] = Array.isArray(props.rows) ? props.rows : [];
-
-    const rows = rawRows.map((row) => {
-      if (Array.isArray(row)) return row.map(String);
-      if (row && typeof row === "object") {
-        const obj = row as Record<string, unknown>;
-        return columns.map((col) =>
-          String(obj[col] ?? obj[col.toLowerCase()] ?? ""),
-        );
-      }
-      return columns.map(() => "");
-    });
+    const rows = (props.rows ?? []).map((row) => row.map(String));
 
     return (
       <div className="rounded-md border border-border overflow-hidden">
@@ -771,24 +771,7 @@ export const shadcnComponents = {
   },
 
   Badge: ({ props }: ComponentProps<BadgeComponentProps>) => {
-    const variant =
-      props.variant === "success" || props.variant === "warning"
-        ? "secondary"
-        : props.variant === "danger"
-          ? "destructive"
-          : "default";
-    const customClass =
-      props.variant === "success"
-        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-        : props.variant === "warning"
-          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-          : "";
-
-    return (
-      <Badge variant={variant} className={customClass}>
-        {props.text}
-      </Badge>
-    );
+    return <Badge variant={props.variant ?? "default"}>{props.text}</Badge>;
   },
 
   Alert: ({ props }: ComponentProps<AlertComponentProps>) => {
@@ -1401,22 +1384,4 @@ export const shadcnComponents = {
       </PaginationPrimitive>
     );
   },
-};
-
-// =============================================================================
-// Standard Action Implementations
-// =============================================================================
-
-/**
- * shadcn/ui action implementations.
- *
- * These are stubs for the built-in state actions (setState, pushState,
- * removeState) which are handled by ActionProvider from `@json-render/react`.
- *
- * Pass to `defineRegistry()` to satisfy the type requirements.
- */
-export const shadcnActions = {
-  setState: async () => {},
-  pushState: async () => {},
-  removeState: async () => {},
 };

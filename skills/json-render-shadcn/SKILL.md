@@ -12,7 +12,7 @@ Pre-built shadcn/ui component definitions and implementations for json-render. P
 | Entry Point | Exports | Use For |
 |-------------|---------|---------|
 | `@json-render/shadcn/catalog` | `shadcnComponentDefinitions`, `shadcnActionDefinitions` | Catalog schemas (no React dependency, safe for server) |
-| `@json-render/shadcn` | `shadcnComponents`, `shadcnActions` | React implementations |
+| `@json-render/shadcn` | `shadcnComponents` | React implementations |
 
 ## Usage Pattern
 
@@ -26,7 +26,7 @@ import {
   shadcnActionDefinitions,
 } from "@json-render/shadcn/catalog";
 import { defineRegistry } from "@json-render/react";
-import { shadcnComponents, shadcnActions } from "@json-render/shadcn";
+import { shadcnComponents } from "@json-render/shadcn";
 
 // Catalog: pick definitions
 const catalog = defineCatalog(schema, {
@@ -52,11 +52,6 @@ const { registry } = defineRegistry(catalog, {
     Heading: shadcnComponents.Heading,
     Button: shadcnComponents.Button,
     Input: shadcnComponents.Input,
-  },
-  actions: {
-    setState: shadcnActions.setState,
-    pushState: shadcnActions.pushState,
-    removeState: shadcnActions.removeState,
   },
 });
 ```
@@ -93,9 +88,6 @@ const { registry } = defineRegistry(catalog, {
     Stack: shadcnComponents.Stack,
     Metric: ({ props }) => <div>{props.label}: {props.value}</div>,
   },
-  actions: {
-    setState: shadcnActions.setState,
-  },
 });
 ```
 
@@ -125,7 +117,7 @@ const { registry } = defineRegistry(catalog, {
 - **Text** - Paragraph with variant (body, caption, muted, lead, code)
 - **Image** - Image with alt, width, height
 - **Avatar** - User avatar with src, name, size
-- **Badge** - Status badge with text and variant (default, success, warning, danger)
+- **Badge** - Status badge with text and variant (default, secondary, destructive, outline)
 - **Alert** - Alert banner with title, message, type (success, warning, info, error)
 - **Carousel** - Scrollable carousel with items array
 - **Table** - Data table with columns (string[]) and rows (string[][])

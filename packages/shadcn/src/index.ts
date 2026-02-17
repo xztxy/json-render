@@ -1,5 +1,5 @@
 // Component implementations
-export { shadcnComponents, shadcnActions } from "./components";
+export { shadcnComponents } from "./components";
 
 // Catalog definitions (also available via @json-render/shadcn/catalog)
 export {

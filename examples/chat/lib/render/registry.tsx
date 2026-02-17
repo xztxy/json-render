@@ -2,7 +2,7 @@
 
 import { useState, useRef, type ReactNode } from "react";
 import { useBoundProp, defineRegistry } from "@json-render/react";
-import { shadcnComponents, shadcnActions } from "@json-render/shadcn";
+import { shadcnComponents } from "@json-render/shadcn";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -890,12 +890,6 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
         {props.text}
       </DreiText>
     ),
-  },
-
-  actions: {
-    setState: shadcnActions.setState,
-    pushState: shadcnActions.pushState,
-    removeState: shadcnActions.removeState,
   },
 });
 
