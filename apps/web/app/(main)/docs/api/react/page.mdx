@@ -46,7 +46,9 @@ type ValidationFunction = (value: unknown, args?: object) => boolean | Promise<b
 
 ## defineRegistry
 
-Create a type-safe component registry from a catalog. Components receive `props`, `children`, `emit`, and `loading` with catalog-inferred types.
+Create a type-safe component registry from a catalog. Components receive `props`, `children`, `emit`, `on`, and `loading` with catalog-inferred types.
+
+When the catalog declares actions, the `actions` field is required. When the catalog has no actions (e.g. `actions: {}`), the field is optional.
 
 ```tsx
 import { defineRegistry } from '@json-render/react';
@@ -87,10 +89,48 @@ type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;
 interface ComponentContext<P> {
   props: P;                                // Typed props from catalog
   children?: React.ReactNode;              // Rendered children (for slot components)
-  emit: (event: string) => void;           // Emit a named event
+  emit: (event: string) => void;           // Emit a named event (always defined)
+  on: (event: string) => EventHandle;      // Get event handle with metadata
   loading?: boolean;
   bindings?: Record<string, string>;       // State paths from $bindState/$bindItem expressions
 }
+
+interface EventHandle {
+  emit: () => void;              // Fire the event
+  shouldPreventDefault: boolean; // Whether any binding requested preventDefault
+  bound: boolean;                // Whether any handler is bound
+}
+```
+
+Use `emit("press")` for simple event firing. Use `on("click")` when you need to check metadata like `shouldPreventDefault`:
+
+```tsx
+Link: ({ props, on }) => {
+  const click = on("click");
+  return (
+    <a
+      href={props.href}
+      onClick={(e) => {
+        if (click.shouldPreventDefault) e.preventDefault();
+        click.emit();
+      }}
+    >
+      {props.label}
+    </a>
+  );
+},
+```
+
+### BaseComponentProps
+
+Catalog-agnostic base type for building reusable component libraries (e.g. `@json-render/shadcn`) that are not tied to a specific catalog:
+
+```typescript
+import type { BaseComponentProps } from "@json-render/react";
+
+const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) => (
+  <div>{props.title}{children}</div>
+);
 ```
 
 ## Hooks

@@ -69,13 +69,39 @@ Each component receives a `ComponentContext` object:
 interface ComponentContext {
   props: T;                                // Type-safe props from your catalog
   children?: React.ReactNode;              // Rendered children (for slot components)
-  emit: (event: string) => void;           // Emit a named event (e.g. "press")
+  emit: (event: string) => void;           // Emit a named event (always defined)
+  on: (event: string) => EventHandle;      // Get event handle with metadata
   loading?: boolean;                       // Whether the renderer is in a loading state
   bindings?: Record<string, string>;       // State paths from $bindState/$bindItem expressions
+}
+
+interface EventHandle {
+  emit: () => void;              // Fire the event
+  shouldPreventDefault: boolean; // Whether any binding requested preventDefault
+  bound: boolean;                // Whether any handler is bound
 }
 ```
 
 Props are automatically inferred from your catalog, so `props.title` is typed as `string` if your catalog defines it that way.
+
+Use `emit("press")` for simple event firing. Use `on("click")` when you need to inspect event metadata:
+
+```tsx
+Link: ({ props, on }) => {
+  const click = on("click");
+  return (
+    <a
+      href={props.href}
+      onClick={(e) => {
+        if (click.shouldPreventDefault) e.preventDefault();
+        click.emit();
+      }}
+    >
+      {props.label}
+    </a>
+  );
+},
+```
 
 #### Using `bindings` for two-way binding
 

@@ -163,9 +163,51 @@ export default function Page() {
 }
 ```
 
+## Quick Start with shadcn/ui
+
+If you want to skip defining components from scratch, use `@json-render/shadcn` for 36 pre-built components:
+
+```typescript
+// lib/catalog.ts
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react/schema';
+import { shadcnComponentDefinitions } from '@json-render/shadcn/catalog';
+
+export const catalog = defineCatalog(schema, {
+  components: {
+    Card: shadcnComponentDefinitions.Card,
+    Stack: shadcnComponentDefinitions.Stack,
+    Heading: shadcnComponentDefinitions.Heading,
+    Button: shadcnComponentDefinitions.Button,
+    Input: shadcnComponentDefinitions.Input,
+  },
+  actions: {},
+});
+```
+
+```tsx
+// lib/registry.tsx
+import { defineRegistry } from '@json-render/react';
+import { shadcnComponents } from '@json-render/shadcn';
+import { catalog } from './catalog';
+
+export const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Heading: shadcnComponents.Heading,
+    Button: shadcnComponents.Button,
+    Input: shadcnComponents.Input,
+  },
+});
+```
+
+See the [@json-render/shadcn API reference](/docs/api/shadcn) for the full component list.
+
 ## Next steps
 
 - Learn about [catalogs](/docs/catalog) in depth
 - Explore [data binding](/docs/data-binding) for dynamic values
 - Add [action handlers](/docs/registry#action-handlers) for interactivity
 - Implement [conditional visibility](/docs/visibility)
+- Use [pre-built shadcn/ui components](/docs/api/shadcn) for fast prototyping

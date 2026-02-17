@@ -4,6 +4,97 @@ export const metadata = { title: "Changelog" }
 
 Notable changes and updates to json-render.
 
+## v0.7.0
+
+February 2026
+
+### New: `@json-render/shadcn`
+
+Pre-built [shadcn/ui](https://ui.shadcn.com/) component library for json-render. 36 components built on Radix UI + Tailwind CSS, ready to use with `defineCatalog` and `defineRegistry`.
+
+```bash
+npm install @json-render/shadcn
+```
+
+```typescript
+import { defineCatalog } from "@json-render/core";
+import { schema } from "@json-render/react/schema";
+import { shadcnComponentDefinitions } from "@json-render/shadcn/catalog";
+import { defineRegistry } from "@json-render/react";
+import { shadcnComponents } from "@json-render/shadcn";
+
+const catalog = defineCatalog(schema, {
+  components: {
+    Card: shadcnComponentDefinitions.Card,
+    Button: shadcnComponentDefinitions.Button,
+    Input: shadcnComponentDefinitions.Input,
+  },
+  actions: {},
+});
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: shadcnComponents.Card,
+    Button: shadcnComponents.Button,
+    Input: shadcnComponents.Input,
+  },
+});
+```
+
+Components include: layout (Card, Stack, Grid, Separator), navigation (Tabs, Accordion, Collapsible, Pagination), overlay (Dialog, Drawer, Tooltip, Popover, DropdownMenu), content (Heading, Text, Image, Avatar, Badge, Alert, Carousel, Table), feedback (Progress, Skeleton, Spinner), and input (Button, Link, Input, Textarea, Select, Checkbox, Radio, Switch, Slider, Toggle, ToggleGroup, ButtonGroup).
+
+See the [API reference](/docs/api/shadcn) for full details.
+
+### New: Event Handles (`on()`)
+
+Components now receive an `on(event)` function in addition to `emit(event)`. The `on()` function returns an `EventHandle` with metadata:
+
+- `emit()` -- fire the event
+- `shouldPreventDefault` -- whether any action binding requested `preventDefault`
+- `bound` -- whether any handler is bound to this event
+
+```tsx
+Link: ({ props, on }) => {
+  const click = on("click");
+  return (
+    <a href={props.href} onClick={(e) => {
+      if (click.shouldPreventDefault) e.preventDefault();
+      click.emit();
+    }}>{props.label}</a>
+  );
+},
+```
+
+### New: `BaseComponentProps`
+
+Catalog-agnostic base type for component render functions. Use when building reusable component libraries (like `@json-render/shadcn`) that are not tied to a specific catalog.
+
+```typescript
+import type { BaseComponentProps } from "@json-render/react";
+
+const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) => (
+  <div>{props.title}{children}</div>
+);
+```
+
+### New: Built-in Actions in Schema
+
+Schemas can now declare `builtInActions` -- actions that are always available at runtime and automatically injected into prompts. The React schema declares `setState`, `pushState`, and `removeState` as built-in, so they appear in prompts without needing to be listed in catalog `actions`.
+
+### New: `preventDefault` on `ActionBinding`
+
+Action bindings now support a `preventDefault` boolean field, allowing the LLM to request that default browser behavior (e.g. navigation on links) be prevented.
+
+### Improved: Stream Transform Text Block Splitting
+
+`createJsonRenderTransform()` now properly splits text blocks around spec data by emitting `text-end`/`text-start` pairs. This ensures the AI SDK creates separate text parts, preserving correct interleaving of prose and UI in `message.parts`.
+
+### Improved: `defineRegistry` Actions Requirement
+
+`defineRegistry` now conditionally requires the `actions` field only when the catalog declares actions. Catalogs with no actions (e.g. `actions: {}`) no longer need to pass an empty actions object.
+
+---
+
 ## v0.6.0
 
 February 2026

@@ -141,6 +141,25 @@ const catalog = defineCatalog(schema, {
 });
 ```
 
+### SchemaOptions
+
+When creating schemas with `defineSchema`, you can pass options:
+
+```typescript
+interface SchemaOptions {
+  promptTemplate?: PromptTemplate;  // Custom AI prompt generator
+  defaultRules?: string[];          // Default rules injected before custom rules in prompts
+  builtInActions?: BuiltInAction[]; // Actions always available at runtime, auto-injected into prompts
+}
+
+interface BuiltInAction {
+  name: string;        // Action name (e.g. "setState")
+  description: string; // Human-readable description for the LLM
+}
+```
+
+Built-in actions are injected into prompts as `[built-in]` and are handled by the runtime (e.g. `ActionProvider`) without requiring handlers in `defineRegistry`. The React schema declares `setState`, `pushState`, and `removeState` as built-in.
+
 ### defineSchema
 
 Create custom schemas for different output formats (e.g., page-based, block-based).
@@ -332,6 +351,21 @@ const flat = nestedToFlat({
 });
 // { root: "el-0", elements: { "el-0": ..., "el-1": ... } }
 ```
+
+### createJsonRenderTransform
+
+Low-level `TransformStream` that separates text from JSONL patches in a mixed AI stream. Lines that parse as JSONL patches are emitted as `data-spec` parts; everything else passes through as text.
+
+The transform properly splits text blocks around spec data by emitting `text-end`/`text-start` pairs, ensuring the AI SDK creates separate text parts and preserving correct interleaving of prose and UI in `message.parts`.
+
+```typescript
+import { createJsonRenderTransform } from '@json-render/core';
+
+const transform = createJsonRenderTransform();
+// Use with ReadableStream.pipeThrough(transform) for custom pipelines
+```
+
+Most users should use `pipeJsonRender()` instead, which wraps this transform for the common AI SDK use case.
 
 ### createMixedStreamParser
 
@@ -556,6 +590,7 @@ interface ActionBinding {
   };
   onSuccess?: { set: Record<string, unknown> };
   onError?: { set: Record<string, unknown> };
+  preventDefault?: boolean;  // Prevent default browser behavior (e.g. navigation on links)
 }
 ```
 
