@@ -26,17 +26,19 @@ export type SetState = (
 // =============================================================================
 
 /**
- * Context passed to component render functions
+ * Catalog-agnostic base type for component render function arguments.
+ * Use this when building reusable component libraries (e.g. `@json-render/shadcn`)
+ * that are not tied to a specific catalog.
+ *
  * @example
- * const Button: ComponentFn<typeof catalog, 'Button'> = (ctx) => {
- *   return <button onClick={() => ctx.emit("press")}>{ctx.props.label}</button>
- * }
+ * ```ts
+ * const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) => (
+ *   <div>{props.title}{children}</div>
+ * );
+ * ```
  */
-export interface ComponentContext<
-  C extends Catalog,
-  K extends keyof InferCatalogComponents<C>,
-> {
-  props: InferComponentProps<C, K>;
+export interface BaseComponentProps<P = Record<string, unknown>> {
+  props: P;
   children?: ReactNode;
   /** Emit a named event. The renderer resolves the event to an action binding from the element's `on` field. */
   emit: (event: string) => void;
@@ -47,6 +49,18 @@ export interface ComponentContext<
   bindings?: Record<string, string>;
   loading?: boolean;
 }
+
+/**
+ * Context passed to component render functions
+ * @example
+ * const Button: ComponentFn<typeof catalog, 'Button'> = (ctx) => {
+ *   return <button onClick={() => ctx.emit("press")}>{ctx.props.label}</button>
+ * }
+ */
+export interface ComponentContext<
+  C extends Catalog,
+  K extends keyof InferCatalogComponents<C>,
+> extends BaseComponentProps<InferComponentProps<C, K>> {}
 
 /**
  * Component render function type for React

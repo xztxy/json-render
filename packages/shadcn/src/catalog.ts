@@ -412,9 +412,11 @@ export const shadcnComponentDefinitions = {
           value: z.string(),
         }),
       ),
+      value: z.string().nullable(),
     }),
     events: ["select"],
-    description: "Dropdown menu with trigger button and selectable items.",
+    description:
+      "Dropdown menu with trigger button and selectable items. Use { $bindState } on value for selected item binding.",
   },
 
   Toggle: {

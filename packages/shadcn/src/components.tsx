@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import {
   useBoundProp,
   useStateBinding,
   useFieldValidation,
+  type BaseComponentProps,
 } from "@json-render/react";
 
 import { Button } from "./ui/button";
@@ -114,14 +115,6 @@ import { cn } from "./lib/utils";
 // =============================================================================
 // Types
 // =============================================================================
-
-interface ComponentProps<P = Record<string, unknown>> {
-  props: P;
-  children?: ReactNode;
-  emit: (event: string) => void;
-  bindings?: Record<string, string>;
-  loading?: boolean;
-}
 
 interface ValidationCheck {
   type: string;
@@ -326,6 +319,7 @@ interface LinkComponentProps {
 interface DropdownMenuComponentProps {
   label?: string | null;
   items?: Array<{ label: string; value: string }> | null;
+  value?: string | null;
 }
 
 interface ToggleComponentProps {
@@ -404,7 +398,7 @@ function getPaginationRange(
 export const shadcnComponents = {
   // ── Layout ────────────────────────────────────────────────────────────
 
-  Card: ({ props, children }: ComponentProps<CardComponentProps>) => {
+  Card: ({ props, children }: BaseComponentProps<CardComponentProps>) => {
     const maxWidthClass =
       props.maxWidth === "sm"
         ? "max-w-xs sm:min-w-[280px]"
@@ -430,36 +424,31 @@ export const shadcnComponents = {
     );
   },
 
-  Stack: ({ props, children }: ComponentProps<StackComponentProps>) => {
+  Stack: ({ props, children }: BaseComponentProps<StackComponentProps>) => {
     const isHorizontal = props.direction === "horizontal";
-    const gapClass =
-      props.gap === "lg"
-        ? "gap-4"
-        : props.gap === "md"
-          ? "gap-3"
-          : props.gap === "sm"
-            ? "gap-2"
-            : props.gap === "none"
-              ? "gap-0"
-              : "gap-3";
-    const alignClass =
-      props.align === "center"
-        ? "items-center"
-        : props.align === "end"
-          ? "items-end"
-          : props.align === "stretch"
-            ? "items-stretch"
-            : "items-start";
-    const justifyClass =
-      props.justify === "center"
-        ? "justify-center"
-        : props.justify === "end"
-          ? "justify-end"
-          : props.justify === "between"
-            ? "justify-between"
-            : props.justify === "around"
-              ? "justify-around"
-              : "";
+    const gapMap: Record<string, string> = {
+      none: "gap-0",
+      sm: "gap-2",
+      md: "gap-3",
+      lg: "gap-4",
+    };
+    const alignMap: Record<string, string> = {
+      start: "items-start",
+      center: "items-center",
+      end: "items-end",
+      stretch: "items-stretch",
+    };
+    const justifyMap: Record<string, string> = {
+      start: "",
+      center: "justify-center",
+      end: "justify-end",
+      between: "justify-between",
+      around: "justify-around",
+    };
+
+    const gapClass = gapMap[props.gap ?? "md"] ?? "gap-3";
+    const alignClass = alignMap[props.align ?? "start"] ?? "items-start";
+    const justifyClass = justifyMap[props.justify ?? ""] ?? "";
 
     return (
       <div
@@ -470,27 +459,29 @@ export const shadcnComponents = {
     );
   },
 
-  Grid: ({ props, children }: ComponentProps<GridComponentProps>) => {
-    const n = props.columns ?? 1;
-    const cols =
-      n >= 6
-        ? "grid-cols-6"
-        : n >= 5
-          ? "grid-cols-5"
-          : n >= 4
-            ? "grid-cols-4"
-            : n >= 3
-              ? "grid-cols-3"
-              : n >= 2
-                ? "grid-cols-2"
-                : "grid-cols-1";
-    const gridGap =
-      props.gap === "lg" ? "gap-4" : props.gap === "sm" ? "gap-2" : "gap-3";
+  Grid: ({ props, children }: BaseComponentProps<GridComponentProps>) => {
+    const colsMap: Record<number, string> = {
+      1: "grid-cols-1",
+      2: "grid-cols-2",
+      3: "grid-cols-3",
+      4: "grid-cols-4",
+      5: "grid-cols-5",
+      6: "grid-cols-6",
+    };
+    const gridGapMap: Record<string, string> = {
+      sm: "gap-2",
+      md: "gap-3",
+      lg: "gap-4",
+    };
+
+    const n = Math.max(1, Math.min(6, props.columns ?? 1));
+    const cols = colsMap[n] ?? "grid-cols-1";
+    const gridGap = gridGapMap[props.gap ?? "md"] ?? "gap-3";
 
     return <div className={`grid ${cols} ${gridGap}`}>{children}</div>;
   },
 
-  Separator: ({ props }: ComponentProps<SeparatorComponentProps>) => {
+  Separator: ({ props }: BaseComponentProps<SeparatorComponentProps>) => {
     return (
       <Separator
         orientation={props.orientation ?? "horizontal"}
@@ -504,7 +495,7 @@ export const shadcnComponents = {
     children,
     bindings,
     emit,
-  }: ComponentProps<TabsComponentProps>) => {
+  }: BaseComponentProps<TabsComponentProps>) => {
     const tabs = props.tabs ?? [];
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
@@ -537,7 +528,7 @@ export const shadcnComponents = {
     );
   },
 
-  Accordion: ({ props }: ComponentProps<AccordionComponentProps>) => {
+  Accordion: ({ props }: BaseComponentProps<AccordionComponentProps>) => {
     const items = props.items ?? [];
     const isMultiple = props.type === "multiple";
 
@@ -565,7 +556,7 @@ export const shadcnComponents = {
   Collapsible: ({
     props,
     children,
-  }: ComponentProps<CollapsibleComponentProps>) => {
+  }: BaseComponentProps<CollapsibleComponentProps>) => {
     const [open, setOpen] = useState(props.defaultOpen ?? false);
     return (
       <Collapsible open={open} onOpenChange={setOpen} className="w-full">
@@ -592,7 +583,7 @@ export const shadcnComponents = {
     );
   },
 
-  Dialog: ({ props, children }: ComponentProps<DialogComponentProps>) => {
+  Dialog: ({ props, children }: BaseComponentProps<DialogComponentProps>) => {
     const [open, setOpen] = useStateBinding<boolean>(props.openPath ?? "");
     return (
       <DialogPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
@@ -609,7 +600,7 @@ export const shadcnComponents = {
     );
   },
 
-  Drawer: ({ props, children }: ComponentProps<DrawerComponentProps>) => {
+  Drawer: ({ props, children }: BaseComponentProps<DrawerComponentProps>) => {
     const [open, setOpen] = useStateBinding<boolean>(props.openPath ?? "");
     return (
       <DrawerPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
@@ -626,7 +617,7 @@ export const shadcnComponents = {
     );
   },
 
-  Carousel: ({ props }: ComponentProps<CarouselComponentProps>) => {
+  Carousel: ({ props }: BaseComponentProps<CarouselComponentProps>) => {
     const items = props.items ?? [];
     return (
       <CarouselPrimitive className="w-full">
@@ -657,7 +648,7 @@ export const shadcnComponents = {
 
   // ── Data Display ──────────────────────────────────────────────────────
 
-  Table: ({ props }: ComponentProps<TableComponentProps>) => {
+  Table: ({ props }: BaseComponentProps<TableComponentProps>) => {
     const columns = props.columns ?? [];
     const rows = (props.rows ?? []).map((row) => row.map(String));
 
@@ -686,7 +677,7 @@ export const shadcnComponents = {
     );
   },
 
-  Heading: ({ props }: ComponentProps<HeadingComponentProps>) => {
+  Heading: ({ props }: BaseComponentProps<HeadingComponentProps>) => {
     const level = props.level ?? "h2";
     const headingClass =
       level === "h1"
@@ -706,7 +697,7 @@ export const shadcnComponents = {
     return <h2 className={`${headingClass} text-left`}>{props.text}</h2>;
   },
 
-  Text: ({ props }: ComponentProps<TextComponentProps>) => {
+  Text: ({ props }: BaseComponentProps<TextComponentProps>) => {
     const textClass =
       props.variant === "caption"
         ? "text-xs"
@@ -724,7 +715,7 @@ export const shadcnComponents = {
     return <p className={`${textClass} text-left`}>{props.text}</p>;
   },
 
-  Image: ({ props }: ComponentProps<ImageComponentProps>) => {
+  Image: ({ props }: BaseComponentProps<ImageComponentProps>) => {
     if (props.src) {
       return (
         <img
@@ -746,7 +737,7 @@ export const shadcnComponents = {
     );
   },
 
-  Avatar: ({ props }: ComponentProps<AvatarComponentProps>) => {
+  Avatar: ({ props }: BaseComponentProps<AvatarComponentProps>) => {
     const name = props.name || "?";
     const initials = name
       .split(" ")
@@ -770,11 +761,11 @@ export const shadcnComponents = {
     );
   },
 
-  Badge: ({ props }: ComponentProps<BadgeComponentProps>) => {
+  Badge: ({ props }: BaseComponentProps<BadgeComponentProps>) => {
     return <Badge variant={props.variant ?? "default"}>{props.text}</Badge>;
   },
 
-  Alert: ({ props }: ComponentProps<AlertComponentProps>) => {
+  Alert: ({ props }: BaseComponentProps<AlertComponentProps>) => {
     const variant = props.type === "error" ? "destructive" : "default";
     const customClass =
       props.type === "success"
@@ -793,7 +784,7 @@ export const shadcnComponents = {
     );
   },
 
-  Progress: ({ props }: ComponentProps<ProgressComponentProps>) => {
+  Progress: ({ props }: BaseComponentProps<ProgressComponentProps>) => {
     const value = Math.min(100, Math.max(0, props.value || 0));
     return (
       <div className="space-y-2">
@@ -805,7 +796,7 @@ export const shadcnComponents = {
     );
   },
 
-  Skeleton: ({ props }: ComponentProps<SkeletonComponentProps>) => {
+  Skeleton: ({ props }: BaseComponentProps<SkeletonComponentProps>) => {
     return (
       <Skeleton
         className={props.rounded ? "rounded-full" : "rounded-md"}
@@ -817,7 +808,7 @@ export const shadcnComponents = {
     );
   },
 
-  Spinner: ({ props }: ComponentProps<SpinnerComponentProps>) => {
+  Spinner: ({ props }: BaseComponentProps<SpinnerComponentProps>) => {
     const sizeClass =
       props.size === "lg"
         ? "h-8 w-8"
@@ -852,7 +843,7 @@ export const shadcnComponents = {
     );
   },
 
-  Tooltip: ({ props }: ComponentProps<TooltipComponentProps>) => {
+  Tooltip: ({ props }: BaseComponentProps<TooltipComponentProps>) => {
     return (
       <TooltipProvider>
         <TooltipPrimitive>
@@ -869,7 +860,7 @@ export const shadcnComponents = {
     );
   },
 
-  Popover: ({ props }: ComponentProps<PopoverComponentProps>) => {
+  Popover: ({ props }: BaseComponentProps<PopoverComponentProps>) => {
     return (
       <PopoverPrimitive>
         <PopoverTrigger asChild>
@@ -886,7 +877,11 @@ export const shadcnComponents = {
 
   // ── Form Inputs ───────────────────────────────────────────────────────
 
-  Input: ({ props, bindings, emit }: ComponentProps<InputComponentProps>) => {
+  Input: ({
+    props,
+    bindings,
+    emit,
+  }: BaseComponentProps<InputComponentProps>) => {
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
       bindings?.value,
@@ -930,7 +925,10 @@ export const shadcnComponents = {
     );
   },
 
-  Textarea: ({ props, bindings }: ComponentProps<TextareaComponentProps>) => {
+  Textarea: ({
+    props,
+    bindings,
+  }: BaseComponentProps<TextareaComponentProps>) => {
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
       bindings?.value,
@@ -969,7 +967,11 @@ export const shadcnComponents = {
     );
   },
 
-  Select: ({ props, bindings, emit }: ComponentProps<SelectComponentProps>) => {
+  Select: ({
+    props,
+    bindings,
+    emit,
+  }: BaseComponentProps<SelectComponentProps>) => {
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
       bindings?.value,
@@ -1022,7 +1024,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: ComponentProps<CheckboxComponentProps>) => {
+  }: BaseComponentProps<CheckboxComponentProps>) => {
     const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
@@ -1049,7 +1051,11 @@ export const shadcnComponents = {
     );
   },
 
-  Radio: ({ props, bindings, emit }: ComponentProps<RadioComponentProps>) => {
+  Radio: ({
+    props,
+    bindings,
+    emit,
+  }: BaseComponentProps<RadioComponentProps>) => {
     const rawOptions = props.options ?? [];
     const options = rawOptions.map((opt) =>
       typeof opt === "string" ? opt : String(opt ?? ""),
@@ -1092,7 +1098,11 @@ export const shadcnComponents = {
     );
   },
 
-  Switch: ({ props, bindings, emit }: ComponentProps<SwitchComponentProps>) => {
+  Switch: ({
+    props,
+    bindings,
+    emit,
+  }: BaseComponentProps<SwitchComponentProps>) => {
     const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
@@ -1119,7 +1129,11 @@ export const shadcnComponents = {
     );
   },
 
-  Slider: ({ props, bindings, emit }: ComponentProps<SliderComponentProps>) => {
+  Slider: ({
+    props,
+    bindings,
+    emit,
+  }: BaseComponentProps<SliderComponentProps>) => {
     const [boundValue, setBoundValue] = useBoundProp<number>(
       props.value as number | undefined,
       bindings?.value,
@@ -1153,7 +1167,7 @@ export const shadcnComponents = {
 
   // ── Actions ───────────────────────────────────────────────────────────
 
-  Button: ({ props, emit }: ComponentProps<ButtonComponentProps>) => {
+  Button: ({ props, emit }: BaseComponentProps<ButtonComponentProps>) => {
     const variant =
       props.variant === "danger"
         ? "destructive"
@@ -1172,15 +1186,12 @@ export const shadcnComponents = {
     );
   },
 
-  Link: ({ props, emit }: ComponentProps<LinkComponentProps>) => {
+  Link: ({ props, emit }: BaseComponentProps<LinkComponentProps>) => {
     return (
       <a
         href={props.href ?? "#"}
         className="text-primary underline-offset-4 hover:underline text-sm font-medium"
-        onClick={(e) => {
-          e.preventDefault();
-          emit("press");
-        }}
+        onClick={() => emit("press")}
       >
         {props.label}
       </a>
@@ -1189,9 +1200,14 @@ export const shadcnComponents = {
 
   DropdownMenu: ({
     props,
+    bindings,
     emit,
-  }: ComponentProps<DropdownMenuComponentProps>) => {
+  }: BaseComponentProps<DropdownMenuComponentProps>) => {
     const items = props.items ?? [];
+    const [, setBoundValue] = useBoundProp<string>(
+      props.value as string | undefined,
+      bindings?.value,
+    );
     return (
       <DropdownMenuPrimitive>
         <DropdownMenuTrigger asChild>
@@ -1199,7 +1215,13 @@ export const shadcnComponents = {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {items.map((item) => (
-            <DropdownMenuItem key={item.value} onClick={() => emit("select")}>
+            <DropdownMenuItem
+              key={item.value}
+              onClick={() => {
+                setBoundValue(item.value);
+                emit("select");
+              }}
+            >
               {item.label}
             </DropdownMenuItem>
           ))}
@@ -1208,7 +1230,11 @@ export const shadcnComponents = {
     );
   },
 
-  Toggle: ({ props, bindings, emit }: ComponentProps<ToggleComponentProps>) => {
+  Toggle: ({
+    props,
+    bindings,
+    emit,
+  }: BaseComponentProps<ToggleComponentProps>) => {
     const [boundPressed, setBoundPressed] = useBoundProp<boolean>(
       props.pressed as boolean | undefined,
       bindings?.pressed,
@@ -1236,7 +1262,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: ComponentProps<ToggleGroupComponentProps>) => {
+  }: BaseComponentProps<ToggleGroupComponentProps>) => {
     const type = props.type ?? "single";
     const items = props.items ?? [];
     const [boundValue, setBoundValue] = useBoundProp<string>(
@@ -1284,7 +1310,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: ComponentProps<ButtonGroupComponentProps>) => {
+  }: BaseComponentProps<ButtonGroupComponentProps>) => {
     const buttons = props.buttons ?? [];
     const [boundSelected, setBoundSelected] = useBoundProp<string>(
       props.selected as string | undefined,
@@ -1323,7 +1349,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: ComponentProps<PaginationComponentProps>) => {
+  }: BaseComponentProps<PaginationComponentProps>) => {
     const [boundPage, setBoundPage] = useBoundProp<number>(
       props.page as number | undefined,
       bindings?.page,
