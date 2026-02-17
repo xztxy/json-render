@@ -58,6 +58,7 @@ export type { Spec } from "@json-render/core";
 
 // Catalog-aware types for React
 export type {
+  EventHandle,
   BaseComponentProps,
   SetState,
   StateModel,

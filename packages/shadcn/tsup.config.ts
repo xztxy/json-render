@@ -6,5 +6,11 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ["react", "@json-render/core", "@json-render/react", "zod"],
+  external: [
+    "react",
+    "react-dom",
+    "@json-render/core",
+    "@json-render/react",
+    "zod",
+  ],
 });

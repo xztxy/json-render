@@ -486,3 +486,17 @@ export type ComponentDefinition = {
   description: string;
   example?: Record<string, unknown>;
 };
+
+/**
+ * Infer the props type for a shadcn component by name.
+ * Derives the TypeScript type directly from the Zod schema,
+ * so component implementations stay in sync with catalog definitions.
+ *
+ * @example
+ * ```ts
+ * type CardProps = ShadcnProps<"Card">;
+ * // { title: string | null; description: string | null; ... }
+ * ```
+ */
+export type ShadcnProps<K extends keyof typeof shadcnComponentDefinitions> =
+  z.output<(typeof shadcnComponentDefinitions)[K]["props"]>;

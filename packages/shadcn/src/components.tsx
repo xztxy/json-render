@@ -37,6 +37,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "./ui/accordion";
+import {
+  Avatar as AvatarPrimitive,
+  AvatarImage,
+  AvatarFallback,
+} from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import {
@@ -112,237 +117,7 @@ import {
 } from "./ui/tooltip";
 import { cn } from "./lib/utils";
 
-// =============================================================================
-// Types
-// =============================================================================
-
-interface ValidationCheck {
-  type: string;
-  message: string;
-  args?: Record<string, unknown>;
-}
-
-// =============================================================================
-// Component Prop Types
-// =============================================================================
-
-interface CardComponentProps {
-  title?: string | null;
-  description?: string | null;
-  maxWidth?: "sm" | "md" | "lg" | "full" | null;
-  centered?: boolean | null;
-}
-
-interface StackComponentProps {
-  direction?: "horizontal" | "vertical" | null;
-  gap?: "none" | "sm" | "md" | "lg" | null;
-  align?: "start" | "center" | "end" | "stretch" | null;
-  justify?: "start" | "center" | "end" | "between" | "around" | null;
-}
-
-interface GridComponentProps {
-  columns?: number | null;
-  gap?: "sm" | "md" | "lg" | null;
-}
-
-interface SeparatorComponentProps {
-  orientation?: "horizontal" | "vertical" | null;
-}
-
-interface TabsComponentProps {
-  tabs?: Array<{ label: string; value: string }> | null;
-  defaultValue?: string | null;
-  value?: string | null;
-}
-
-interface AccordionComponentProps {
-  items?: Array<{ title: string; content: string }> | null;
-  type?: "single" | "multiple" | null;
-}
-
-interface CollapsibleComponentProps {
-  title?: string | null;
-  defaultOpen?: boolean | null;
-}
-
-interface DialogComponentProps {
-  title?: string | null;
-  description?: string | null;
-  openPath?: string | null;
-}
-
-interface DrawerComponentProps {
-  title?: string | null;
-  description?: string | null;
-  openPath?: string | null;
-}
-
-interface CarouselComponentProps {
-  items?: Array<{
-    title?: string | null;
-    description?: string | null;
-  }> | null;
-}
-
-interface TableComponentProps {
-  columns?: string[] | null;
-  rows?: string[][] | null;
-  caption?: string | null;
-}
-
-interface HeadingComponentProps {
-  text?: string | null;
-  level?: "h1" | "h2" | "h3" | "h4" | null;
-}
-
-interface TextComponentProps {
-  text?: string | null;
-  variant?: "body" | "caption" | "muted" | "lead" | "code" | null;
-}
-
-interface ImageComponentProps {
-  src?: string | null;
-  alt?: string | null;
-  width?: number | null;
-  height?: number | null;
-}
-
-interface AvatarComponentProps {
-  src?: string | null;
-  name?: string | null;
-  size?: "sm" | "md" | "lg" | null;
-}
-
-interface BadgeComponentProps {
-  text?: string | null;
-  variant?: "default" | "secondary" | "destructive" | "outline" | null;
-}
-
-interface AlertComponentProps {
-  title?: string | null;
-  message?: string | null;
-  type?: "info" | "success" | "warning" | "error" | null;
-}
-
-interface ProgressComponentProps {
-  value?: number | null;
-  max?: number | null;
-  label?: string | null;
-}
-
-interface SkeletonComponentProps {
-  width?: string | null;
-  height?: string | null;
-  rounded?: boolean | null;
-}
-
-interface SpinnerComponentProps {
-  size?: "sm" | "md" | "lg" | null;
-  label?: string | null;
-}
-
-interface TooltipComponentProps {
-  content?: string | null;
-  text?: string | null;
-}
-
-interface PopoverComponentProps {
-  trigger?: string | null;
-  content?: string | null;
-}
-
-interface InputComponentProps {
-  label?: string | null;
-  name?: string | null;
-  type?: "text" | "email" | "password" | "number" | null;
-  placeholder?: string | null;
-  value?: string | null;
-  checks?: ValidationCheck[] | null;
-}
-
-interface TextareaComponentProps {
-  label?: string | null;
-  name?: string | null;
-  placeholder?: string | null;
-  rows?: number | null;
-  value?: string | null;
-  checks?: ValidationCheck[] | null;
-}
-
-interface SelectComponentProps {
-  label?: string | null;
-  name?: string | null;
-  options?: string[] | null;
-  placeholder?: string | null;
-  value?: string | null;
-  checks?: ValidationCheck[] | null;
-}
-
-interface CheckboxComponentProps {
-  label?: string | null;
-  name?: string | null;
-  checked?: boolean | null;
-}
-
-interface RadioComponentProps {
-  label?: string | null;
-  name?: string | null;
-  options?: string[] | null;
-  value?: string | null;
-}
-
-interface SwitchComponentProps {
-  label?: string | null;
-  name?: string | null;
-  checked?: boolean | null;
-}
-
-interface SliderComponentProps {
-  label?: string | null;
-  min?: number | null;
-  max?: number | null;
-  step?: number | null;
-  value?: number | null;
-}
-
-interface ButtonComponentProps {
-  label?: string | null;
-  variant?: "primary" | "secondary" | "danger" | null;
-  disabled?: boolean | null;
-}
-
-interface LinkComponentProps {
-  label?: string | null;
-  href?: string | null;
-}
-
-interface DropdownMenuComponentProps {
-  label?: string | null;
-  items?: Array<{ label: string; value: string }> | null;
-  value?: string | null;
-}
-
-interface ToggleComponentProps {
-  label?: string | null;
-  pressed?: boolean | null;
-  variant?: "default" | "outline" | null;
-}
-
-interface ToggleGroupComponentProps {
-  items?: Array<{ label: string; value: string }> | null;
-  type?: "single" | "multiple" | null;
-  value?: string | null;
-}
-
-interface ButtonGroupComponentProps {
-  buttons?: Array<{ label: string; value: string }> | null;
-  selected?: string | null;
-}
-
-interface PaginationComponentProps {
-  totalPages?: number | null;
-  page?: number | null;
-}
+import { type ShadcnProps } from "./catalog";
 
 // =============================================================================
 // Helpers
@@ -398,7 +173,7 @@ function getPaginationRange(
 export const shadcnComponents = {
   // ── Layout ────────────────────────────────────────────────────────────
 
-  Card: ({ props, children }: BaseComponentProps<CardComponentProps>) => {
+  Card: ({ props, children }: BaseComponentProps<ShadcnProps<"Card">>) => {
     const maxWidthClass =
       props.maxWidth === "sm"
         ? "max-w-xs sm:min-w-[280px]"
@@ -424,7 +199,7 @@ export const shadcnComponents = {
     );
   },
 
-  Stack: ({ props, children }: BaseComponentProps<StackComponentProps>) => {
+  Stack: ({ props, children }: BaseComponentProps<ShadcnProps<"Stack">>) => {
     const isHorizontal = props.direction === "horizontal";
     const gapMap: Record<string, string> = {
       none: "gap-0",
@@ -459,7 +234,7 @@ export const shadcnComponents = {
     );
   },
 
-  Grid: ({ props, children }: BaseComponentProps<GridComponentProps>) => {
+  Grid: ({ props, children }: BaseComponentProps<ShadcnProps<"Grid">>) => {
     const colsMap: Record<number, string> = {
       1: "grid-cols-1",
       2: "grid-cols-2",
@@ -481,7 +256,7 @@ export const shadcnComponents = {
     return <div className={`grid ${cols} ${gridGap}`}>{children}</div>;
   },
 
-  Separator: ({ props }: BaseComponentProps<SeparatorComponentProps>) => {
+  Separator: ({ props }: BaseComponentProps<ShadcnProps<"Separator">>) => {
     return (
       <Separator
         orientation={props.orientation ?? "horizontal"}
@@ -495,7 +270,7 @@ export const shadcnComponents = {
     children,
     bindings,
     emit,
-  }: BaseComponentProps<TabsComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Tabs">>) => {
     const tabs = props.tabs ?? [];
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
@@ -528,7 +303,7 @@ export const shadcnComponents = {
     );
   },
 
-  Accordion: ({ props }: BaseComponentProps<AccordionComponentProps>) => {
+  Accordion: ({ props }: BaseComponentProps<ShadcnProps<"Accordion">>) => {
     const items = props.items ?? [];
     const isMultiple = props.type === "multiple";
 
@@ -556,7 +331,7 @@ export const shadcnComponents = {
   Collapsible: ({
     props,
     children,
-  }: BaseComponentProps<CollapsibleComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Collapsible">>) => {
     const [open, setOpen] = useState(props.defaultOpen ?? false);
     return (
       <Collapsible open={open} onOpenChange={setOpen} className="w-full">
@@ -583,7 +358,7 @@ export const shadcnComponents = {
     );
   },
 
-  Dialog: ({ props, children }: BaseComponentProps<DialogComponentProps>) => {
+  Dialog: ({ props, children }: BaseComponentProps<ShadcnProps<"Dialog">>) => {
     const [open, setOpen] = useStateBinding<boolean>(props.openPath ?? "");
     return (
       <DialogPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
@@ -600,7 +375,7 @@ export const shadcnComponents = {
     );
   },
 
-  Drawer: ({ props, children }: BaseComponentProps<DrawerComponentProps>) => {
+  Drawer: ({ props, children }: BaseComponentProps<ShadcnProps<"Drawer">>) => {
     const [open, setOpen] = useStateBinding<boolean>(props.openPath ?? "");
     return (
       <DrawerPrimitive open={open ?? false} onOpenChange={(v) => setOpen(v)}>
@@ -617,7 +392,7 @@ export const shadcnComponents = {
     );
   },
 
-  Carousel: ({ props }: BaseComponentProps<CarouselComponentProps>) => {
+  Carousel: ({ props }: BaseComponentProps<ShadcnProps<"Carousel">>) => {
     const items = props.items ?? [];
     return (
       <CarouselPrimitive className="w-full">
@@ -648,7 +423,7 @@ export const shadcnComponents = {
 
   // ── Data Display ──────────────────────────────────────────────────────
 
-  Table: ({ props }: BaseComponentProps<TableComponentProps>) => {
+  Table: ({ props }: BaseComponentProps<ShadcnProps<"Table">>) => {
     const columns = props.columns ?? [];
     const rows = (props.rows ?? []).map((row) => row.map(String));
 
@@ -677,7 +452,7 @@ export const shadcnComponents = {
     );
   },
 
-  Heading: ({ props }: BaseComponentProps<HeadingComponentProps>) => {
+  Heading: ({ props }: BaseComponentProps<ShadcnProps<"Heading">>) => {
     const level = props.level ?? "h2";
     const headingClass =
       level === "h1"
@@ -697,7 +472,7 @@ export const shadcnComponents = {
     return <h2 className={`${headingClass} text-left`}>{props.text}</h2>;
   },
 
-  Text: ({ props }: BaseComponentProps<TextComponentProps>) => {
+  Text: ({ props }: BaseComponentProps<ShadcnProps<"Text">>) => {
     const textClass =
       props.variant === "caption"
         ? "text-xs"
@@ -715,7 +490,7 @@ export const shadcnComponents = {
     return <p className={`${textClass} text-left`}>{props.text}</p>;
   },
 
-  Image: ({ props }: BaseComponentProps<ImageComponentProps>) => {
+  Image: ({ props }: BaseComponentProps<ShadcnProps<"Image">>) => {
     if (props.src) {
       return (
         <img
@@ -737,7 +512,7 @@ export const shadcnComponents = {
     );
   },
 
-  Avatar: ({ props }: BaseComponentProps<AvatarComponentProps>) => {
+  Avatar: ({ props }: BaseComponentProps<ShadcnProps<"Avatar">>) => {
     const name = props.name || "?";
     const initials = name
       .split(" ")
@@ -745,27 +520,26 @@ export const shadcnComponents = {
       .join("")
       .slice(0, 2)
       .toUpperCase();
-    const avatarSize =
+    const sizeClass =
       props.size === "lg"
-        ? "w-12 h-12 text-base"
+        ? "h-12 w-12"
         : props.size === "sm"
-          ? "w-8 h-8 text-xs"
-          : "w-10 h-10 text-sm";
+          ? "h-8 w-8"
+          : "h-10 w-10";
 
     return (
-      <div
-        className={`${avatarSize} rounded-full bg-muted flex items-center justify-center font-medium`}
-      >
-        {initials}
-      </div>
+      <AvatarPrimitive className={sizeClass}>
+        {props.src && <AvatarImage src={props.src} alt={name} />}
+        <AvatarFallback>{initials}</AvatarFallback>
+      </AvatarPrimitive>
     );
   },
 
-  Badge: ({ props }: BaseComponentProps<BadgeComponentProps>) => {
+  Badge: ({ props }: BaseComponentProps<ShadcnProps<"Badge">>) => {
     return <Badge variant={props.variant ?? "default"}>{props.text}</Badge>;
   },
 
-  Alert: ({ props }: BaseComponentProps<AlertComponentProps>) => {
+  Alert: ({ props }: BaseComponentProps<ShadcnProps<"Alert">>) => {
     const variant = props.type === "error" ? "destructive" : "default";
     const customClass =
       props.type === "success"
@@ -784,7 +558,7 @@ export const shadcnComponents = {
     );
   },
 
-  Progress: ({ props }: BaseComponentProps<ProgressComponentProps>) => {
+  Progress: ({ props }: BaseComponentProps<ShadcnProps<"Progress">>) => {
     const value = Math.min(100, Math.max(0, props.value || 0));
     return (
       <div className="space-y-2">
@@ -796,7 +570,7 @@ export const shadcnComponents = {
     );
   },
 
-  Skeleton: ({ props }: BaseComponentProps<SkeletonComponentProps>) => {
+  Skeleton: ({ props }: BaseComponentProps<ShadcnProps<"Skeleton">>) => {
     return (
       <Skeleton
         className={props.rounded ? "rounded-full" : "rounded-md"}
@@ -808,7 +582,7 @@ export const shadcnComponents = {
     );
   },
 
-  Spinner: ({ props }: BaseComponentProps<SpinnerComponentProps>) => {
+  Spinner: ({ props }: BaseComponentProps<ShadcnProps<"Spinner">>) => {
     const sizeClass =
       props.size === "lg"
         ? "h-8 w-8"
@@ -843,7 +617,7 @@ export const shadcnComponents = {
     );
   },
 
-  Tooltip: ({ props }: BaseComponentProps<TooltipComponentProps>) => {
+  Tooltip: ({ props }: BaseComponentProps<ShadcnProps<"Tooltip">>) => {
     return (
       <TooltipProvider>
         <TooltipPrimitive>
@@ -860,7 +634,7 @@ export const shadcnComponents = {
     );
   },
 
-  Popover: ({ props }: BaseComponentProps<PopoverComponentProps>) => {
+  Popover: ({ props }: BaseComponentProps<ShadcnProps<"Popover">>) => {
     return (
       <PopoverPrimitive>
         <PopoverTrigger asChild>
@@ -881,7 +655,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<InputComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Input">>) => {
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
       bindings?.value,
@@ -928,7 +702,7 @@ export const shadcnComponents = {
   Textarea: ({
     props,
     bindings,
-  }: BaseComponentProps<TextareaComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Textarea">>) => {
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
       bindings?.value,
@@ -971,7 +745,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<SelectComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Select">>) => {
     const [boundValue, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
       bindings?.value,
@@ -1024,7 +798,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<CheckboxComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Checkbox">>) => {
     const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
@@ -1055,7 +829,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<RadioComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Radio">>) => {
     const rawOptions = props.options ?? [];
     const options = rawOptions.map((opt) =>
       typeof opt === "string" ? opt : String(opt ?? ""),
@@ -1102,7 +876,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<SwitchComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Switch">>) => {
     const [boundChecked, setBoundChecked] = useBoundProp<boolean>(
       props.checked as boolean | undefined,
       bindings?.checked,
@@ -1133,7 +907,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<SliderComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Slider">>) => {
     const [boundValue, setBoundValue] = useBoundProp<number>(
       props.value as number | undefined,
       bindings?.value,
@@ -1167,7 +941,7 @@ export const shadcnComponents = {
 
   // ── Actions ───────────────────────────────────────────────────────────
 
-  Button: ({ props, emit }: BaseComponentProps<ButtonComponentProps>) => {
+  Button: ({ props, emit }: BaseComponentProps<ShadcnProps<"Button">>) => {
     const variant =
       props.variant === "danger"
         ? "destructive"
@@ -1186,12 +960,16 @@ export const shadcnComponents = {
     );
   },
 
-  Link: ({ props, emit }: BaseComponentProps<LinkComponentProps>) => {
+  Link: ({ props, on }: BaseComponentProps<ShadcnProps<"Link">>) => {
     return (
       <a
         href={props.href ?? "#"}
         className="text-primary underline-offset-4 hover:underline text-sm font-medium"
-        onClick={() => emit("press")}
+        onClick={(e) => {
+          const press = on("press");
+          if (press.preventDefault) e.preventDefault();
+          press.emit();
+        }}
       >
         {props.label}
       </a>
@@ -1202,7 +980,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<DropdownMenuComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"DropdownMenu">>) => {
     const items = props.items ?? [];
     const [, setBoundValue] = useBoundProp<string>(
       props.value as string | undefined,
@@ -1234,7 +1012,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<ToggleComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Toggle">>) => {
     const [boundPressed, setBoundPressed] = useBoundProp<boolean>(
       props.pressed as boolean | undefined,
       bindings?.pressed,
@@ -1262,7 +1040,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<ToggleGroupComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"ToggleGroup">>) => {
     const type = props.type ?? "single";
     const items = props.items ?? [];
     const [boundValue, setBoundValue] = useBoundProp<string>(
@@ -1275,8 +1053,16 @@ export const shadcnComponents = {
     const setValue = isBound ? setBoundValue : setLocalValue;
 
     if (type === "multiple") {
+      const selected = value ? value.split(",").filter(Boolean) : [];
       return (
-        <ToggleGroup type="multiple">
+        <ToggleGroup
+          type="multiple"
+          value={selected}
+          onValueChange={(v) => {
+            setValue(v.join(","));
+            emit("change");
+          }}
+        >
           {items.map((item) => (
             <ToggleGroupItem key={item.value} value={item.value}>
               {item.label}
@@ -1310,7 +1096,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<ButtonGroupComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"ButtonGroup">>) => {
     const buttons = props.buttons ?? [];
     const [boundSelected, setBoundSelected] = useBoundProp<string>(
       props.selected as string | undefined,
@@ -1349,7 +1135,7 @@ export const shadcnComponents = {
     props,
     bindings,
     emit,
-  }: BaseComponentProps<PaginationComponentProps>) => {
+  }: BaseComponentProps<ShadcnProps<"Pagination">>) => {
     const [boundPage, setBoundPage] = useBoundProp<number>(
       props.page as number | undefined,
       bindings?.page,
