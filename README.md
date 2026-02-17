@@ -188,15 +188,15 @@ const { registry } = defineRegistry(catalog, {
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react-native/schema";
 import {
-  shadcnComponentDefinitions,
-  shadcnActionDefinitions,
+  standardComponentDefinitions,
+  standardActionDefinitions,
 } from "@json-render/react-native/catalog";
 import { defineRegistry, Renderer } from "@json-render/react-native";
 
 // 25+ standard components included
 const catalog = defineCatalog(schema, {
-  components: { ...shadcnComponentDefinitions },
-  actions: shadcnActionDefinitions,
+  components: { ...standardComponentDefinitions },
+  actions: standardActionDefinitions,
 });
 
 const { registry } = defineRegistry(catalog, { components: {} });
@@ -207,7 +207,7 @@ const { registry } = defineRegistry(catalog, { components: {} });
 
 ```tsx
 import { Player } from "@remotion/player";
-import { Renderer, schema, shadcnComponentDefinitions } from "@json-render/remotion";
+import { Renderer, schema, standardComponentDefinitions } from "@json-render/remotion";
 
 // Timeline spec format
 const spec = {
