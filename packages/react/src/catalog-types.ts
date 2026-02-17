@@ -32,7 +32,7 @@ export type SetState = (
  * @example
  * ```ts
  * const press = on("press");
- * if (press.preventDefault) e.preventDefault();
+ * if (press.shouldPreventDefault) e.preventDefault();
  * press.emit();
  * ```
  */
@@ -40,7 +40,7 @@ export interface EventHandle {
   /** Fire the event (resolve action bindings) */
   emit: () => void;
   /** Whether any binding requested preventDefault */
-  preventDefault: boolean;
+  shouldPreventDefault: boolean;
   /** Whether any handler is bound to this event */
   bound: boolean;
 }
@@ -62,7 +62,7 @@ export interface BaseComponentProps<P = Record<string, unknown>> {
   children?: ReactNode;
   /** Simple event emitter (shorthand). Fires the event and returns void. */
   emit: (event: string) => void;
-  /** Get an event handle with metadata. Use when you need preventDefault or bound checks. */
+  /** Get an event handle with metadata. Use when you need shouldPreventDefault or bound checks. */
   on: (event: string) => EventHandle;
   /**
    * Two-way binding paths resolved from `$bindState` / `$bindItem` expressions.

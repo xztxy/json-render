@@ -967,7 +967,7 @@ export const shadcnComponents = {
         className="text-primary underline-offset-4 hover:underline text-sm font-medium"
         onClick={(e) => {
           const press = on("press");
-          if (press.preventDefault) e.preventDefault();
+          if (press.shouldPreventDefault) e.preventDefault();
           press.emit();
         }}
       >

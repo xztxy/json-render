@@ -52,7 +52,7 @@ export interface ComponentRenderProps<P = Record<string, unknown>> {
   children?: ReactNode;
   /** Emit a named event. The renderer resolves the event to action binding(s) from the element's `on` field. Always provided by the renderer. */
   emit: (event: string) => void;
-  /** Get an event handle with metadata (preventDefault, bound). Use when you need to inspect event bindings. */
+  /** Get an event handle with metadata (shouldPreventDefault, bound). Use when you need to inspect event bindings. */
   on: (event: string) => EventHandle;
   /**
    * Two-way binding paths resolved from `$bindState` / `$bindItem` expressions.
@@ -208,13 +208,13 @@ const ElementRenderer = React.memo(function ElementRenderer({
     (eventName: string): EventHandle => {
       const binding = onBindings?.[eventName];
       if (!binding) {
-        return { emit: () => {}, preventDefault: false, bound: false };
+        return { emit: () => {}, shouldPreventDefault: false, bound: false };
       }
       const actionBindings = Array.isArray(binding) ? binding : [binding];
       const shouldPreventDefault = actionBindings.some((b) => b.preventDefault);
       return {
         emit: () => emit(eventName),
-        preventDefault: shouldPreventDefault,
+        shouldPreventDefault,
         bound: true,
       };
     },
