@@ -49,16 +49,16 @@ import { shadcnComponents, shadcnActions } from "@json-render/shadcn";
 
 const { registry } = defineRegistry(catalog, {
   components: {
-    Card: shadcnComponents.Card!,
-    Stack: shadcnComponents.Stack!,
-    Heading: shadcnComponents.Heading!,
-    Button: shadcnComponents.Button!,
-    Input: shadcnComponents.Input!,
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Heading: shadcnComponents.Heading,
+    Button: shadcnComponents.Button,
+    Input: shadcnComponents.Input,
   },
   actions: {
-    setState: shadcnActions.setState!,
-    pushState: shadcnActions.pushState!,
-    removeState: shadcnActions.removeState!,
+    setState: shadcnActions.setState,
+    pushState: shadcnActions.pushState,
+    removeState: shadcnActions.removeState,
   },
 });
 ```
@@ -109,9 +109,9 @@ const catalog = defineCatalog(schema, {
 const { registry } = defineRegistry(catalog, {
   components: {
     // Standard
-    Card: shadcnComponents.Card!,
-    Stack: shadcnComponents.Stack!,
-    Button: shadcnComponents.Button!,
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Button: shadcnComponents.Button,
 
     // Custom
     Metric: ({ props }) => (
@@ -122,9 +122,9 @@ const { registry } = defineRegistry(catalog, {
     ),
   },
   actions: {
-    setState: shadcnActions.setState!,
-    pushState: shadcnActions.pushState!,
-    removeState: shadcnActions.removeState!,
+    setState: shadcnActions.setState,
+    pushState: shadcnActions.pushState,
+    removeState: shadcnActions.removeState,
   },
 });
 ```

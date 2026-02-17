@@ -202,16 +202,16 @@ function AnimatedGroup({
 export const { registry, handlers } = defineRegistry(explorerCatalog, {
   components: {
     // From @json-render/shadcn (used as-is)
-    Stack: shadcnComponents.Stack!,
-    Card: shadcnComponents.Card!,
-    Grid: shadcnComponents.Grid!,
-    Heading: shadcnComponents.Heading!,
-    Separator: shadcnComponents.Separator!,
-    Accordion: shadcnComponents.Accordion!,
-    Progress: shadcnComponents.Progress!,
-    Skeleton: shadcnComponents.Skeleton!,
-    Badge: shadcnComponents.Badge!,
-    Alert: shadcnComponents.Alert!,
+    Stack: shadcnComponents.Stack,
+    Card: shadcnComponents.Card,
+    Grid: shadcnComponents.Grid,
+    Heading: shadcnComponents.Heading,
+    Separator: shadcnComponents.Separator,
+    Accordion: shadcnComponents.Accordion,
+    Progress: shadcnComponents.Progress,
+    Skeleton: shadcnComponents.Skeleton,
+    Badge: shadcnComponents.Badge,
+    Alert: shadcnComponents.Alert,
 
     // Chat-specific components
     Text: ({ props }) => (
@@ -893,9 +893,9 @@ export const { registry, handlers } = defineRegistry(explorerCatalog, {
   },
 
   actions: {
-    setState: shadcnActions.setState!,
-    pushState: shadcnActions.pushState!,
-    removeState: shadcnActions.removeState!,
+    setState: shadcnActions.setState,
+    pushState: shadcnActions.pushState,
+    removeState: shadcnActions.removeState,
   },
 });
 

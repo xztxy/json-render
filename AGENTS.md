@@ -25,7 +25,6 @@ This ensures we don't install outdated versions that may have incompatible types
 ## Code Style
 
 - Do not use emojis in code or UI
-- Do not use barrel files (index.ts that re-exports from other files)
 - Use shadcn CLI to add shadcn/ui components: `pnpm dlx shadcn@latest add <component>`
 
 ## Workflow

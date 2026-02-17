@@ -169,13 +169,13 @@ const catalog = defineCatalog(schema, {
 // Use matching implementations
 const { registry } = defineRegistry(catalog, {
   components: {
-    Card: shadcnComponents.Card!,
-    Stack: shadcnComponents.Stack!,
-    Heading: shadcnComponents.Heading!,
-    Button: shadcnComponents.Button!,
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Heading: shadcnComponents.Heading,
+    Button: shadcnComponents.Button,
   },
   actions: {
-    setState: shadcnActions.setState!,
+    setState: shadcnActions.setState,
   },
 });
 

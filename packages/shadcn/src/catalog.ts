@@ -173,11 +173,13 @@ export const shadcnComponentDefinitions = {
 
   Image: {
     props: z.object({
+      src: z.string().nullable(),
       alt: z.string(),
       width: z.number().nullable(),
       height: z.number().nullable(),
     }),
-    description: "Placeholder image (displays alt text in a styled box)",
+    description:
+      "Image component. Renders an img tag when src is provided, otherwise a placeholder.",
   },
 
   Avatar: {

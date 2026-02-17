@@ -47,21 +47,19 @@ const catalog = defineCatalog(schema, {
 // Registry: pick matching implementations
 const { registry } = defineRegistry(catalog, {
   components: {
-    Card: shadcnComponents.Card!,
-    Stack: shadcnComponents.Stack!,
-    Heading: shadcnComponents.Heading!,
-    Button: shadcnComponents.Button!,
-    Input: shadcnComponents.Input!,
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
+    Heading: shadcnComponents.Heading,
+    Button: shadcnComponents.Button,
+    Input: shadcnComponents.Input,
   },
   actions: {
-    setState: shadcnActions.setState!,
-    pushState: shadcnActions.pushState!,
-    removeState: shadcnActions.removeState!,
+    setState: shadcnActions.setState,
+    pushState: shadcnActions.pushState,
+    removeState: shadcnActions.removeState,
   },
 });
 ```
-
-The `!` non-null assertion is needed because `shadcnComponents` is typed as `Record<string, ...>` (index returns `T | undefined`).
 
 ## Extending with Custom Components
 
@@ -91,12 +89,12 @@ const catalog = defineCatalog(schema, {
 
 const { registry } = defineRegistry(catalog, {
   components: {
-    Card: shadcnComponents.Card!,
-    Stack: shadcnComponents.Stack!,
+    Card: shadcnComponents.Card,
+    Stack: shadcnComponents.Stack,
     Metric: ({ props }) => <div>{props.label}: {props.value}</div>,
   },
   actions: {
-    setState: shadcnActions.setState!,
+    setState: shadcnActions.setState,
   },
 });
 ```
