@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import type { Spec } from "@json-render/react";
 import {
+  Banner,
   Box,
   ContextView,
   Divider,
   Button,
+  Link,
   TextField,
   Tabs,
   TabList,
@@ -613,24 +615,45 @@ const Home = (_props: ExtensionContextValue) => {
                 {currentSpec && (
                   <>
                     <Divider />
-                    <Box css={{ font: "subheading" }}>
-                      Preview (with real Stripe data)
-                    </Box>
-                    <Box
-                      css={{
-                        padding: "medium",
-                        borderRadius: "medium",
-                        keyline: "neutral",
-                      }}
-                    >
-                      <StripeRenderer
-                        spec={currentSpec}
-                        data={data}
-                        setData={handleSetState}
-                        loading={isGenerating}
-                      />
-                    </Box>
+                    <StripeRenderer
+                      spec={currentSpec}
+                      data={data}
+                      setData={handleSetState}
+                      loading={isGenerating}
+                    />
                   </>
+                )}
+
+                {(
+                  data._actionResult as
+                    | { message?: string; url?: string }
+                    | undefined
+                )?.message && (
+                  <Banner
+                    title={(data._actionResult as { message: string }).message}
+                    description={
+                      (data._actionResult as { url?: string }).url
+                        ? "Open in Stripe Dashboard"
+                        : undefined
+                    }
+                    actions={
+                      (data._actionResult as { url?: string }).url ? (
+                        <Link
+                          href={(data._actionResult as { url: string }).url}
+                          external
+                        >
+                          Open
+                        </Link>
+                      ) : undefined
+                    }
+                    onDismiss={() =>
+                      setState((prev) => {
+                        const next = { ...prev };
+                        delete next._actionResult;
+                        return next;
+                      })
+                    }
+                  />
                 )}
 
                 <Divider />

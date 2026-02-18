@@ -55,12 +55,22 @@ export const actionHandlers: Record<
     }
   },
 
-  viewCustomer: async (params) => {
+  viewCustomer: async (params, setState) => {
     if (params?.customerId) {
-      window.open(
-        `https://dashboard.stripe.com/customers/${params.customerId}`,
-        "_blank",
-      );
+      const id = String(params.customerId);
+      setState((prev) => ({
+        ...prev,
+        _actionResult: {
+          action: "viewCustomer",
+          message: `Opening customer ${id}`,
+          url: `https://dashboard.stripe.com/customers/${id}`,
+        },
+      }));
+      try {
+        window.open(`https://dashboard.stripe.com/customers/${id}`, "_blank");
+      } catch {
+        // blocked in iframe
+      }
     }
   },
 
@@ -173,12 +183,22 @@ export const actionHandlers: Record<
     }
   },
 
-  viewPayment: async (params) => {
+  viewPayment: async (params, setState) => {
     if (params?.paymentId) {
-      window.open(
-        `https://dashboard.stripe.com/payments/${params.paymentId}`,
-        "_blank",
-      );
+      const id = String(params.paymentId);
+      setState((prev) => ({
+        ...prev,
+        _actionResult: {
+          action: "viewPayment",
+          message: `Opening payment ${id}`,
+          url: `https://dashboard.stripe.com/payments/${id}`,
+        },
+      }));
+      try {
+        window.open(`https://dashboard.stripe.com/payments/${id}`, "_blank");
+      } catch {
+        // blocked in iframe -- state update above still shows feedback
+      }
     }
   },
 

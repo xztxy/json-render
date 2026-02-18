@@ -9,6 +9,7 @@ import {
 } from "@json-render/react";
 
 import { components, Fallback } from "./catalog/components";
+import { executeAction } from "./catalog/actions";
 
 // =============================================================================
 // Types
@@ -71,6 +72,12 @@ function buildRegistry(
             }
           }
           return current;
+        },
+        onAction: (actionName: string, params?: Record<string, unknown>) => {
+          const setState = setDataRef.current;
+          if (setState) {
+            executeAction(actionName, params, setState, dataRef.current);
+          }
         },
       });
   }

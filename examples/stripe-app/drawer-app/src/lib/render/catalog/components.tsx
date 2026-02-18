@@ -62,6 +62,7 @@ type ExtendedRenderProps<P = Record<string, unknown>> =
   ComponentRenderProps<P> & {
     state?: Record<string, unknown>;
     getValue?: (path: string) => unknown;
+    onAction?: (actionName: string, params?: Record<string, unknown>) => void;
   };
 
 // NOTE: All interactive components use `emit` to fire named events.
@@ -658,17 +659,30 @@ export const DateField: FunctionComponent<ExtendedRenderProps> = ({
 export const Button: FunctionComponent<ExtendedRenderProps> = ({
   element,
   emit,
+  onAction,
 }) => {
   const {
     label,
     action,
-    actionParams: _actionParams,
+    actionParams,
     type = "primary",
     size = "medium",
     disabled,
     pending,
     href,
   } = element.props as Record<string, unknown>;
+
+  const handlePress = action
+    ? () => {
+        emit("press");
+        if (onAction) {
+          onAction(
+            String(action),
+            actionParams as Record<string, unknown> | undefined,
+          );
+        }
+      }
+    : undefined;
 
   return (
     <UIButton
@@ -677,7 +691,7 @@ export const Button: FunctionComponent<ExtendedRenderProps> = ({
       disabled={Boolean(disabled) || undefined}
       pending={Boolean(pending) || undefined}
       href={href ? String(href) : undefined}
-      onPress={action ? () => emit("press") : undefined}
+      onPress={handlePress}
     >
       {String(label || "")}
     </UIButton>
