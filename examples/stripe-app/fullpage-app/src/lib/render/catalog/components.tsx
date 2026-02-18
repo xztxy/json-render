@@ -334,6 +334,21 @@ export const Spinner: FunctionComponent<ExtendedRenderProps> = ({
 // =========================================================================
 // Feedback Components
 // =========================================================================
+const BANNER_TYPES = new Set(["default", "caution", "critical"]);
+const BANNER_ALIAS: Record<string, string> = {
+  info: "default",
+  warning: "caution",
+  error: "critical",
+  danger: "critical",
+  success: "default",
+};
+
+function coerceBannerType(raw: unknown): "default" | "caution" | "critical" {
+  const s = String(raw ?? "default");
+  if (BANNER_TYPES.has(s)) return s as "default" | "caution" | "critical";
+  return (BANNER_ALIAS[s] ?? "default") as "default" | "caution" | "critical";
+}
+
 export const Banner: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
   const {
     title,
@@ -344,7 +359,7 @@ export const Banner: FunctionComponent<ExtendedRenderProps> = ({ element }) => {
     <UIBanner
       title={title ? String(title) : undefined}
       description={description ? String(description) : undefined}
-      type={type as "default" | "caution" | "critical"}
+      type={coerceBannerType(type)}
     />
   );
 };
@@ -753,13 +768,25 @@ export const BarChart: FunctionComponent<ExtendedRenderProps> = ({
       x={String(xKey || "x")}
       y={String(yKey || "y")}
       color={colorKey ? String(colorKey) : undefined}
-      axis={showAxis as "x" | "y" | "both" | "none"}
-      grid={showGrid as "x" | "y" | "both" | "none"}
+      axis={coerceAxisGrid(showAxis, "both")}
+      grid={coerceAxisGrid(showGrid, "none")}
       legend={Boolean(showLegend) || undefined}
       tooltip={Boolean(showTooltip)}
     />
   );
 };
+
+function coerceAxisGrid(
+  val: unknown,
+  fallback: string,
+): "x" | "y" | "both" | "none" {
+  if (val === true) return "both";
+  if (val === false) return "none";
+  const s = String(val ?? fallback);
+  if (["x", "y", "both", "none"].includes(s))
+    return s as "x" | "y" | "both" | "none";
+  return fallback as "x" | "y" | "both" | "none";
+}
 
 export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
   element,
@@ -789,8 +816,8 @@ export const LineChart: FunctionComponent<ExtendedRenderProps> = ({
       x={String(xKey || "x")}
       y={String(yKey || "y")}
       color={colorKey ? String(colorKey) : undefined}
-      axis={showAxis as "x" | "y" | "both" | "none"}
-      grid={showGrid as "x" | "y" | "both" | "none"}
+      axis={coerceAxisGrid(showAxis, "both")}
+      grid={coerceAxisGrid(showGrid, "none")}
       legend={Boolean(showLegend) || undefined}
       tooltip={Boolean(showTooltip)}
     />
