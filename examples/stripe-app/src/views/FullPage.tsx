@@ -16,6 +16,7 @@ import type { ExtensionContextValue } from "@stripe/ui-extension-sdk/context";
 
 import { stripeCatalog, StripeRenderer } from "../lib/render";
 import { executeAction } from "../lib/render/catalog/actions";
+import { API_GENERATE_URL } from "../lib/config";
 
 function createOverviewSpec(data: Record<string, unknown>): Spec {
   const customers = data.customers as { total?: number } | undefined;
@@ -136,7 +137,7 @@ const FullPage = (_props: ExtensionContextValue) => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:3000/api/generate", {
+      const response = await fetch(API_GENERATE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

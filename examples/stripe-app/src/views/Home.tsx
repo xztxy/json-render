@@ -20,6 +20,7 @@ import type { ExtensionContextValue } from "@stripe/ui-extension-sdk/context";
 import BrandIcon from "./brand_icon.svg";
 import { stripeCatalog, StripeRenderer } from "../lib/render";
 import { executeAction } from "../lib/render/catalog/actions";
+import { API_GENERATE_URL } from "../lib/config";
 
 // =============================================================================
 // Dynamic Specs (use real data from context)
@@ -503,7 +504,7 @@ const Home = (_props: ExtensionContextValue) => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:3000/api/generate", {
+      const response = await fetch(API_GENERATE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

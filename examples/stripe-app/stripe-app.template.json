@@ -1,6 +1,6 @@
 {
     "id": "com.example.json-render-demo",
-    "version": "0.0.4",
+    "version": "0.0.1",
     "name": "json-render Demo",
     "icon": "",
     "permissions": [
@@ -114,10 +114,6 @@
             {
                 "viewport": "stripe.dashboard.product.list",
                 "component": "Products"
-            },
-            {
-                "viewport": "stripe.dashboard.fullpage",
-                "component": "FullPage"
             }
         ],
         "content_security_policy": {

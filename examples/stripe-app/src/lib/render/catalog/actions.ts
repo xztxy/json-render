@@ -1374,16 +1374,16 @@ export const actionHandlers: Record<
     await actionHandlers.fetchCustomers({}, setState, {});
   },
 
-  refreshPayments: async (_) => {
-    await actionHandlers.fetchPayments({}, setData, {});
+  refreshPayments: async (_, setState) => {
+    await actionHandlers.fetchPayments({}, setState, {});
   },
 
-  refreshSubscriptions: async (_) => {
-    await actionHandlers.fetchSubscriptions({}, setData, {});
+  refreshSubscriptions: async (_, setState) => {
+    await actionHandlers.fetchSubscriptions({}, setState, {});
   },
 
-  refreshInvoices: async (_) => {
-    await actionHandlers.fetchInvoices({}, setData, {});
+  refreshInvoices: async (_, setState) => {
+    await actionHandlers.fetchInvoices({}, setState, {});
   },
 
   exportData: async (params, _, data) => {
@@ -1431,11 +1431,8 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Navigation Actions
   // ===========================================================================
-  navigate: async (params) => {
-    if (params?.statePath) {
-      console.log("Navigate to:", params.statePath);
-      // In a real app, this would use the router
-    }
+  navigate: async (_params) => {
+    // In a real app, this would use the router
   },
 
   openDashboard: async (params) => {
@@ -1463,8 +1460,7 @@ export const actionHandlers: Record<
   // ===========================================================================
   // Form Actions
   // ===========================================================================
-  submitForm: async (params, _, data) => {
-    console.log("Submit form:", params?.formId, data);
+  submitForm: async (_params, _, _data) => {
     // Implementation depends on form handling logic
   },
 
@@ -1475,9 +1471,8 @@ export const actionHandlers: Record<
     }
   },
 
-  validateForm: async (params, _, data) => {
-    console.log("Validate form:", params?.formId, data);
-    return;
+  validateForm: async (_params, _, _data) => {
+    // Implementation depends on form validation logic
   },
 
   setFormValue: async (params, setState) => {
@@ -1492,9 +1487,8 @@ export const actionHandlers: Record<
   // ===========================================================================
   // UI Actions
   // ===========================================================================
-  showToast: async (params) => {
-    // In UIXT, you would use the showToast API from the SDK
-    console.log("Toast:", params?.type, params?.message);
+  showToast: async (_params) => {
+    // In a real app, use showToast from @stripe/ui-extension-sdk/utils
   },
 
   copyToClipboard: async (params) => {
@@ -1567,6 +1561,6 @@ export async function executeAction(
   if (handler) {
     await handler(params, setState, data);
   } else {
-    console.log("Unknown action:", actionName, params);
+    console.warn("Unknown action:", actionName);
   }
 }

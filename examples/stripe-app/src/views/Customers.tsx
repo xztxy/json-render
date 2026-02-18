@@ -10,6 +10,7 @@ import {
 import type { ExtensionContextValue } from "@stripe/ui-extension-sdk/context";
 
 import BrandIcon from "./brand_icon.svg";
+import { API_GENERATE_URL } from "../lib/config";
 import { stripeCatalog, StripeRenderer } from "../lib/render";
 import { executeAction } from "../lib/render/catalog/actions";
 
@@ -172,7 +173,7 @@ const Customers = (_props: ExtensionContextValue) => {
     const systemPrompt = stripeCatalog.prompt();
 
     try {
-      const response = await fetch("/api/generate", {
+      const response = await fetch(API_GENERATE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, systemPrompt }),

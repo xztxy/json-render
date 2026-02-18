@@ -569,8 +569,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/react
       '@stripe/ui-extension-sdk':
-        specifier: 9.2.0-alpha.0
-        version: 9.2.0-alpha.0(stripe@13.11.0)
+        specifier: ^9.1.0
+        version: 9.1.0(stripe@13.11.0)
       stripe:
         specifier: ^13.11.0
         version: 13.11.0
@@ -4095,8 +4095,8 @@ packages:
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
 
-  '@stripe/ui-extension-sdk@9.2.0-alpha.0':
-    resolution: {integrity: sha512-VMW2jE/y/engb/ygosJy7ZlmikX2b/wMLU+MEusj9n7SHvlVVHjQOzQA53M17n8Hq9urxhyV8BNv6S6YYsi7VA==}
+  '@stripe/ui-extension-sdk@9.1.0':
+    resolution: {integrity: sha512-NRmgAUMxksVcq4vTDuxl/1nacpb3lJSJnd1RTJgo4pk0WKpDRNNvZKJg7CMjN5VVTvnNnVEHDkAG43powUQt3A==}
     peerDependencies:
       stripe: '>= 8.195.0'
 
@@ -14752,7 +14752,7 @@ snapshots:
       react: 19.2.4
       shiki: 3.21.0
 
-  '@stripe/ui-extension-sdk@9.2.0-alpha.0(stripe@13.11.0)':
+  '@stripe/ui-extension-sdk@9.1.0(stripe@13.11.0)':
     dependencies:
       '@remote-ui/core': 2.2.5
       '@remote-ui/react': 5.0.5(react-reconciler@0.29.0(react@18.3.1))(react@18.3.1)

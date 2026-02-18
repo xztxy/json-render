@@ -80,7 +80,8 @@ pnpm test
 ## Example Usage
 
 ```tsx
-import { StripeRenderer, stripeCatalog } from "./lib/render";
+import { useState, useCallback } from "react";
+import { StripeRenderer } from "./lib/render";
 import type { Spec } from "@json-render/react";
 
 const spec: Spec = {
@@ -105,12 +106,51 @@ const spec: Spec = {
 };
 
 function MyView() {
-  return <StripeRenderer spec={spec} catalog={stripeCatalog} />;
+  const [data, setData] = useState({});
+  const handleSetData = useCallback(
+    (updater: (prev: Record<string, unknown>) => Record<string, unknown>) => {
+      setData((prev) => updater(prev));
+    },
+    [],
+  );
+
+  return <StripeRenderer spec={spec} data={data} setData={handleSetData} />;
 }
 ```
+
+## Full Page Apps (Alpha)
+
+This example includes a `FullPage` view component (`src/views/FullPage.tsx`) that uses Stripe's full-page apps capability. This feature is currently in **private developer preview** and requires Stripe to enable a feature flag for your app and account.
+
+If you have access to the alpha:
+
+1. Upgrade the SDK to the alpha version:
+
+```json
+"@stripe/ui-extension-sdk": "9.2.0-alpha.0"
+```
+
+2. Add the fullpage viewport to `stripe-app.template.json` and run `pnpm setup`:
+
+```json
+{
+  "viewport": "stripe.dashboard.fullpage",
+  "component": "FullPage"
+}
+```
+
+3. Run `stripe apps start` and navigate directly to:
+
+```
+https://dashboard.stripe.com/test/app/<your-app-id>
+```
+
+If you are redirected to the Dashboard home page, the feature flag is not yet enabled for your account. Contact your Stripe partner to have both your `app_id` and `account_id` flagged in.
 
 ## Learn More
 
 - [json-render Documentation](https://json-render.com/docs)
 - [Stripe Apps Documentation](https://stripe.com/docs/stripe-apps)
 - [Stripe UI Extension SDK](https://stripe.com/docs/stripe-apps/reference/ui-extension-sdk)
+- [FullPageView Component](https://docs.stripe.com/stripe-apps/components/fullpageview?app-sdk-version=9) (hidden from navigation)
+- [FullPageTabs Component](https://docs.stripe.com/stripe-apps/components/fullpagetabs?app-sdk-version=9) (hidden from navigation)
