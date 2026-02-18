@@ -45,7 +45,7 @@ yarn-error.log*
 opensrc/
 .env*.local
 
-# Stripe app (generated from template + build artifacts)
-examples/stripe-app/stripe-app.json
-examples/stripe-app/.build
-examples/stripe-app/yarn.lock
+# Stripe apps (generated from template + build artifacts)
+examples/stripe-app/*/stripe-app.json
+examples/stripe-app/*/.build
+examples/stripe-app/*/yarn.lock
