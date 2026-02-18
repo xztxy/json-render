@@ -1,6 +1,6 @@
 {
     "id": "com.example.json-render-demo",
-    "version": "0.0.1",
+    "version": "0.0.4",
     "name": "json-render Demo",
     "icon": "",
     "permissions": [
@@ -37,8 +37,8 @@
             "purpose": "Send and manage invoices"
         },
         {
-            "permission": "refund_write",
-            "purpose": "Process refunds"
+            "permission": "charge_write",
+            "purpose": "Process charges and refunds"
         },
         {
             "permission": "product_read",
@@ -49,11 +49,11 @@
             "purpose": "Create and manage products"
         },
         {
-            "permission": "price_read",
+            "permission": "plan_read",
             "purpose": "Display pricing information"
         },
         {
-            "permission": "price_write",
+            "permission": "plan_write",
             "purpose": "Create and manage prices"
         },
         {
