@@ -15,6 +15,7 @@
     "node": ">=14"
   },
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "lint": "eslint src --max-warnings 0",
     "test": "jest"
   },

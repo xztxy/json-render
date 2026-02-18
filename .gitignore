@@ -44,3 +44,6 @@ yarn-error.log*
 # opensrc - source code for packages
 opensrc/
 .env*.local
+
+# Stripe app (generated from template)
+examples/stripe-app/stripe-app.json

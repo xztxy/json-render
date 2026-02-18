@@ -28,12 +28,29 @@ This example shows how to integrate json-render with Stripe's UI Extension SDK t
 - [Stripe CLI](https://stripe.com/docs/stripe-cli) installed
 - A Stripe account with app development enabled
 
-### Installation
+### Setup
 
 ```bash
 # Install dependencies
 pnpm install
 
+# Generate stripe-app.json from template
+pnpm setup
+```
+
+To use your own Stripe App ID, create a `.env` file (see `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Then set `STRIPE_APP_ID` to your app ID and run `pnpm setup` again.
+
+If you don't set `STRIPE_APP_ID`, the template default (`com.example.json-render-demo`) is used.
+
+> **Note:** `stripe-app.json` is generated and gitignored. Edit `stripe-app.template.json` for structural changes (views, permissions, etc.).
+
+```bash
 # Start the Stripe App in development mode
 stripe apps start
 ```
