@@ -507,15 +507,18 @@ const Home = (_props: ExtensionContextValue) => {
     setError(null);
 
     try {
+      const dataSnapshot = JSON.stringify(data, null, 2);
+
       await streamSpec(
         API_GENERATE_URL,
         {
-          prompt,
+          prompt: `${prompt}\n\nAVAILABLE STRIPE DATA (use this real data, do NOT invent fake numbers):\n${dataSnapshot}`,
           systemPrompt: stripeCatalog.prompt({
             system:
               "You are a Stripe dashboard widget builder. Generate UI specs for displaying Stripe data.",
             customRules: [
               'LAYOUT CONSTRAINT: This UI renders inside a narrow Stripe dashboard drawer (~320px wide). NEVER place more than 2 small items side-by-side horizontally. Prefer vertical (stacked) layouts. Use direction:"horizontal" sparingly and only for very compact items like a label+value pair.',
+              'DATA: The user prompt includes real Stripe data under "AVAILABLE STRIPE DATA". You MUST use these real values when setting /state. NEVER invent or hallucinate numbers. If the data you need is not available, say so in a Text element rather than making up data. The data keys are: customers (data[], total), payments (data[], total, totalVolume, successRate), subscriptions (data[], total, active, trialing, pastDue, canceled), invoices (data[], total, totalAmount, paid, open, overdue).',
             ],
           }),
         },
