@@ -114,10 +114,15 @@ export function StripeRenderer({
     [loading],
   );
 
+  const mergedState = useMemo(
+    () => (spec?.state ? { ...data, ...spec.state } : data),
+    [data, spec?.state],
+  );
+
   if (!spec) return null;
 
   return (
-    <StateProvider initialState={data} onStateChange={onStateChange}>
+    <StateProvider initialState={mergedState} onStateChange={onStateChange}>
       <VisibilityProvider>
         <ActionProvider>
           <Renderer
