@@ -8,8 +8,9 @@
   "dependencies": {
     "@json-render/core": "workspace:*",
     "@json-render/react": "workspace:*",
-    "@stripe/ui-extension-sdk": "^9.1.0",
-    "stripe": "^13.11.0"
+    "@stripe/ui-extension-sdk": "9.2.0-alpha.0",
+    "stripe": "^13.11.0",
+    "zod": "^4.0.0"
   },
   "engines": {
     "node": ">=14"

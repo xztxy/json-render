@@ -114,6 +114,10 @@
             {
                 "viewport": "stripe.dashboard.product.list",
                 "component": "Products"
+            },
+            {
+                "viewport": "stripe.dashboard.fullpage",
+                "component": "FullPage"
             }
         ],
         "content_security_policy": {
