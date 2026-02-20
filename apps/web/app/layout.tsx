@@ -61,7 +61,6 @@ export const metadata: Metadata = {
     description:
       "The Generative UI framework. Generate dashboards, widgets, and apps from prompts — safely constrained to components you define.",
     images: ["/og"],
-    creator: "@verabornnot",
   },
   robots: {
     index: true,

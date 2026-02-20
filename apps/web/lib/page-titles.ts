@@ -42,6 +42,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "docs/api/react-native": "@json-render/react-native API",
   "docs/api/codegen": "@json-render/codegen API",
   "docs/api/remotion": "@json-render/remotion API",
+  "docs/api/shadcn": "@json-render/shadcn API",
 };
 
 /**
