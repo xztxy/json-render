@@ -43,6 +43,11 @@
       "types": "./dist/catalog.d.ts",
       "import": "./dist/catalog.mjs",
       "require": "./dist/catalog.js"
+    },
+    "./render": {
+      "types": "./dist/render.d.ts",
+      "import": "./dist/render.mjs",
+      "require": "./dist/render.js"
     }
   },
   "files": [

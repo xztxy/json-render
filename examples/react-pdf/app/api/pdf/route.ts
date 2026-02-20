@@ -1,4 +1,4 @@
-import { renderToBuffer } from "@json-render/react-pdf";
+import { renderToBuffer } from "@json-render/react-pdf/render";
 import { examples } from "@/lib/examples";
 
 export async function GET(req: Request) {

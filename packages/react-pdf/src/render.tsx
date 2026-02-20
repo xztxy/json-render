@@ -1,21 +1,120 @@
 import React from "react";
-import ReactPDF from "@react-pdf/renderer";
-import type { Spec } from "@json-render/core";
-import { Renderer, JSONUIProvider, type ComponentRegistry } from "./renderer";
+import {
+  renderToBuffer as pdfRenderToBuffer,
+  renderToStream as pdfRenderToStream,
+  render as pdfRender,
+} from "@react-pdf/renderer";
+import type { Spec, UIElement } from "@json-render/core";
+import {
+  resolveElementProps,
+  evaluateVisibility,
+  getByPath,
+  type PropResolutionContext,
+} from "@json-render/core";
 import { standardComponents } from "./components/standard";
 
+// Re-export the standard components for use in custom registries
+export { standardComponents };
+
+export type RenderComponentRegistry = Record<string, React.ComponentType<any>>;
+
 export interface RenderOptions {
-  /** Custom component registry. Merged with standard components. */
-  registry?: ComponentRegistry;
-  /** Whether to include standard PDF components (default: true) */
+  registry?: RenderComponentRegistry;
   includeStandard?: boolean;
-  /** Initial state for dynamic prop resolution */
   state?: Record<string, unknown>;
-  /** Action handlers */
-  handlers?: Record<
-    string,
-    (params: Record<string, unknown>) => Promise<unknown> | unknown
-  >;
+}
+
+const noopEmit = () => {};
+
+function renderElement(
+  elementKey: string,
+  spec: Spec,
+  registry: RenderComponentRegistry,
+  stateModel: Record<string, unknown>,
+  repeatItem?: unknown,
+  repeatIndex?: number,
+  repeatBasePath?: string,
+): React.ReactElement | null {
+  const element = spec.elements[elementKey];
+  if (!element) return null;
+
+  const ctx: PropResolutionContext = {
+    stateModel,
+    repeatItem,
+    repeatIndex,
+    repeatBasePath,
+  };
+
+  if (element.visible !== undefined) {
+    if (!evaluateVisibility(element.visible, ctx)) {
+      return null;
+    }
+  }
+
+  const resolvedProps = resolveElementProps(
+    element.props as Record<string, unknown>,
+    ctx,
+  );
+  const resolvedElement: UIElement = { ...element, props: resolvedProps };
+
+  const Component = registry[resolvedElement.type];
+  if (!Component) return null;
+
+  if (resolvedElement.repeat) {
+    const items =
+      (getByPath(stateModel, resolvedElement.repeat.statePath) as
+        | unknown[]
+        | undefined) ?? [];
+
+    const fragments = items.map((item, index) => {
+      const key =
+        resolvedElement.repeat!.key && typeof item === "object" && item !== null
+          ? String(
+              (item as Record<string, unknown>)[resolvedElement.repeat!.key!] ??
+                index,
+            )
+          : String(index);
+
+      const childPath = `${resolvedElement.repeat!.statePath}/${index}`;
+      const children = resolvedElement.children?.map((childKey) =>
+        renderElement(
+          childKey,
+          spec,
+          registry,
+          stateModel,
+          item,
+          index,
+          childPath,
+        ),
+      );
+
+      return (
+        <Component key={key} element={resolvedElement} emit={noopEmit}>
+          {children}
+        </Component>
+      );
+    });
+
+    return <>{fragments}</>;
+  }
+
+  const children = resolvedElement.children?.map((childKey) =>
+    renderElement(
+      childKey,
+      spec,
+      registry,
+      stateModel,
+      repeatItem,
+      repeatIndex,
+      repeatBasePath,
+    ),
+  );
+
+  return (
+    <Component key={elementKey} element={resolvedElement} emit={noopEmit}>
+      {children && children.length > 0 ? children : undefined}
+    </Component>
+  );
 }
 
 function buildDocument(
@@ -25,69 +124,51 @@ function buildDocument(
   const {
     registry: customRegistry,
     includeStandard = true,
-    state,
-    handlers,
+    state = {},
   } = options;
 
-  const mergedRegistry: ComponentRegistry = {
+  const mergedState: Record<string, unknown> = {
+    ...spec.state,
+    ...state,
+  };
+
+  const registry: RenderComponentRegistry = {
     ...(includeStandard ? standardComponents : {}),
     ...customRegistry,
   };
 
-  return (
-    <JSONUIProvider initialState={state ?? spec.state} handlers={handlers}>
-      <Renderer spec={spec} registry={mergedRegistry} includeStandard={false} />
-    </JSONUIProvider>
-  );
+  const root = renderElement(spec.root, spec, registry, mergedState);
+  return root ?? <></>;
 }
 
 /**
  * Render a json-render spec to a PDF buffer.
  *
- * @example
- * ```typescript
- * import { renderToBuffer } from "@json-render/react-pdf";
- *
- * const buffer = await renderToBuffer(spec);
- * fs.writeFileSync("output.pdf", buffer);
- * ```
+ * This is a standalone server-side function that resolves the spec tree
+ * without React hooks or contexts, making it safe to import in Next.js
+ * route handlers and other server-only environments.
  */
 export async function renderToBuffer(
   spec: Spec,
   options?: RenderOptions,
 ): Promise<Uint8Array> {
   const document = buildDocument(spec, options);
-  return ReactPDF.renderToBuffer(document as any);
+  return pdfRenderToBuffer(document as any);
 }
 
 /**
  * Render a json-render spec to a PDF readable stream.
- *
- * @example
- * ```typescript
- * import { renderToStream } from "@json-render/react-pdf";
- *
- * const stream = await renderToStream(spec);
- * stream.pipe(res);
- * ```
  */
 export async function renderToStream(
   spec: Spec,
   options?: RenderOptions,
 ): Promise<ReadableStream> {
   const document = buildDocument(spec, options);
-  return ReactPDF.renderToStream(document as any);
+  return pdfRenderToStream(document as any);
 }
 
 /**
  * Render a json-render spec to a PDF file on disk.
- *
- * @example
- * ```typescript
- * import { renderToFile } from "@json-render/react-pdf";
- *
- * await renderToFile(spec, "./output.pdf");
- * ```
  */
 export async function renderToFile(
   spec: Spec,
@@ -95,5 +176,5 @@ export async function renderToFile(
   options?: RenderOptions,
 ): Promise<void> {
   const document = buildDocument(spec, options);
-  await ReactPDF.render(document as any, filePath);
+  await pdfRender(document as any, filePath);
 }
