@@ -43,6 +43,9 @@ yarn-error.log*
 
 # opensrc - source code for packages
 opensrc/
+
+# json-studio (separate repo)
+json-studio/
 .env*.local
 
 # Stripe apps (generated from template + build artifacts)

@@ -12,6 +12,8 @@ npm install @json-render/shadcn
 npm install @json-render/core @json-render/react-native
 # or for video
 npm install @json-render/core @json-render/remotion
+# or for PDF documents
+npm install @json-render/core @json-render/react-pdf
 ```
 
 ## Why json-render?
@@ -111,6 +113,7 @@ function Dashboard({ spec }) {
 | `@json-render/shadcn` | 36 pre-built shadcn/ui components (Radix UI + Tailwind CSS) |
 | `@json-render/react-native` | React Native renderer with standard mobile components |
 | `@json-render/remotion` | Remotion video renderer, timeline schema |
+| `@json-render/react-pdf` | React PDF renderer for generating PDF documents from specs |
 
 ## Renderers
 
@@ -219,6 +222,40 @@ const spec = {
   compositionWidth={spec.composition.width}
   compositionHeight={spec.composition.height}
 />
+```
+
+### React PDF (Documents)
+
+```typescript
+import { renderToBuffer } from "@json-render/react-pdf";
+
+const spec = {
+  root: "doc",
+  elements: {
+    doc: { type: "Document", props: { title: "Invoice" }, children: ["page-1"] },
+    "page-1": {
+      type: "Page",
+      props: { size: "A4" },
+      children: ["heading-1", "table-1"],
+    },
+    "heading-1": {
+      type: "Heading",
+      props: { text: "Invoice #1234", level: "h1" },
+      children: [],
+    },
+    "table-1": {
+      type: "Table",
+      props: {
+        columns: [{ header: "Item", width: "60%" }, { header: "Price", width: "40%", align: "right" }],
+        rows: [["Widget A", "$10.00"], ["Widget B", "$25.00"]],
+      },
+      children: [],
+    },
+  },
+};
+
+// Render to buffer, stream, or file
+const buffer = await renderToBuffer(spec);
 ```
 
 ## Features
