@@ -6,8 +6,6 @@ import { createSpecStreamCompiler } from "@json-render/core";
 import type { Spec } from "@json-render/core";
 import { cn } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -24,6 +22,8 @@ interface Selection {
   mode: Mode;
   exampleName?: string;
 }
+
+const PDF_REFRESH_INTERVAL_MS = 2000;
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -42,6 +42,15 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function isRenderableSpec(spec: Spec | null): spec is Spec {
+  if (!spec?.root || !spec.elements) return false;
+  const root = spec.elements[spec.root];
+  if (!root) return false;
+  if (root.type !== "Document" || !root.children?.length) return false;
+  const firstChild = spec.elements[root.children[0]!];
+  return firstChild?.type === "Page";
+}
+
 export default function Page() {
   const [selection, setSelection] = useState<Selection>({
     mode: "example",
@@ -54,9 +63,11 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>("preview");
   const [examplesSheetOpen, setExamplesSheetOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const pdfUrlRef = useRef<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const mobileInputRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const currentExample =
     selection.mode === "example"
@@ -76,27 +87,60 @@ export default function Page() {
     inputRef.current?.focus();
   }, [selection.mode, selection.exampleName]);
 
-  const fetchPdfBlob = useCallback(async (spec: Spec) => {
-    if (pdfUrlRef.current) {
-      URL.revokeObjectURL(pdfUrlRef.current);
-      pdfUrlRef.current = null;
-    }
+  const fetchPdfBlob = useCallback(async (spec: Spec, signal?: AbortSignal) => {
     const res = await fetch("/api/pdf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ spec }),
+      signal,
     });
     if (!res.ok) throw new Error("Failed to generate PDF");
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
+
+    const prev = pdfUrlRef.current;
     pdfUrlRef.current = url;
     setPdfUrl(url);
+
+    if (prev) URL.revokeObjectURL(prev);
   }, []);
+
+  // Progressive PDF refresh during generation
+  const lastRefreshSpec = useRef<string>("");
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!generating || !generatedSpec) return;
+
+    const specKey = JSON.stringify(generatedSpec);
+    if (specKey === lastRefreshSpec.current) return;
+    if (!isRenderableSpec(generatedSpec)) return;
+
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+
+    refreshTimer.current = setTimeout(() => {
+      lastRefreshSpec.current = specKey;
+      setRefreshing(true);
+      fetchPdfBlob(generatedSpec)
+        .catch(() => {})
+        .finally(() => setRefreshing(false));
+    }, PDF_REFRESH_INTERVAL_MS);
+
+    return () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    };
+  }, [generating, generatedSpec, fetchPdfBlob]);
 
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setGenerating(true);
     setError(null);
+    lastRefreshSpec.current = "";
 
     try {
       const startingSpec =
@@ -108,6 +152,7 @@ export default function Page() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: prompt.trim(), startingSpec }),
+        signal: controller.signal,
       });
       if (!res.ok) throw new Error("Generation failed");
 
@@ -130,19 +175,34 @@ export default function Page() {
       const finalSpec = compiler.getResult();
       setGeneratedSpec(finalSpec);
       setGenerating(false);
+
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
       await fetchPdfBlob(finalSpec);
     } catch (e) {
+      if (controller.signal.aborted) return;
       setError(e instanceof Error ? e.message : "Something went wrong");
       setGenerating(false);
     }
   }, [prompt, selection, currentExample, fetchPdfBlob]);
 
+  const handleStop = useCallback(() => {
+    abortRef.current?.abort();
+    setGenerating(false);
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+
+    if (isRenderableSpec(generatedSpec)) {
+      fetchPdfBlob(generatedSpec).catch(() => {});
+    }
+  }, [generatedSpec, fetchPdfBlob]);
+
   const select = (next: Selection) => {
+    abortRef.current?.abort();
     setSelection(next);
     setGeneratedSpec(null);
     setPdfUrl(null);
     setError(null);
     setPrompt("");
+    setGenerating(false);
     setExamplesSheetOpen(false);
   };
 
@@ -273,9 +333,7 @@ export default function Page() {
           </span>
           {generating ? (
             <button
-              onClick={() => {
-                setGenerating(false);
-              }}
+              onClick={handleStop}
               className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
               aria-label="Stop"
             >
@@ -303,18 +361,15 @@ export default function Page() {
     <div className="h-full flex flex-col">
       <div className="border-b border-border px-3 h-9 flex items-center gap-3">
         <span className="text-xs font-mono text-foreground">json</span>
+        {generating && (
+          <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
+        )}
         <div className="flex-1" />
         {activeSpec && <CopyButton text={jsonCode} />}
       </div>
       <div className="flex-1 overflow-auto">
         <pre className="p-3 text-xs leading-relaxed font-mono text-muted-foreground whitespace-pre">
-          {generating && !activeSpec ? (
-            <span className="text-muted-foreground/50 animate-pulse">
-              generating...
-            </span>
-          ) : (
-            jsonCode
-          )}
+          {jsonCode}
         </pre>
       </div>
     </div>
@@ -323,10 +378,22 @@ export default function Page() {
   // ---------------------------------------------------------------------------
   // Pane: PDF Preview
   // ---------------------------------------------------------------------------
+  const previewIndicator = (generating || refreshing) && (
+    <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1.5 backdrop-blur-sm">
+      <Loader2 className="h-3 w-3 text-white/80 animate-spin" />
+      <span className="text-[11px] text-white/80 font-medium">
+        {refreshing ? "Updating..." : "Generating..."}
+      </span>
+    </div>
+  );
+
   const previewPane = (
     <div className="h-full flex flex-col">
       <div className="border-b border-border px-3 h-9 flex items-center gap-3">
         <span className="text-xs font-mono text-foreground">preview</span>
+        {(generating || refreshing) && (
+          <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
+        )}
         <div className="flex-1" />
         {activeSpec && (
           <button
@@ -339,21 +406,16 @@ export default function Page() {
         )}
       </div>
       <div className="flex-1 relative bg-neutral-600">
-        {generating && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-neutral-600/90 backdrop-blur-sm">
-            <Loader2 className="h-8 w-8 text-white/60 animate-spin" />
-            <p className="text-sm text-white/60">Generating...</p>
-          </div>
-        )}
+        {previewIndicator}
 
-        {!generating && displayPdfUrl ? (
+        {displayPdfUrl ? (
           <iframe
             key={displayPdfUrl}
             src={displayPdfUrl}
             className="h-full w-full border-none"
             title="PDF preview"
           />
-        ) : !generating ? (
+        ) : (
           <div className="h-full flex flex-col items-center justify-center gap-2 text-neutral-400">
             <FileText className="h-10 w-10" />
             <p className="text-sm">
@@ -362,7 +424,7 @@ export default function Page() {
                 : "Select an example to preview"}
             </p>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );
@@ -414,6 +476,9 @@ export default function Page() {
               {tab}
             </button>
           ))}
+          {(generating || refreshing) && (
+            <Loader2 className="h-3 w-3 text-muted-foreground animate-spin shrink-0" />
+          )}
           <div className="flex-1" />
           {activeSpec && (
             <button
@@ -432,25 +497,21 @@ export default function Page() {
             </pre>
           ) : (
             <div className="h-full relative bg-neutral-600">
-              {generating && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-neutral-600/90 backdrop-blur-sm">
-                  <Loader2 className="h-8 w-8 text-white/60 animate-spin" />
-                  <p className="text-sm text-white/60">Generating...</p>
-                </div>
-              )}
-              {!generating && displayPdfUrl ? (
+              {previewIndicator}
+
+              {displayPdfUrl ? (
                 <iframe
                   key={displayPdfUrl}
                   src={displayPdfUrl}
                   className="h-full w-full border-none"
                   title="PDF preview"
                 />
-              ) : !generating ? (
+              ) : (
                 <div className="h-full flex flex-col items-center justify-center gap-2 text-neutral-400">
                   <FileText className="h-10 w-10" />
                   <p className="text-sm">Enter a prompt to generate a PDF</p>
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
@@ -486,7 +547,7 @@ export default function Page() {
             </span>
             {generating ? (
               <button
-                onClick={() => setGenerating(false)}
+                onClick={handleStop}
                 className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
                 aria-label="Stop"
               >
