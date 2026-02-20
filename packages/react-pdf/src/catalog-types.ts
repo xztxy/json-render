@@ -2,9 +2,7 @@ import type { ReactNode } from "react";
 import type {
   Catalog,
   InferCatalogComponents,
-  InferCatalogActions,
   InferComponentProps,
-  InferActionParams,
   StateModel,
 } from "@json-render/core";
 
@@ -40,21 +38,4 @@ export type ComponentFn<
 
 export type Components<C extends Catalog> = {
   [K in keyof InferCatalogComponents<C>]: ComponentFn<C, K>;
-};
-
-// =============================================================================
-// Action Types
-// =============================================================================
-
-export type ActionFn<
-  C extends Catalog,
-  K extends keyof InferCatalogActions<C>,
-> = (
-  params: InferActionParams<C, K> | undefined,
-  setState: SetState,
-  state: StateModel,
-) => Promise<void>;
-
-export type Actions<C extends Catalog> = {
-  [K in keyof InferCatalogActions<C>]: ActionFn<C, K>;
 };

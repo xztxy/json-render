@@ -5,7 +5,7 @@ import { defineSchema } from "@json-render/core";
  *
  * Defines:
  * - Spec: A flat tree of elements with keys, types, props, and children references
- * - Catalog: Components with props schemas, and optional actions
+ * - Catalog: Components with props schemas
  *
  * Reuses the same { root, elements } spec format as the React and React Native renderers.
  */
@@ -29,10 +29,6 @@ export const schema = defineSchema(
         slots: s.array(s.string()),
         description: s.string(),
         example: s.any(),
-      }),
-      actions: s.map({
-        params: s.zod(),
-        description: s.string(),
       }),
     }),
   }),

@@ -556,6 +556,9 @@ importers:
 
   examples/react-pdf:
     dependencies:
+      '@ai-sdk/gateway':
+        specifier: ^3.0.52
+        version: 3.0.52(zod@4.3.5)
       '@json-render/core':
         specifier: workspace:*
         version: link:../../packages/core

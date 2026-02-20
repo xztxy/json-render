@@ -17,6 +17,4 @@ export type {
   ComponentContext,
   ComponentFn,
   Components,
-  ActionFn,
-  Actions,
 } from "./catalog-types";

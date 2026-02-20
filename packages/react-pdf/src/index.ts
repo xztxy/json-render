@@ -11,8 +11,6 @@ export type {
   ComponentContext,
   ComponentFn,
   Components,
-  ActionFn,
-  Actions,
 } from "./catalog-types";
 
 // Contexts
@@ -73,8 +71,10 @@ export {
   type ComponentRegistry,
   type RendererProps,
   type JSONUIProviderProps,
-  standardComponents,
 } from "./renderer";
+
+// Standard components
+export { standardComponents } from "./components";
 
 // Server-side render functions
 export {

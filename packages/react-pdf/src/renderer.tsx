@@ -21,13 +21,7 @@ import {
   type PropResolutionContext,
   type VisibilityContext as CoreVisibilityContext,
 } from "@json-render/core";
-import type {
-  Components,
-  Actions,
-  ActionFn,
-  SetState,
-  StateModel,
-} from "./catalog-types";
+import type { Components, SetState, StateModel } from "./catalog-types";
 import { useIsVisible, useVisibility } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
 import { useStateStore } from "./contexts/state";
@@ -343,8 +337,6 @@ export function Renderer({
   );
 }
 
-export { standardComponents };
-
 // =============================================================================
 // JSONUIProvider
 // =============================================================================
@@ -392,16 +384,6 @@ export function JSONUIProvider({
 
 export interface DefineRegistryResult {
   registry: ComponentRegistry;
-  handlers: (
-    getSetState: () => SetState | undefined,
-    getState: () => StateModel,
-  ) => Record<string, (params: Record<string, unknown>) => Promise<void>>;
-  executeAction: (
-    actionName: string,
-    params: Record<string, unknown> | undefined,
-    setState: SetState,
-    state?: StateModel,
-  ) => Promise<void>;
 }
 
 type DefineRegistryComponentFn = (ctx: {
@@ -412,17 +394,10 @@ type DefineRegistryComponentFn = (ctx: {
   loading?: boolean;
 }) => React.ReactNode;
 
-type DefineRegistryActionFn = (
-  params: Record<string, unknown> | undefined,
-  setState: SetState,
-  state: StateModel,
-) => Promise<void>;
-
 export function defineRegistry<C extends Catalog>(
   _catalog: C,
   options: {
     components?: Components<C>;
-    actions?: Actions<C>;
   },
 ): DefineRegistryResult {
   const registry: ComponentRegistry = {};
@@ -446,47 +421,7 @@ export function defineRegistry<C extends Catalog>(
     }
   }
 
-  const actionMap = options.actions
-    ? (Object.entries(options.actions) as Array<
-        [string, DefineRegistryActionFn]
-      >)
-    : [];
-
-  const handlers = (
-    getSetState: () => SetState | undefined,
-    getState: () => StateModel,
-  ): Record<string, (params: Record<string, unknown>) => Promise<void>> => {
-    const result: Record<
-      string,
-      (params: Record<string, unknown>) => Promise<void>
-    > = {};
-    for (const [name, actionFn] of actionMap) {
-      result[name] = async (params) => {
-        const setState = getSetState();
-        const state = getState();
-        if (setState) {
-          await actionFn(params, setState, state);
-        }
-      };
-    }
-    return result;
-  };
-
-  const executeAction = async (
-    actionName: string,
-    params: Record<string, unknown> | undefined,
-    setState: SetState,
-    state: StateModel = {},
-  ): Promise<void> => {
-    const entry = actionMap.find(([name]) => name === actionName);
-    if (entry) {
-      await entry[1](params, setState, state);
-    } else {
-      console.warn(`Unknown action: ${actionName}`);
-    }
-  };
-
-  return { registry, handlers, executeAction };
+  return { registry };
 }
 
 // =============================================================================

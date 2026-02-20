@@ -10,17 +10,17 @@ import {
 } from "@react-pdf/renderer";
 import type { ComponentRenderProps } from "../renderer";
 import type { ComponentRegistry } from "../renderer";
+import type { StandardComponentProps } from "../catalog";
 
 // =============================================================================
 // Document Structure
 // =============================================================================
 
-function DocumentComponent({ element, children }: ComponentRenderProps) {
-  const p = element.props as {
-    title?: string | null;
-    author?: string | null;
-    subject?: string | null;
-  };
+function DocumentComponent({
+  element,
+  children,
+}: ComponentRenderProps<StandardComponentProps<"Document">>) {
+  const p = element.props;
 
   return (
     <PdfDocument
@@ -33,16 +33,11 @@ function DocumentComponent({ element, children }: ComponentRenderProps) {
   );
 }
 
-function PageComponent({ element, children }: ComponentRenderProps) {
-  const p = element.props as {
-    size?: string | null;
-    orientation?: "portrait" | "landscape" | null;
-    marginTop?: number | null;
-    marginBottom?: number | null;
-    marginLeft?: number | null;
-    marginRight?: number | null;
-    backgroundColor?: string | null;
-  };
+function PageComponent({
+  element,
+  children,
+}: ComponentRenderProps<StandardComponentProps<"Page">>) {
+  const p = element.props;
 
   return (
     <PdfPage
@@ -67,20 +62,11 @@ function PageComponent({ element, children }: ComponentRenderProps) {
 // Layout Components
 // =============================================================================
 
-function ViewComponent({ element, children }: ComponentRenderProps) {
-  const p = element.props as {
-    padding?: number | null;
-    paddingTop?: number | null;
-    paddingBottom?: number | null;
-    paddingLeft?: number | null;
-    paddingRight?: number | null;
-    margin?: number | null;
-    backgroundColor?: string | null;
-    borderWidth?: number | null;
-    borderColor?: string | null;
-    borderRadius?: number | null;
-    flex?: number | null;
-  };
+function ViewComponent({
+  element,
+  children,
+}: ComponentRenderProps<StandardComponentProps<"View">>) {
+  const p = element.props;
 
   return (
     <View
@@ -103,15 +89,11 @@ function ViewComponent({ element, children }: ComponentRenderProps) {
   );
 }
 
-function RowComponent({ element, children }: ComponentRenderProps) {
-  const p = element.props as {
-    gap?: number | null;
-    alignItems?: string | null;
-    justifyContent?: string | null;
-    padding?: number | null;
-    flex?: number | null;
-    wrap?: boolean | null;
-  };
+function RowComponent({
+  element,
+  children,
+}: ComponentRenderProps<StandardComponentProps<"Row">>) {
+  const p = element.props;
 
   return (
     <View
@@ -130,14 +112,11 @@ function RowComponent({ element, children }: ComponentRenderProps) {
   );
 }
 
-function ColumnComponent({ element, children }: ComponentRenderProps) {
-  const p = element.props as {
-    gap?: number | null;
-    alignItems?: string | null;
-    justifyContent?: string | null;
-    padding?: number | null;
-    flex?: number | null;
-  };
+function ColumnComponent({
+  element,
+  children,
+}: ComponentRenderProps<StandardComponentProps<"Column">>) {
+  const p = element.props;
 
   return (
     <View
@@ -166,14 +145,10 @@ const headingStyles = StyleSheet.create({
   h4: { fontSize: 14, fontFamily: "Helvetica-Bold", marginBottom: 4 },
 });
 
-function HeadingComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    text: string;
-    level?: "h1" | "h2" | "h3" | "h4" | null;
-    color?: string | null;
-    align?: "left" | "center" | "right" | null;
-  };
-
+function HeadingComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Heading">>) {
+  const p = element.props;
   const level = p.level ?? "h2";
 
   return (
@@ -191,16 +166,10 @@ function HeadingComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function TextComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    text: string;
-    fontSize?: number | null;
-    color?: string | null;
-    align?: "left" | "center" | "right" | null;
-    fontWeight?: "normal" | "bold" | null;
-    fontStyle?: "normal" | "italic" | null;
-    lineHeight?: number | null;
-  };
+function TextComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Text">>) {
+  const p = element.props;
 
   return (
     <PdfText
@@ -224,13 +193,10 @@ function TextComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function ImageComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    src: string;
-    width?: number | null;
-    height?: number | null;
-    objectFit?: "contain" | "cover" | "fill" | "none" | null;
-  };
+function ImageComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Image">>) {
+  const p = element.props;
 
   return (
     <PdfImage
@@ -244,13 +210,10 @@ function ImageComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function LinkComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    text: string;
-    href: string;
-    fontSize?: number | null;
-    color?: string | null;
-  };
+function LinkComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Link">>) {
+  const p = element.props;
 
   return (
     <PdfLink
@@ -289,20 +252,10 @@ const tableStyles = StyleSheet.create({
   },
 });
 
-function TableComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    columns: Array<{
-      header: string;
-      width?: string | null;
-      align?: "left" | "center" | "right" | null;
-    }>;
-    rows: string[][];
-    headerBackgroundColor?: string | null;
-    headerTextColor?: string | null;
-    borderColor?: string | null;
-    fontSize?: number | null;
-    striped?: boolean | null;
-  };
+function TableComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Table">>) {
+  const p = element.props;
 
   const borderColor = p.borderColor ?? "#e5e7eb";
   const fontSize = p.fontSize ?? 10;
@@ -377,14 +330,10 @@ function TableComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function ListComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    items: string[];
-    ordered?: boolean | null;
-    fontSize?: number | null;
-    color?: string | null;
-    spacing?: number | null;
-  };
+function ListComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"List">>) {
+  const p = element.props;
 
   const fontSize = p.fontSize ?? 12;
   const spacing = p.spacing ?? 4;
@@ -421,13 +370,10 @@ function ListComponent({ element }: ComponentRenderProps) {
 // Decorative Components
 // =============================================================================
 
-function DividerComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    color?: string | null;
-    thickness?: number | null;
-    marginTop?: number | null;
-    marginBottom?: number | null;
-  };
+function DividerComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Divider">>) {
+  const p = element.props;
 
   return (
     <View
@@ -441,10 +387,10 @@ function DividerComponent({ element }: ComponentRenderProps) {
   );
 }
 
-function SpacerComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    height?: number | null;
-  };
+function SpacerComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"Spacer">>) {
+  const p = element.props;
 
   return <View style={{ height: p.height ?? 20 }} />;
 }
@@ -453,13 +399,10 @@ function SpacerComponent({ element }: ComponentRenderProps) {
 // Page-Level Components
 // =============================================================================
 
-function PageNumberComponent({ element }: ComponentRenderProps) {
-  const p = element.props as {
-    format?: string | null;
-    fontSize?: number | null;
-    color?: string | null;
-    align?: "left" | "center" | "right" | null;
-  };
+function PageNumberComponent({
+  element,
+}: ComponentRenderProps<StandardComponentProps<"PageNumber">>) {
+  const p = element.props;
 
   const format = p.format ?? "{pageNumber} / {totalPages}";
 
