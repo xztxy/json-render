@@ -68,6 +68,18 @@ export default function Page() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const mobileInputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const codeScrollRef = useRef<HTMLDivElement>(null);
+  const mobileCodeScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!generating) return;
+    codeScrollRef.current?.scrollTo({
+      top: codeScrollRef.current.scrollHeight,
+    });
+    mobileCodeScrollRef.current?.scrollTo({
+      top: mobileCodeScrollRef.current.scrollHeight,
+    });
+  }, [generating, generatedSpec]);
 
   const currentExample =
     selection.mode === "example"
@@ -367,7 +379,7 @@ export default function Page() {
         <div className="flex-1" />
         {activeSpec && <CopyButton text={jsonCode} />}
       </div>
-      <div className="flex-1 overflow-auto">
+      <div ref={codeScrollRef} className="flex-1 overflow-auto">
         <pre className="p-3 text-xs leading-relaxed font-mono text-muted-foreground whitespace-pre">
           {jsonCode}
         </pre>
@@ -378,15 +390,6 @@ export default function Page() {
   // ---------------------------------------------------------------------------
   // Pane: PDF Preview
   // ---------------------------------------------------------------------------
-  const previewIndicator = (generating || refreshing) && (
-    <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1.5 backdrop-blur-sm">
-      <Loader2 className="h-3 w-3 text-white/80 animate-spin" />
-      <span className="text-[11px] text-white/80 font-medium">
-        {refreshing ? "Updating..." : "Generating..."}
-      </span>
-    </div>
-  );
-
   const previewPane = (
     <div className="h-full flex flex-col">
       <div className="border-b border-border px-3 h-9 flex items-center gap-3">
@@ -406,8 +409,6 @@ export default function Page() {
         )}
       </div>
       <div className="flex-1 relative bg-neutral-600">
-        {previewIndicator}
-
         {displayPdfUrl ? (
           <iframe
             key={displayPdfUrl}
@@ -490,15 +491,13 @@ export default function Page() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 overflow-auto">
+        <div ref={mobileCodeScrollRef} className="flex-1 min-h-0 overflow-auto">
           {mobileView === "json" ? (
             <pre className="p-3 text-xs leading-relaxed font-mono text-muted-foreground whitespace-pre">
               {jsonCode}
             </pre>
           ) : (
             <div className="h-full relative bg-neutral-600">
-              {previewIndicator}
-
               {displayPdfUrl ? (
                 <iframe
                   key={displayPdfUrl}

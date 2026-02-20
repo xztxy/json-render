@@ -56,11 +56,23 @@ export const standardComponentDefinitions = {
       borderColor: z.string().nullable(),
       borderRadius: z.number().nullable(),
       flex: z.number().nullable(),
+      alignItems: z
+        .enum(["flex-start", "center", "flex-end", "stretch"])
+        .nullable(),
+      justifyContent: z
+        .enum([
+          "flex-start",
+          "center",
+          "flex-end",
+          "space-between",
+          "space-around",
+        ])
+        .nullable(),
     }),
     slots: ["default"],
     description:
-      "Generic container for grouping elements. Supports padding, margin, background, and border.",
-    example: { padding: 10, backgroundColor: "#f9f9f9" },
+      "Generic container for grouping elements. Supports padding, margin, background, border, and flex alignment.",
+    example: { padding: 10, backgroundColor: "#f9f9f9", alignItems: "center" },
   },
 
   Row: {

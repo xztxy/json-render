@@ -92,6 +92,8 @@ function ViewComponent({
         borderColor: p.borderColor ?? undefined,
         borderRadius: p.borderRadius ?? undefined,
         flex: p.flex ?? undefined,
+        alignItems: (p.alignItems as any) ?? undefined,
+        justifyContent: (p.justifyContent as any) ?? undefined,
       }}
     >
       {children}

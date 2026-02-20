@@ -42,6 +42,7 @@ export const schema = defineSchema(
       "Image src must be a fully qualified URL. For placeholder or stock images, always use https://picsum.photos/{width}/{height}?random={n} (e.g. https://picsum.photos/400/300?random=1). Never use unsplash URLs directly.",
       "PageNumber renders the current page number and total pages. Place it inside a Page.",
       "NEVER use emoji characters in any text content. The PDF font (Helvetica) does not support emojis and they will render as garbled/overlapping characters. Use plain text descriptions instead (e.g. 'Phone:' not '📞', 'Email:' not '📧').",
+      "PAGE OVERFLOW PREVENTION: Be conservative with content density. A portrait A4/LETTER page with 40pt margins fits roughly 700pt of content height. An image of height 300 plus a few text sections can easily fill a page. For single-page documents (flyers, posters, one-pagers), you MUST keep all content on one page. Prefer smaller font sizes (10-11), tighter gaps (4-8), less padding (10-15), and smaller images (max height 200 for flyers) to avoid overflow. If in doubt, use fewer items and shorter text.",
       "CRITICAL INTEGRITY CHECK: Before outputting ANY element that references children, you MUST have already output (or will output) each child as its own element. If an element has children: ['a', 'b'], then elements 'a' and 'b' MUST exist.",
     ],
   },
