@@ -4,6 +4,68 @@ export const metadata = { title: "Changelog" }
 
 Notable changes and updates to json-render.
 
+## v0.8.0
+
+February 2026
+
+### New: `@json-render/react-pdf`
+
+PDF renderer for json-render, powered by [`@react-pdf/renderer`](https://react-pdf.org/). Define catalogs and registries the same way as `@json-render/react`, but output PDF documents instead of web UI.
+
+```bash
+npm install @json-render/core @json-render/react-pdf
+```
+
+```typescript
+import { renderToBuffer } from "@json-render/react-pdf";
+import type { Spec } from "@json-render/core";
+
+const spec: Spec = {
+  root: "doc",
+  elements: {
+    doc: { type: "Document", props: { title: "Invoice" }, children: ["page"] },
+    page: {
+      type: "Page",
+      props: { size: "A4" },
+      children: ["heading", "table"],
+    },
+    heading: {
+      type: "Heading",
+      props: { text: "Invoice #1234", level: "h1" },
+      children: [],
+    },
+    table: {
+      type: "Table",
+      props: {
+        columns: [
+          { header: "Item", width: "60%" },
+          { header: "Price", width: "40%", align: "right" },
+        ],
+        rows: [
+          ["Widget A", "$10.00"],
+          ["Widget B", "$25.00"],
+        ],
+      },
+      children: [],
+    },
+  },
+};
+
+const buffer = await renderToBuffer(spec);
+```
+
+Server-side rendering APIs:
+
+- `renderToBuffer(spec)` -- render to an in-memory PDF buffer
+- `renderToStream(spec)` -- render to a readable stream (pipe to HTTP response)
+- `renderToFile(spec, path)` -- render directly to a file
+
+15 standard components covering document structure (Document, Page), layout (View, Row, Column), content (Heading, Text, Image, Link), data (Table, List), decorative (Divider, Spacer), and page-level (PageNumber).
+
+Supports custom catalogs with `defineRegistry`, server-safe imports via `@json-render/react-pdf/server`, and full context support (state, visibility, actions, validation, repeat scopes).
+
+---
+
 ## v0.7.0
 
 February 2026
