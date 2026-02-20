@@ -8,83 +8,36 @@ import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { FileText, Download, Menu, Loader2, PenLine } from "lucide-react";
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
+import { FileText, Download, Loader2, ArrowRight, Square } from "lucide-react";
 
 type Mode = "scratch" | "example";
-type MainTab = "preview" | "json";
+type MobileView = "json" | "preview";
 
 interface Selection {
   mode: Mode;
   exampleName?: string;
 }
 
-function Logo({ size = "default" }: { size?: "default" | "sm" }) {
-  const iconSize = size === "sm" ? "h-7 w-7" : "h-9 w-9";
-  const titleSize = size === "sm" ? "text-sm" : "text-base";
-  const subtitleSize = size === "sm" ? "text-[11px]" : "text-xs";
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
 
-  return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className={cn(
-          iconSize,
-          "rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0",
-        )}
-      >
-        <FileText className="h-4 w-4" />
-      </div>
-      <div>
-        <h1 className={cn(titleSize, "font-bold tracking-tight leading-tight")}>
-          json-render
-        </h1>
-        <p className={cn(subtitleSize, "text-muted-foreground leading-tight")}>
-          React PDF
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function NavItem({
-  label,
-  description,
-  active,
-  onClick,
-}: {
-  label: string;
-  description: string;
-  active: boolean;
-  onClick: () => void;
-}) {
   return (
     <button
-      onClick={onClick}
-      className={cn(
-        "flex flex-col items-start gap-0.5 w-full rounded-lg border px-3 py-2.5 text-left text-[13px] transition-colors",
-        active
-          ? "bg-primary text-primary-foreground border-primary shadow-sm"
-          : "border-border hover:bg-accent hover:border-accent-foreground/20",
-      )}
+      onClick={() => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
     >
-      <span className="font-semibold text-[13px] leading-snug">{label}</span>
-      <span
-        className={cn(
-          "text-[11px] leading-snug",
-          active ? "text-primary-foreground/80" : "text-muted-foreground",
-        )}
-      >
-        {description}
-      </span>
+      {copied ? "copied" : "copy"}
     </button>
   );
 }
@@ -98,11 +51,12 @@ export default function Page() {
   const [generating, setGenerating] = useState(false);
   const [generatedSpec, setGeneratedSpec] = useState<Spec | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [mainTab, setMainTab] = useState<MainTab>("preview");
   const [error, setError] = useState<string | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [mobileView, setMobileView] = useState<MobileView>("preview");
+  const [examplesSheetOpen, setExamplesSheetOpen] = useState(false);
   const pdfUrlRef = useRef<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const mobileInputRef = useRef<HTMLTextAreaElement>(null);
 
   const currentExample =
     selection.mode === "example"
@@ -119,9 +73,7 @@ export default function Page() {
   const displayPdfUrl = pdfUrl ?? examplePdfUrl;
 
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
+    inputRef.current?.focus();
   }, [selection.mode, selection.exampleName]);
 
   const fetchPdfBlob = useCallback(async (spec: Spec) => {
@@ -129,17 +81,12 @@ export default function Page() {
       URL.revokeObjectURL(pdfUrlRef.current);
       pdfUrlRef.current = null;
     }
-
     const res = await fetch("/api/pdf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ spec }),
     });
-
-    if (!res.ok) {
-      throw new Error("Failed to generate PDF");
-    }
-
+    if (!res.ok) throw new Error("Failed to generate PDF");
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     pdfUrlRef.current = url;
@@ -150,7 +97,6 @@ export default function Page() {
     if (!prompt.trim()) return;
     setGenerating(true);
     setError(null);
-    setMainTab("preview");
 
     try {
       const startingSpec =
@@ -163,10 +109,7 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: prompt.trim(), startingSpec }),
       });
-
-      if (!res.ok) {
-        throw new Error("Generation failed");
-      }
+      if (!res.ok) throw new Error("Generation failed");
 
       const reader = res.body?.getReader();
       if (!reader) throw new Error("No response body");
@@ -179,13 +122,9 @@ export default function Page() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value, { stream: true });
         const { result, newPatches } = compiler.push(chunk);
-
-        if (newPatches.length > 0) {
-          setGeneratedSpec(result);
-        }
+        if (newPatches.length > 0) setGeneratedSpec(result);
       }
 
       const finalSpec = compiler.getResult();
@@ -204,13 +143,11 @@ export default function Page() {
     setPdfUrl(null);
     setError(null);
     setPrompt("");
-    setMainTab("preview");
-    setSheetOpen(false);
+    setExamplesSheetOpen(false);
   };
 
   const handleDownload = async () => {
     if (!activeSpec) return;
-
     if (generatedSpec) {
       const res = await fetch("/api/pdf", {
         method: "POST",
@@ -232,153 +169,275 @@ export default function Page() {
     }
   };
 
-  const sidebarBody = (
-    <>
-      <ScrollArea className="flex-1">
-        <div className="flex flex-col gap-1 p-3">
-          <p className="px-1 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Start
-          </p>
-          <NavItem
-            label="From scratch"
-            description="Describe the PDF you want to create"
-            active={selection.mode === "scratch"}
-            onClick={() => select({ mode: "scratch" })}
-          />
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleGenerate();
+      }
+    },
+    [handleGenerate],
+  );
 
-          <p className="px-1 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Examples
+  const jsonCode = activeSpec
+    ? JSON.stringify(activeSpec, null, 2)
+    : "// select an example or generate a PDF";
+
+  // ---------------------------------------------------------------------------
+  // Pane: Chat / Examples
+  // ---------------------------------------------------------------------------
+  const chatPane = (
+    <div className="h-full flex flex-col">
+      <div className="border-b border-border px-3 h-9 flex items-center gap-2">
+        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-mono text-muted-foreground">
+          json-render / react-pdf
+        </span>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-2 space-y-1">
+          <p className="px-2 pt-2 pb-1 text-[11px] font-mono text-muted-foreground">
+            start
+          </p>
+          <button
+            onClick={() => select({ mode: "scratch" })}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded text-sm transition-colors",
+              selection.mode === "scratch"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+            )}
+          >
+            <span className="font-medium">From scratch</span>
+          </button>
+
+          <p className="px-2 pt-3 pb-1 text-[11px] font-mono text-muted-foreground">
+            examples
           </p>
           {examples.map((ex) => (
-            <NavItem
+            <button
               key={ex.name}
-              label={ex.label}
-              description={ex.description}
-              active={
-                selection.mode === "example" &&
-                selection.exampleName === ex.name
-              }
               onClick={() => select({ mode: "example", exampleName: ex.name })}
-            />
+              className={cn(
+                "w-full text-left px-3 py-2 rounded text-sm transition-colors",
+                selection.mode === "example" &&
+                  selection.exampleName === ex.name
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              <span className="font-medium">{ex.label}</span>
+              <p className="text-xs text-muted-foreground/70 mt-0.5 leading-snug">
+                {ex.description}
+              </p>
+            </button>
           ))}
         </div>
       </ScrollArea>
 
-      <Separator />
-
-      <div className="flex flex-col gap-2 p-3">
-        <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Prompt
-        </p>
-        <Textarea
-          ref={textareaRef}
+      <div
+        className="border-t border-border p-3 cursor-text"
+        onMouseDown={(e) => {
+          const target = e.target as HTMLElement;
+          if (!target.closest("button") && target.tagName !== "TEXTAREA") {
+            e.preventDefault();
+            inputRef.current?.focus();
+          }
+        }}
+      >
+        {error && (
+          <div className="mb-2 rounded bg-destructive/10 px-3 py-1.5 text-xs text-destructive">
+            {error}
+          </div>
+        )}
+        <textarea
+          ref={inputRef}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-              e.preventDefault();
-              handleGenerate();
-            }
-          }}
+          onKeyDown={handleKeyDown}
           placeholder={
             selection.mode === "scratch"
-              ? "Describe the PDF you want to generate..."
+              ? "Describe the PDF you want..."
               : `Modify the ${currentExample?.label ?? "example"}...`
           }
-          rows={3}
-          className="min-h-[72px] resize-y text-[13px]"
+          className="w-full bg-background text-sm resize-none outline-none placeholder:text-muted-foreground/50"
+          rows={2}
+          autoFocus
         />
-        <Button
-          onClick={handleGenerate}
-          disabled={generating || !prompt.trim()}
-          className="w-full"
-        >
+        <div className="flex justify-between items-center mt-2">
+          <span className="text-[11px] text-muted-foreground">
+            {selection.mode === "example" && currentExample
+              ? currentExample.label
+              : "scratch"}
+          </span>
           {generating ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Generating...
-            </>
+            <button
+              onClick={() => {
+                setGenerating(false);
+              }}
+              className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+              aria-label="Stop"
+            >
+              <Square className="h-3 w-3" fill="currentColor" />
+            </button>
           ) : (
-            <>
-              <PenLine className="h-4 w-4" />
-              Generate PDF
-            </>
+            <button
+              onClick={handleGenerate}
+              disabled={!prompt.trim()}
+              className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30"
+              aria-label="Generate"
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           )}
-        </Button>
-        <p className="text-center text-[11px] text-muted-foreground">
-          Cmd+Enter to generate
-        </p>
-      </div>
-
-      {error && (
-        <div className="mx-3 mb-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {error}
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 
+  // ---------------------------------------------------------------------------
+  // Pane: JSON Spec
+  // ---------------------------------------------------------------------------
+  const codePane = (
+    <div className="h-full flex flex-col">
+      <div className="border-b border-border px-3 h-9 flex items-center gap-3">
+        <span className="text-xs font-mono text-foreground">json</span>
+        <div className="flex-1" />
+        {activeSpec && <CopyButton text={jsonCode} />}
+      </div>
+      <div className="flex-1 overflow-auto">
+        <pre className="p-3 text-xs leading-relaxed font-mono text-muted-foreground whitespace-pre">
+          {generating && !activeSpec ? (
+            <span className="text-muted-foreground/50 animate-pulse">
+              generating...
+            </span>
+          ) : (
+            jsonCode
+          )}
+        </pre>
+      </div>
+    </div>
+  );
+
+  // ---------------------------------------------------------------------------
+  // Pane: PDF Preview
+  // ---------------------------------------------------------------------------
+  const previewPane = (
+    <div className="h-full flex flex-col">
+      <div className="border-b border-border px-3 h-9 flex items-center gap-3">
+        <span className="text-xs font-mono text-foreground">preview</span>
+        <div className="flex-1" />
+        {activeSpec && (
+          <button
+            onClick={handleDownload}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono flex items-center gap-1"
+          >
+            <Download className="h-3 w-3" />
+            download
+          </button>
+        )}
+      </div>
+      <div className="flex-1 relative bg-neutral-600">
+        {generating && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-neutral-600/90 backdrop-blur-sm">
+            <Loader2 className="h-8 w-8 text-white/60 animate-spin" />
+            <p className="text-sm text-white/60">Generating...</p>
+          </div>
+        )}
+
+        {!generating && displayPdfUrl ? (
+          <iframe
+            key={displayPdfUrl}
+            src={displayPdfUrl}
+            className="h-full w-full border-none"
+            title="PDF preview"
+          />
+        ) : !generating ? (
+          <div className="h-full flex flex-col items-center justify-center gap-2 text-neutral-400">
+            <FileText className="h-10 w-10" />
+            <p className="text-sm">
+              {selection.mode === "scratch"
+                ? "Enter a prompt to generate a PDF"
+                : "Select an example to preview"}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
-    <div className="flex h-dvh">
-      {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-80 min-w-80 flex-col border-r bg-card">
-        <div className="shrink-0 border-b px-4 py-4">
-          <Logo />
-        </div>
-        {sidebarBody}
-      </aside>
+    <div className="h-dvh flex flex-col">
+      {/* Desktop: 3-pane resizable layout */}
+      <div className="hidden lg:flex flex-1 min-h-0">
+        <ResizablePanelGroup className="flex-1">
+          <ResizablePanel defaultSize={25} minSize={15}>
+            {chatPane}
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize={35} minSize={20}>
+            {codePane}
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize={40} minSize={20}>
+            {previewPane}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
 
-      {/* Main area */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* Toolbar */}
-        <div className="flex items-center gap-2 border-b bg-card px-3 py-2">
-          {/* Mobile menu */}
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
-                <Menu className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0 flex flex-col">
-              <SheetHeader className="shrink-0 border-b px-4 py-4">
-                <SheetTitle>
-                  <Logo size="sm" />
-                </SheetTitle>
-              </SheetHeader>
-              {sidebarBody}
-            </SheetContent>
-          </Sheet>
-
-          <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as MainTab)}>
-            <TabsList>
-              <TabsTrigger value="preview">Preview</TabsTrigger>
-              {activeSpec && <TabsTrigger value="json">JSON</TabsTrigger>}
-            </TabsList>
-          </Tabs>
-
+      {/* Mobile: toolbar + content + prompt */}
+      <div className="flex lg:hidden flex-col flex-1 min-h-0">
+        <div className="border-b border-border px-3 h-9 flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => setExamplesSheetOpen(true)}
+            className="text-xs font-mono font-medium px-1.5 py-0.5 rounded bg-muted text-foreground shrink-0"
+          >
+            {selection.mode === "example" && currentExample
+              ? currentExample.label
+              : "scratch"}
+          </button>
+          {(["json", "preview"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setMobileView(tab)}
+              className={cn(
+                "text-xs font-mono transition-colors shrink-0",
+                mobileView === tab
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {tab}
+            </button>
+          ))}
           <div className="flex-1" />
-
           {activeSpec && (
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="h-3.5 w-3.5" />
-              Download
-            </Button>
+            <button
+              onClick={handleDownload}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono flex items-center gap-1"
+            >
+              <Download className="h-3 w-3" />
+            </button>
           )}
         </div>
 
-        {/* Content */}
-        <div className="relative flex flex-1 min-h-0 bg-neutral-600">
-          {mainTab === "preview" && (
-            <>
+        <div className="flex-1 min-h-0 overflow-auto">
+          {mobileView === "json" ? (
+            <pre className="p-3 text-xs leading-relaxed font-mono text-muted-foreground whitespace-pre">
+              {jsonCode}
+            </pre>
+          ) : (
+            <div className="h-full relative bg-neutral-600">
               {generating && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-neutral-600/90 backdrop-blur-sm">
-                  <div className="h-9 w-9 rounded-full border-[3px] border-white/15 border-t-white animate-[spin_0.8s_linear_infinite]" />
-                  <p className="text-sm font-medium text-white/80">
-                    Generating your PDF...
-                  </p>
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-neutral-600/90 backdrop-blur-sm">
+                  <Loader2 className="h-8 w-8 text-white/60 animate-spin" />
+                  <p className="text-sm text-white/60">Generating...</p>
                 </div>
               )}
-
               {!generating && displayPdfUrl ? (
                 <iframe
                   key={displayPdfUrl}
@@ -387,33 +446,111 @@ export default function Page() {
                   title="PDF preview"
                 />
               ) : !generating ? (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/6">
-                    <FileText className="h-10 w-10 text-neutral-400" />
-                  </div>
-                  <p className="text-base font-semibold text-neutral-300">
-                    {selection.mode === "scratch"
-                      ? "Start from scratch"
-                      : "PDF Preview"}
-                  </p>
-                  <p className="max-w-[280px] text-center text-sm text-neutral-400">
-                    {selection.mode === "scratch"
-                      ? "Describe the PDF you want and hit Generate"
-                      : "Select an example or type a prompt to modify it"}
-                  </p>
+                <div className="h-full flex flex-col items-center justify-center gap-2 text-neutral-400">
+                  <FileText className="h-10 w-10" />
+                  <p className="text-sm">Enter a prompt to generate a PDF</p>
                 </div>
               ) : null}
-            </>
-          )}
-
-          {mainTab === "json" && activeSpec && (
-            <ScrollArea className="flex-1">
-              <pre className="p-5 text-xs leading-relaxed font-mono text-foreground/70 bg-muted">
-                {JSON.stringify(activeSpec, null, 2)}
-              </pre>
-            </ScrollArea>
+            </div>
           )}
         </div>
+
+        <div
+          className="border-t border-border p-3 shrink-0 cursor-text"
+          onMouseDown={(e) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest("button") && target.tagName !== "TEXTAREA") {
+              e.preventDefault();
+              mobileInputRef.current?.focus();
+            }
+          }}
+        >
+          <textarea
+            ref={mobileInputRef}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              selection.mode === "scratch"
+                ? "Describe the PDF you want..."
+                : `Modify the ${currentExample?.label ?? "example"}...`
+            }
+            className="w-full bg-background text-base resize-none outline-none placeholder:text-muted-foreground/50"
+            rows={2}
+          />
+          <div className="flex justify-between items-center mt-2">
+            <span className="text-[11px] text-muted-foreground">
+              {selection.mode === "example" && currentExample
+                ? currentExample.label
+                : "scratch"}
+            </span>
+            {generating ? (
+              <button
+                onClick={() => setGenerating(false)}
+                className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+                aria-label="Stop"
+              >
+                <Square className="h-3 w-3" fill="currentColor" />
+              </button>
+            ) : (
+              <button
+                onClick={handleGenerate}
+                disabled={!prompt.trim()}
+                className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-30"
+                aria-label="Generate"
+              >
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <Sheet open={examplesSheetOpen} onOpenChange={setExamplesSheetOpen}>
+          <SheetContent side="left" className="w-80 p-0">
+            <SheetTitle className="sr-only">Examples</SheetTitle>
+            <ScrollArea className="h-full">
+              <div className="p-2 space-y-1">
+                <p className="px-2 pt-2 pb-1 text-[11px] font-mono text-muted-foreground">
+                  start
+                </p>
+                <button
+                  onClick={() => select({ mode: "scratch" })}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded text-sm transition-colors",
+                    selection.mode === "scratch"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                  )}
+                >
+                  From scratch
+                </button>
+                <p className="px-2 pt-3 pb-1 text-[11px] font-mono text-muted-foreground">
+                  examples
+                </p>
+                {examples.map((ex) => (
+                  <button
+                    key={ex.name}
+                    onClick={() =>
+                      select({ mode: "example", exampleName: ex.name })
+                    }
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded text-sm transition-colors",
+                      selection.mode === "example" &&
+                        selection.exampleName === ex.name
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    )}
+                  >
+                    <span className="font-medium">{ex.label}</span>
+                    <p className="text-xs text-muted-foreground/70 mt-0.5 leading-snug">
+                      {ex.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );
