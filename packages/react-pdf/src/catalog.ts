@@ -154,8 +154,12 @@ export const standardComponentDefinitions = {
     }),
     slots: [],
     description:
-      "Image from a URL or base64 data URI. Specify width and/or height to control size.",
-    example: { src: "https://example.com/logo.png", width: 120, height: 40 },
+      "Image from a URL. Specify width and/or height to control size. For placeholder/stock images use https://picsum.photos/{width}/{height}?random={n} where {n} is a unique number per image.",
+    example: {
+      src: "https://picsum.photos/400/300?random=1",
+      width: 400,
+      height: 300,
+    },
   },
 
   Link: {

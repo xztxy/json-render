@@ -12,6 +12,16 @@ import type { ComponentRenderProps } from "../renderer";
 import type { ComponentRegistry } from "../renderer";
 import type { StandardComponentProps } from "../catalog";
 
+const EMOJI_RE =
+  /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu;
+
+function stripEmoji(text: string): string {
+  return text
+    .replace(EMOJI_RE, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 // =============================================================================
 // Document Structure
 // =============================================================================
@@ -161,7 +171,7 @@ function HeadingComponent({
         },
       ]}
     >
-      {p.text}
+      {stripEmoji(p.text)}
     </PdfText>
   );
 }
@@ -188,7 +198,7 @@ function TextComponent({
         lineHeight: p.lineHeight ?? undefined,
       }}
     >
-      {p.text}
+      {stripEmoji(p.text)}
     </PdfText>
   );
 }
@@ -224,7 +234,7 @@ function LinkComponent({
         textDecoration: "underline",
       }}
     >
-      {p.text}
+      {stripEmoji(p.text)}
     </PdfLink>
   );
 }
@@ -289,7 +299,7 @@ function TableComponent({
                 textAlign: col.align ?? "left",
               }}
             >
-              {col.header}
+              {stripEmoji(col.header)}
             </PdfText>
           </View>
         ))}
@@ -320,7 +330,7 @@ function TableComponent({
                   textAlign: col.align ?? "left",
                 }}
               >
-                {row[colIndex] ?? ""}
+                {stripEmoji(row[colIndex] ?? "")}
               </PdfText>
             </View>
           ))}
@@ -358,7 +368,7 @@ function ListComponent({
               flex: 1,
             }}
           >
-            {item}
+            {stripEmoji(item)}
           </PdfText>
         </View>
       ))}
@@ -414,9 +424,11 @@ function PageNumberComponent({
         textAlign: p.align ?? "center",
       }}
       render={({ pageNumber, totalPages }) =>
-        format
-          .replace("{pageNumber}", String(pageNumber))
-          .replace("{totalPages}", String(totalPages))
+        stripEmoji(
+          format
+            .replace("{pageNumber}", String(pageNumber))
+            .replace("{totalPages}", String(totalPages)),
+        )
       }
       fixed
     />
