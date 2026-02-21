@@ -642,6 +642,7 @@ ${jsx}
             <JsonEditor
               value={JSON.parse(JSON.stringify(currentTree)) as JsonValue}
               readOnly
+              sidebarOpen={false}
               height="100%"
               style={
                 {
@@ -942,6 +943,7 @@ ${jsx}
               <JsonEditor
                 value={JSON.parse(JSON.stringify(currentTree)) as JsonValue}
                 readOnly
+                sidebarOpen={false}
                 height="100%"
                 style={
                   {
