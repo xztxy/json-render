@@ -46,10 +46,5 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": "prettier --write"
-  },
-  "pnpm": {
-    "overrides": {
-      "@visual-json/core": "0.1.0"
-    }
   }
 }
