@@ -16,17 +16,20 @@ import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
 import { Header } from "./header";
 import { Sheet, SheetContent, SheetTitle } from "./ui/sheet";
+import { JsonEditor } from "@visual-json/react";
+import type { JsonValue } from "@visual-json/react";
 import { PlaygroundRenderer } from "@/lib/render/renderer";
 import { playgroundCatalog } from "@/lib/render/catalog";
 import { buildCatalogDisplayData } from "@/lib/render/catalog-display";
 
-type Tab = "json" | "nested" | "stream" | "catalog";
+type Tab = "json" | "nested" | "stream" | "catalog" | "visual";
 type RenderView = "preview" | "code";
 type MobileView =
   | "json"
   | "nested"
   | "stream"
   | "catalog"
+  | "visual"
   | "preview"
   | "generated-code";
 
@@ -231,6 +234,20 @@ export function Playground() {
       }
     },
     [handleSubmit],
+  );
+
+  const handleVisualChange = useCallback(
+    (value: JsonValue) => {
+      if (!selectedVersionId || isStreaming) return;
+      setVersions((prev) =>
+        prev.map((v) =>
+          v.id === selectedVersionId
+            ? { ...v, tree: value as unknown as Spec }
+            : v,
+        ),
+      );
+    },
+    [selectedVersionId, isStreaming],
   );
 
   const jsonCode = currentTree
@@ -479,31 +496,69 @@ ${jsx}
         ? jsonCode
         : activeTab === "nested"
           ? nestedCode
-          : "";
+          : activeTab === "visual"
+            ? jsonCode
+            : "";
 
   const codePane = (
     <div className="h-full flex flex-col border-t border-border">
       <div className="border-b border-border px-3 h-9 flex items-center gap-3">
-        {(["json", "nested", "stream", "catalog"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`text-xs font-mono transition-colors ${
-              activeTab === tab
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+        {(["json", "visual", "nested", "stream", "catalog"] as const).map(
+          (tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`text-xs font-mono transition-colors ${
+                activeTab === tab
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab}
+            </button>
+          ),
+        )}
         <div className="flex-1" />
-        {activeTab !== "catalog" && (
+        {activeTab !== "catalog" && activeTab !== "visual" && (
           <CopyButton text={copyText} className="text-muted-foreground" />
         )}
       </div>
       <div className="flex-1 overflow-auto">
-        {activeTab === "catalog" ? (
+        {activeTab === "visual" ? (
+          currentTree ? (
+            <JsonEditor
+              value={currentTree as unknown as JsonValue}
+              onChange={handleVisualChange}
+              readOnly={isStreaming}
+              sidebarOpen={false}
+              height="100%"
+              className="h-full"
+              style={
+                {
+                  "--vj-bg": "var(--background)",
+                  "--vj-bg-panel": "var(--background)",
+                  "--vj-bg-hover": "var(--muted)",
+                  "--vj-bg-selected": "var(--primary)",
+                  "--vj-bg-selected-muted": "var(--muted)",
+                  "--vj-text": "var(--foreground)",
+                  "--vj-text-selected": "var(--primary-foreground)",
+                  "--vj-text-muted": "var(--muted-foreground)",
+                  "--vj-text-dim": "var(--muted-foreground)",
+                  "--vj-border": "var(--border)",
+                  "--vj-border-subtle": "var(--border)",
+                  "--vj-accent": "var(--primary)",
+                  "--vj-accent-muted": "var(--muted)",
+                  "--vj-input-bg": "var(--secondary)",
+                  "--vj-input-border": "var(--border)",
+                } as React.CSSProperties
+              }
+            />
+          ) : (
+            <div className="text-muted-foreground/50 p-3 text-sm font-mono">
+              // generate a spec to edit visually
+            </div>
+          )
+        ) : activeTab === "catalog" ? (
           <div className="h-full flex flex-col text-sm">
             <div className="flex items-center gap-3 px-3 h-9 border-b border-border">
               {(
@@ -735,19 +790,21 @@ ${jsx}
               : 0}
           </button>
           {/* Code tabs */}
-          {(["json", "nested", "stream", "catalog"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setMobileView(tab)}
-              className={`text-xs font-mono transition-colors shrink-0 ${
-                mobileView === tab
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          {(["json", "visual", "nested", "stream", "catalog"] as const).map(
+            (tab) => (
+              <button
+                key={tab}
+                onClick={() => setMobileView(tab)}
+                className={`text-xs font-mono transition-colors shrink-0 ${
+                  mobileView === tab
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab}
+              </button>
+            ),
+          )}
           <div className="flex-1" />
           {/* Preview / code toggle */}
           {[
@@ -770,7 +827,41 @@ ${jsx}
 
         {/* Main content area */}
         <div className="flex-1 min-h-0 overflow-auto">
-          {mobileView === "catalog" ? (
+          {mobileView === "visual" ? (
+            currentTree ? (
+              <JsonEditor
+                value={currentTree as unknown as JsonValue}
+                onChange={handleVisualChange}
+                readOnly={isStreaming}
+                sidebarOpen={false}
+                height="100%"
+                className="h-full"
+                style={
+                  {
+                    "--vj-bg": "var(--background)",
+                    "--vj-bg-panel": "var(--background)",
+                    "--vj-bg-hover": "var(--muted)",
+                    "--vj-bg-selected": "var(--primary)",
+                    "--vj-bg-selected-muted": "var(--muted)",
+                    "--vj-text": "var(--foreground)",
+                    "--vj-text-selected": "var(--primary-foreground)",
+                    "--vj-text-muted": "var(--muted-foreground)",
+                    "--vj-text-dim": "var(--muted-foreground)",
+                    "--vj-border": "var(--border)",
+                    "--vj-border-subtle": "var(--border)",
+                    "--vj-accent": "var(--primary)",
+                    "--vj-accent-muted": "var(--muted)",
+                    "--vj-input-bg": "var(--secondary)",
+                    "--vj-input-border": "var(--border)",
+                  } as React.CSSProperties
+                }
+              />
+            ) : (
+              <div className="text-muted-foreground/50 p-3 text-sm font-mono">
+                // generate a spec to edit visually
+              </div>
+            )
+          ) : mobileView === "catalog" ? (
             <div className="h-full flex flex-col text-sm">
               <div className="flex items-center gap-3 px-3 h-9 border-b border-border">
                 {(
