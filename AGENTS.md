@@ -27,6 +27,26 @@ This ensures we don't install outdated versions that may have incompatible types
 - Do not use emojis in code or UI
 - Use shadcn CLI to add shadcn/ui components: `pnpm dlx shadcn@latest add <component>`
 
+## Dev Servers
+
+All apps and examples with dev servers use [portless](https://github.com/vercel-labs/portless) to avoid hardcoded ports. Portless assigns random ports and exposes each app via `.localhost` URLs.
+
+Naming convention:
+- Main web app: `json-render` → `json-render.localhost:1355`
+- Examples: `[name]-demo.json-render` → `[name]-demo.json-render.localhost:1355`
+
+When adding a new example that runs a dev server, wrap its `dev` script with `portless <name>`:
+
+```json
+{
+  "scripts": {
+    "dev": "portless my-example-demo.json-render next dev --turbopack"
+  }
+}
+```
+
+Do **not** add `--port` flags -- portless handles port assignment automatically. Do **not** add portless as a project dependency; it must be installed globally.
+
 ## Workflow
 
 - Run `pnpm type-check` after each turn to ensure type safety

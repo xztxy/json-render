@@ -343,9 +343,9 @@ pnpm install
 pnpm dev
 ```
 
-- http://localhost:3000 - Docs & Playground
-- http://localhost:3001 - Example Dashboard
-- http://localhost:3002 - Remotion Video Example
+- http://json-render.localhost:1355 - Docs & Playground
+- http://dashboard-demo.json-render.localhost:1355 - Example Dashboard
+- http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
 - React Native example: run `npx expo start` in `examples/react-native`
 
