@@ -555,7 +555,7 @@ ${jsx}
             />
           ) : (
             <div className="text-muted-foreground/50 p-3 text-sm font-mono">
-              // generate a spec to edit visually
+              {"// generate a spec to edit visually"}
             </div>
           )
         ) : activeTab === "catalog" ? (
@@ -858,7 +858,7 @@ ${jsx}
               />
             ) : (
               <div className="text-muted-foreground/50 p-3 text-sm font-mono">
-                // generate a spec to edit visually
+                {"// generate a spec to edit visually"}
               </div>
             )
           ) : mobileView === "catalog" ? (
