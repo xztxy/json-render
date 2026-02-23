@@ -82,15 +82,21 @@ export function reduxStateStore<
     },
 
     set(path: string, value: unknown): void {
+      if (getByPath(getSnapshot(), path) === value) return;
       const next = immutableSetByPath(getSnapshot(), path, value);
       dispatch(next, store);
     },
 
     update(updates: Record<string, unknown>): void {
       let next = getSnapshot();
+      let changed = false;
       for (const [path, value] of Object.entries(updates)) {
-        next = immutableSetByPath(next, path, value);
+        if (getByPath(next, path) !== value) {
+          next = immutableSetByPath(next, path, value);
+          changed = true;
+        }
       }
+      if (!changed) return;
       dispatch(next, store);
     },
 

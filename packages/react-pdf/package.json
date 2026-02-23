@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@json-render/core": "workspace:*",
+    "@json-render/react-state": "workspace:*",
     "@react-pdf/renderer": "^4.3.2"
   },
   "devDependencies": {

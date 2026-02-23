@@ -155,6 +155,30 @@ describe("reduxStateStore", () => {
     expect(store.get("/count")).toBe(0);
   });
 
+  it("set skips dispatch when value is unchanged", () => {
+    const { store } = createTestStore({ x: 1 });
+    const snap1 = store.getSnapshot();
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.set("/x", 1);
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toBe(snap1);
+  });
+
+  it("update skips dispatch when no values changed", () => {
+    const { store } = createTestStore({ a: 1, b: 2 });
+    const snap1 = store.getSnapshot();
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.update({ "/a": 1, "/b": 2 });
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toBe(snap1);
+  });
+
   it("works without a selector (defaults to entire state)", () => {
     const slice = createSlice({
       name: "root",

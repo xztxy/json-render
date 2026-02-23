@@ -102,6 +102,35 @@ describe("zustandStateStore", () => {
     expect(store.getServerSnapshot!()).toBe(store.getSnapshot());
   });
 
+  it("set skips update when value is unchanged", () => {
+    const zStore = createStore<Record<string, unknown>>()(() => ({ x: 1 }));
+    const store = zustandStateStore({ store: zStore });
+    const snap1 = store.getSnapshot();
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.set("/x", 1);
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toBe(snap1);
+  });
+
+  it("update skips update when no values changed", () => {
+    const zStore = createStore<Record<string, unknown>>()(() => ({
+      a: 1,
+      b: 2,
+    }));
+    const store = zustandStateStore({ store: zStore });
+    const snap1 = store.getSnapshot();
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.update({ "/a": 1, "/b": 2 });
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toBe(snap1);
+  });
+
   it("subscribe does NOT fire when unrelated slice changes", () => {
     interface AppState extends Record<string, unknown> {
       ui: Record<string, unknown>;

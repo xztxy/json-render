@@ -50,7 +50,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@json-render/core": "workspace:*"
+    "@json-render/core": "workspace:*",
+    "@json-render/react-state": "workspace:*"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

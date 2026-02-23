@@ -100,6 +100,30 @@ describe("jotaiStateStore", () => {
     expect(store.getServerSnapshot!()).toBe(store.getSnapshot());
   });
 
+  it("set skips update when value is unchanged", () => {
+    const { store } = createTestStore({ x: 1 });
+    const snap1 = store.getSnapshot();
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.set("/x", 1);
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toBe(snap1);
+  });
+
+  it("update skips update when no values changed", () => {
+    const { store } = createTestStore({ a: 1, b: 2 });
+    const snap1 = store.getSnapshot();
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    store.update({ "/a": 1, "/b": 2 });
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(store.getSnapshot()).toBe(snap1);
+  });
+
   it("reads from the shared Jotai store", () => {
     const stateAtom = atom<Record<string, unknown>>({ count: 0 });
     const jStore = createStore();
