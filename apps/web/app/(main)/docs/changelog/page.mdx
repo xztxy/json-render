@@ -9,6 +9,16 @@ Notable changes and updates to json-render.
 
 February 2026
 
+### New: External State Store
+
+The `StateStore` interface lets you plug in your own state management (Redux, Zustand, Jotai, XState, etc.) instead of the built-in internal store. Pass a `store` prop to `StateProvider`, `JSONUIProvider`, or `createRenderer` for controlled mode.
+
+New adapter packages: `@json-render/redux`, `@json-render/zustand`, `@json-render/jotai`.
+
+### Changed: `onStateChange` no longer fires for no-op updates
+
+The `onStateChange` callback is now only called when a `set()` or `update()` call actually changes the state. Previously it fired unconditionally, even when the new value was identical to the current value. If your code relied on the callback firing for every `set()` call regardless of whether the value changed, you may need to adjust.
+
 ### New: `@json-render/react-pdf`
 
 PDF renderer for json-render, powered by [`@react-pdf/renderer`](https://react-pdf.org/). Define catalogs and registries the same way as `@json-render/react`, but output PDF documents instead of web UI.

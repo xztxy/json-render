@@ -38,7 +38,6 @@ export interface JotaiStateStoreOptions {
  * @example With a shared Jotai store:
  * ```ts
  * import { atom, createStore } from "jotai";
- * import { jotaiStateStore } from "@json-render/jotai";
  *
  * const jStore = createStore();
  * const uiAtom = atom<Record<string, unknown>>({ count: 0 });
@@ -65,8 +64,9 @@ export function jotaiStateStore(options: JotaiStateStoreOptions): StateStore {
     },
 
     set(path: string, value: unknown): void {
-      if (getByPath(getSnapshot(), path) === value) return;
-      const next = immutableSetByPath(getSnapshot(), path, value);
+      const current = getSnapshot();
+      if (getByPath(current, path) === value) return;
+      const next = immutableSetByPath(current, path, value);
       jStore.set(stateAtom, next);
     },
 

@@ -72,8 +72,9 @@ export function zustandStateStore<S extends StateModel = StateModel>(
     },
 
     set(path: string, value: unknown): void {
-      if (getByPath(getSnapshot(), path) === value) return;
-      const next = immutableSetByPath(getSnapshot(), path, value);
+      const current = getSnapshot();
+      if (getByPath(current, path) === value) return;
+      const next = immutableSetByPath(current, path, value);
       updater(next, store);
     },
 
