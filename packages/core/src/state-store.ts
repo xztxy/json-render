@@ -108,6 +108,61 @@ export function createStateStore(initialState: StateModel = {}): StateStore {
   };
 }
 
+/**
+ * Configuration for {@link createStoreAdapter}. Adapter authors supply these
+ * three callbacks; everything else (get, set, update, no-op detection,
+ * getServerSnapshot) is handled by the returned {@link StateStore}.
+ */
+export interface StoreAdapterConfig {
+  /** Return the current state snapshot from the underlying store. */
+  getSnapshot: () => StateModel;
+  /** Write a new state snapshot to the underlying store. */
+  setSnapshot: (next: StateModel) => void;
+  /** Subscribe to changes in the underlying store. Return an unsubscribe fn. */
+  subscribe: (listener: () => void) => () => void;
+}
+
+/**
+ * Build a full {@link StateStore} from a minimal adapter config.
+ *
+ * Handles `get`, `set` (with no-op detection), `update` (batched, with no-op
+ * detection), `getSnapshot`, `getServerSnapshot`, and `subscribe` -- so each
+ * adapter only needs to wire its snapshot source, write API, and subscribe
+ * mechanism.
+ */
+export function createStoreAdapter(config: StoreAdapterConfig): StateStore {
+  return {
+    get(path: string): unknown {
+      return getByPath(config.getSnapshot(), path);
+    },
+
+    set(path: string, value: unknown): void {
+      const current = config.getSnapshot();
+      if (getByPath(current, path) === value) return;
+      config.setSnapshot(immutableSetByPath(current, path, value));
+    },
+
+    update(updates: Record<string, unknown>): void {
+      let next = config.getSnapshot();
+      let changed = false;
+      for (const [path, value] of Object.entries(updates)) {
+        if (getByPath(next, path) !== value) {
+          next = immutableSetByPath(next, path, value);
+          changed = true;
+        }
+      }
+      if (!changed) return;
+      config.setSnapshot(next);
+    },
+
+    getSnapshot: config.getSnapshot,
+
+    getServerSnapshot: config.getSnapshot,
+
+    subscribe: config.subscribe,
+  };
+}
+
 const MAX_FLATTEN_DEPTH = 20;
 
 /**

@@ -255,14 +255,28 @@ Available via `@json-render/core/store-utils`:
 
 | Export | Purpose |
 |--------|---------|
+| `createStoreAdapter(config)` | Build a full `StateStore` from a minimal `{ getSnapshot, setSnapshot, subscribe }` config |
 | `immutableSetByPath(root, path, value)` | Immutably set a value at a JSON Pointer path with structural sharing |
 | `flattenToPointers(obj)` | Flatten a nested object into JSON Pointer keyed entries |
+| `StoreAdapterConfig` | Config type for `createStoreAdapter` |
 
 ```typescript
-import { immutableSetByPath, flattenToPointers } from "@json-render/core/store-utils";
+import { createStoreAdapter, immutableSetByPath, flattenToPointers } from "@json-render/core/store-utils";
 ```
 
-These utilities are used internally by `createStateStore` and the official adapter packages (`@json-render/redux`, `@json-render/zustand`, `@json-render/jotai`).
+`createStoreAdapter` handles `get`, `set` (with no-op detection), batched `update`, `getSnapshot`, `getServerSnapshot`, and `subscribe` -- adapter authors only need to supply the snapshot source, write API, and subscribe mechanism:
+
+```typescript
+import { createStoreAdapter } from "@json-render/core/store-utils";
+
+const store = createStoreAdapter({
+  getSnapshot: () => myLib.getState(),
+  setSnapshot: (next) => myLib.setState(next),
+  subscribe: (listener) => myLib.subscribe(listener),
+});
+```
+
+The official adapter packages (`@json-render/redux`, `@json-render/zustand`, `@json-render/jotai`) are all built on top of `createStoreAdapter`.
 
 ### Types
 

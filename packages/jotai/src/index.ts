@@ -1,5 +1,5 @@
-import { getByPath, type StateModel, type StateStore } from "@json-render/core";
-import { immutableSetByPath } from "@json-render/core/store-utils";
+import type { StateModel, StateStore } from "@json-render/core";
+import { createStoreAdapter } from "@json-render/core/store-utils";
 import type { WritableAtom } from "jotai";
 import { createStore as createJotaiStore } from "jotai/vanilla";
 
@@ -54,41 +54,9 @@ export function jotaiStateStore(options: JotaiStateStoreOptions): StateStore {
   const stateAtom = options.atom;
   const jStore = options.store ?? createJotaiStore();
 
-  function getSnapshot(): StateModel {
-    return jStore.get(stateAtom);
-  }
-
-  return {
-    get(path: string): unknown {
-      return getByPath(getSnapshot(), path);
-    },
-
-    set(path: string, value: unknown): void {
-      const current = getSnapshot();
-      if (getByPath(current, path) === value) return;
-      const next = immutableSetByPath(current, path, value);
-      jStore.set(stateAtom, next);
-    },
-
-    update(updates: Record<string, unknown>): void {
-      let next = getSnapshot();
-      let changed = false;
-      for (const [path, value] of Object.entries(updates)) {
-        if (getByPath(next, path) !== value) {
-          next = immutableSetByPath(next, path, value);
-          changed = true;
-        }
-      }
-      if (!changed) return;
-      jStore.set(stateAtom, next);
-    },
-
-    getSnapshot,
-
-    getServerSnapshot: getSnapshot,
-
-    subscribe(listener: () => void): () => void {
-      return jStore.sub(stateAtom, listener);
-    },
-  };
+  return createStoreAdapter({
+    getSnapshot: () => jStore.get(stateAtom),
+    setSnapshot: (next) => jStore.set(stateAtom, next),
+    subscribe: (listener) => jStore.sub(stateAtom, listener),
+  });
 }

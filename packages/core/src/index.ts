@@ -59,6 +59,7 @@ export {
 } from "./types";
 
 // State Store
+export type { StoreAdapterConfig } from "./state-store";
 export { createStateStore } from "./state-store";
 
 // Visibility

@@ -1,5 +1,5 @@
-import { getByPath, type StateModel, type StateStore } from "@json-render/core";
-import { immutableSetByPath } from "@json-render/core/store-utils";
+import type { StateModel, StateStore } from "@json-render/core";
+import { createStoreAdapter } from "@json-render/core/store-utils";
 import type { Store, Action, UnknownAction } from "redux";
 
 export type { StateStore } from "@json-render/core";
@@ -69,48 +69,18 @@ export function reduxStateStore<
 >(options: ReduxStateStoreOptions<S, A>): StateStore {
   const { store, selector, dispatch } = options;
 
-  function getSnapshot(): StateModel {
-    return selector(store.getState());
-  }
-
-  return {
-    get(path: string): unknown {
-      return getByPath(getSnapshot(), path);
-    },
-
-    set(path: string, value: unknown): void {
-      const current = getSnapshot();
-      if (getByPath(current, path) === value) return;
-      const next = immutableSetByPath(current, path, value);
-      dispatch(next, store);
-    },
-
-    update(updates: Record<string, unknown>): void {
-      let next = getSnapshot();
-      let changed = false;
-      for (const [path, value] of Object.entries(updates)) {
-        if (getByPath(next, path) !== value) {
-          next = immutableSetByPath(next, path, value);
-          changed = true;
-        }
-      }
-      if (!changed) return;
-      dispatch(next, store);
-    },
-
-    getSnapshot,
-
-    getServerSnapshot: getSnapshot,
-
-    subscribe(listener: () => void): () => void {
-      let prev = getSnapshot();
+  return createStoreAdapter({
+    getSnapshot: () => selector(store.getState()),
+    setSnapshot: (next) => dispatch(next, store),
+    subscribe(listener) {
+      let prev = selector(store.getState());
       return store.subscribe(() => {
-        const next = getSnapshot();
+        const next = selector(store.getState());
         if (next !== prev) {
           prev = next;
           listener();
         }
       });
     },
-  };
+  });
 }

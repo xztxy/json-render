@@ -27,6 +27,21 @@ This ensures we don't install outdated versions that may have incompatible types
 - Do not use emojis in code or UI
 - Use shadcn CLI to add shadcn/ui components: `pnpm dlx shadcn@latest add <component>`
 
+## AI SDK / AI Gateway
+
+When using the Vercel AI SDK (`ai` package) with AI Gateway, pass the model as a plain string identifier -- do not import a provider constructor:
+
+```ts
+import { streamText } from "ai";
+
+const result = streamText({
+  model: "anthropic/claude-haiku-4.5",
+  prompt: "...",
+});
+```
+
+This requires `AI_GATEWAY_API_KEY` to be set in the environment. See `tests/e2e/` for examples.
+
 ## Dev Servers
 
 All apps and examples with dev servers use [portless](https://github.com/vercel-labs/portless) to avoid hardcoded ports. Portless assigns random ports and exposes each app via `.localhost` URLs.
