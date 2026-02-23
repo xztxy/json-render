@@ -1,1 +1,1 @@
-declare const process: { env: Record<string, string | undefined> };
+declare const process: { readonly env: { readonly NODE_ENV?: string } };

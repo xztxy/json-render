@@ -85,6 +85,56 @@ describe("createStateStore", () => {
 
     expect(snap1).toBe(snap2);
   });
+
+  it("set on nested path does not mutate previous snapshot", () => {
+    const store = createStateStore({ user: { name: "Alice", age: 30 } });
+    const snap1 = store.getSnapshot();
+
+    store.set("/user/name", "Bob");
+    const snap2 = store.getSnapshot();
+
+    expect(snap1.user).toEqual({ name: "Alice", age: 30 });
+    expect((snap2.user as Record<string, unknown>).name).toBe("Bob");
+    expect(snap1.user).not.toBe(snap2.user);
+  });
+
+  it("update on nested paths does not mutate previous snapshot", () => {
+    const store = createStateStore({
+      user: { name: "Alice" },
+      meta: { version: 1 },
+    });
+    const snap1 = store.getSnapshot();
+
+    store.update({ "/user/name": "Bob", "/meta/version": 2 });
+    const snap2 = store.getSnapshot();
+
+    expect((snap1.user as Record<string, unknown>).name).toBe("Alice");
+    expect((snap1.meta as Record<string, unknown>).version).toBe(1);
+    expect((snap2.user as Record<string, unknown>).name).toBe("Bob");
+    expect((snap2.meta as Record<string, unknown>).version).toBe(2);
+  });
+
+  it("set preserves structural sharing for untouched branches", () => {
+    const store = createStateStore({
+      a: { x: 1 },
+      b: { y: 2 },
+    });
+    const snap1 = store.getSnapshot();
+
+    store.set("/a/x", 99);
+    const snap2 = store.getSnapshot();
+
+    expect(snap2.b).toBe(snap1.b);
+    expect(snap2.a).not.toBe(snap1.a);
+  });
+
+  it("getServerSnapshot returns the same state as getSnapshot", () => {
+    const store = createStateStore({ x: 1 });
+    expect(store.getServerSnapshot!()).toBe(store.getSnapshot());
+
+    store.set("/x", 2);
+    expect(store.getServerSnapshot!()).toBe(store.getSnapshot());
+  });
 });
 
 describe("flattenToPointers", () => {

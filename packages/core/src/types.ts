@@ -194,6 +194,8 @@ export interface StateStore {
   update: (updates: Record<string, unknown>) => void;
   /** Return the full state object (used by `useSyncExternalStore`). */
   getSnapshot: () => StateModel;
+  /** Optional server snapshot for SSR (passed to `useSyncExternalStore`). Falls back to `getSnapshot` when omitted. */
+  getServerSnapshot?: () => StateModel;
   /** Register a listener that is called on every state change. Returns an unsubscribe function. */
   subscribe: (listener: () => void) => () => void;
 }
@@ -256,7 +258,7 @@ function unescapeJsonPointer(token: string): string {
 /**
  * Parse a JSON Pointer path into unescaped segments.
  */
-function parseJsonPointer(path: string): string[] {
+export function parseJsonPointer(path: string): string[] {
   const raw = path.startsWith("/") ? path.slice(1).split("/") : path.split("/");
   return raw.map(unescapeJsonPointer);
 }

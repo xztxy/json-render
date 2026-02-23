@@ -39,6 +39,7 @@ export {
   resolveDynamicValue,
   getByPath,
   setByPath,
+  parseJsonPointer,
   addByPath,
   removeByPath,
   findFormValue,

@@ -1,9 +1,53 @@
 import {
   getByPath,
-  setByPath,
+  parseJsonPointer,
   type StateModel,
   type StateStore,
 } from "./types";
+
+/**
+ * Immutably set a value at a JSON Pointer path using structural sharing.
+ * Only objects along the path are shallow-cloned; untouched branches keep
+ * their original references.
+ */
+function immutableSetByPath(
+  root: StateModel,
+  path: string,
+  value: unknown,
+): StateModel {
+  const segments = parseJsonPointer(path);
+  if (segments.length === 0) return root;
+
+  const result = { ...root };
+  let current: Record<string, unknown> = result;
+
+  for (let i = 0; i < segments.length - 1; i++) {
+    const seg = segments[i]!;
+    const child = current[seg];
+    if (Array.isArray(child)) {
+      current[seg] = [...child];
+    } else if (child !== null && typeof child === "object") {
+      current[seg] = { ...(child as Record<string, unknown>) };
+    } else {
+      const nextSeg = segments[i + 1];
+      current[seg] = nextSeg !== undefined && /^\d+$/.test(nextSeg) ? [] : {};
+    }
+    current = current[seg] as Record<string, unknown>;
+  }
+
+  const lastSeg = segments[segments.length - 1]!;
+  if (Array.isArray(current)) {
+    if (lastSeg === "-") {
+      (current as unknown[]).push(value);
+    } else {
+      (current as unknown[])[parseInt(lastSeg, 10)] = value;
+    }
+  } else {
+    current[lastSeg] = value;
+  }
+
+  return result;
+}
 
 /**
  * Create a simple in-memory {@link StateStore}.
@@ -29,18 +73,16 @@ export function createStateStore(initialState: StateModel = {}): StateStore {
 
     set(path: string, value: unknown): void {
       if (getByPath(state, path) === value) return;
-      const next = { ...state };
-      setByPath(next, path, value);
-      state = next;
+      state = immutableSetByPath(state, path, value);
       notify();
     },
 
     update(updates: Record<string, unknown>): void {
       let changed = false;
-      const next = { ...state };
+      let next = state;
       for (const [path, value] of Object.entries(updates)) {
         if (getByPath(next, path) !== value) {
-          setByPath(next, path, value);
+          next = immutableSetByPath(next, path, value);
           changed = true;
         }
       }
@@ -50,6 +92,10 @@ export function createStateStore(initialState: StateModel = {}): StateStore {
     },
 
     getSnapshot(): StateModel {
+      return state;
+    },
+
+    getServerSnapshot(): StateModel {
       return state;
     },
 

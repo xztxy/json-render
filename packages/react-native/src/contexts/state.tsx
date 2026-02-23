@@ -70,9 +70,11 @@ export function StateProvider({
   const store = externalStore ?? internalStoreRef.current!;
 
   const initialModeRef = useRef(externalStore ? "controlled" : "uncontrolled");
+  const warnedRef = useRef(false);
   if (process.env.NODE_ENV !== "production") {
     const currentMode = externalStore ? "controlled" : "uncontrolled";
-    if (currentMode !== initialModeRef.current) {
+    if (currentMode !== initialModeRef.current && !warnedRef.current) {
+      warnedRef.current = true;
       console.warn(
         `StateProvider: switching from ${initialModeRef.current} to ${currentMode} mode is not supported.`,
       );
@@ -80,13 +82,27 @@ export function StateProvider({
   }
 
   const prevInitialJsonRef = useRef<string>(JSON.stringify(initialState));
+  const prevFlatRef = useRef<Record<string, unknown>>(
+    flattenToPointers(initialState),
+  );
   useEffect(() => {
     if (externalStore) return;
     const json = JSON.stringify(initialState);
     if (json !== prevInitialJsonRef.current) {
       prevInitialJsonRef.current = json;
-      if (initialState && Object.keys(initialState).length > 0) {
-        store.update(flattenToPointers(initialState));
+      const nextFlat =
+        initialState && Object.keys(initialState).length > 0
+          ? flattenToPointers(initialState)
+          : {};
+      const updates: Record<string, unknown> = { ...nextFlat };
+      for (const key of Object.keys(prevFlatRef.current)) {
+        if (!(key in nextFlat)) {
+          updates[key] = undefined;
+        }
+      }
+      prevFlatRef.current = nextFlat;
+      if (Object.keys(updates).length > 0) {
+        store.update(updates);
       }
     }
   }, [externalStore, initialState, store]);
@@ -94,7 +110,7 @@ export function StateProvider({
   const state = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
-    store.getSnapshot,
+    store.getServerSnapshot ?? store.getSnapshot,
   );
 
   const onStateChangeRef = useRef(onStateChange);
@@ -102,8 +118,9 @@ export function StateProvider({
 
   const set = useCallback(
     (path: string, value: unknown) => {
+      const prev = store.getSnapshot();
       store.set(path, value);
-      if (!externalStore) {
+      if (!externalStore && store.getSnapshot() !== prev) {
         onStateChangeRef.current?.(path, value);
       }
     },
@@ -112,10 +129,13 @@ export function StateProvider({
 
   const update = useCallback(
     (updates: Record<string, unknown>) => {
+      const prev = store.getSnapshot();
       store.update(updates);
-      if (!externalStore) {
+      if (!externalStore && store.getSnapshot() !== prev) {
         for (const [path, value] of Object.entries(updates)) {
-          onStateChangeRef.current?.(path, value);
+          if (getByPath(prev, path) !== value) {
+            onStateChangeRef.current?.(path, value);
+          }
         }
       }
     },
