@@ -42,7 +42,6 @@ export {
   addByPath,
   removeByPath,
   findFormValue,
-  createStateStore,
   // SpecStream - streaming format for building specs (RFC 6902)
   parseSpecStreamLine,
   applySpecStreamPatch,
@@ -58,6 +57,9 @@ export {
   SPEC_DATA_PART,
   SPEC_DATA_PART_TYPE,
 } from "./types";
+
+// State Store
+export { createStateStore, flattenToPointers } from "./state-store";
 
 // Visibility
 export type { VisibilityContext } from "./visibility";

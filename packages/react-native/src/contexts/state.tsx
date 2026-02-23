@@ -11,6 +11,7 @@ import React, {
 import {
   getByPath,
   createStateStore,
+  flattenToPointers,
   type StateModel,
   type StateStore,
 } from "@json-render/core";
@@ -85,11 +86,7 @@ export function StateProvider({
     if (json !== prevInitialJsonRef.current) {
       prevInitialJsonRef.current = json;
       if (initialState && Object.keys(initialState).length > 0) {
-        store.update(
-          Object.fromEntries(
-            Object.entries(initialState).map(([k, v]) => [`/${k}`, v]),
-          ),
-        );
+        store.update(flattenToPointers(initialState));
       }
     }
   }, [externalStore, initialState, store]);

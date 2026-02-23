@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import React from "react";
 import { renderHook, act } from "@testing-library/react";
-import { createStateStore, type StateStore } from "@json-render/core";
+import { createStateStore } from "@json-render/core";
 import {
   StateProvider,
   useStateStore,
@@ -279,60 +279,5 @@ describe("StateProvider with external store (controlled mode)", () => {
 
     expect(result.current.state).toEqual({ fromStore: true });
     expect(result.current.get("/fromProp")).toBeUndefined();
-  });
-});
-
-describe("createStateStore", () => {
-  it("creates a store with initial state", () => {
-    const store = createStateStore({ name: "test" });
-    expect(store.getSnapshot()).toEqual({ name: "test" });
-    expect(store.get("/name")).toBe("test");
-  });
-
-  it("set notifies subscribers", () => {
-    const store = createStateStore({});
-    const listener = vi.fn();
-    store.subscribe(listener);
-
-    store.set("/x", 1);
-
-    expect(listener).toHaveBeenCalledTimes(1);
-    expect(store.get("/x")).toBe(1);
-  });
-
-  it("update notifies subscribers once", () => {
-    const store = createStateStore({});
-    const listener = vi.fn();
-    store.subscribe(listener);
-
-    store.update({ "/a": 1, "/b": 2 });
-
-    expect(listener).toHaveBeenCalledTimes(1);
-    expect(store.get("/a")).toBe(1);
-    expect(store.get("/b")).toBe(2);
-  });
-
-  it("unsubscribe stops notifications", () => {
-    const store = createStateStore({});
-    const listener = vi.fn();
-    const unsubscribe = store.subscribe(listener);
-
-    store.set("/x", 1);
-    expect(listener).toHaveBeenCalledTimes(1);
-
-    unsubscribe();
-    store.set("/x", 2);
-    expect(listener).toHaveBeenCalledTimes(1);
-  });
-
-  it("getSnapshot returns a new reference after mutation", () => {
-    const store = createStateStore({ x: 1 });
-    const snap1 = store.getSnapshot();
-
-    store.set("/x", 2);
-    const snap2 = store.getSnapshot();
-
-    expect(snap1).not.toBe(snap2);
-    expect(snap2.x).toBe(2);
   });
 });

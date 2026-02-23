@@ -1,1 +1,1 @@
-declare const process: { env: { NODE_ENV?: string } };
+declare const process: { env: Record<string, string | undefined> };

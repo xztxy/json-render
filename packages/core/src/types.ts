@@ -199,57 +199,6 @@ export interface StateStore {
 }
 
 /**
- * Create a simple in-memory {@link StateStore}.
- *
- * This is the default store used by `StateProvider` when no external store is
- * provided. It mirrors the previous `useState`-based behaviour but is
- * framework-agnostic so it can also be used in tests or non-React contexts.
- */
-export function createStateStore(initialState: StateModel = {}): StateStore {
-  let state: StateModel = { ...initialState };
-  const listeners = new Set<() => void>();
-
-  function notify() {
-    for (const listener of listeners) {
-      listener();
-    }
-  }
-
-  return {
-    get(path: string): unknown {
-      return getByPath(state, path);
-    },
-
-    set(path: string, value: unknown): void {
-      const next = { ...state };
-      setByPath(next, path, value);
-      state = next;
-      notify();
-    },
-
-    update(updates: Record<string, unknown>): void {
-      const next = { ...state };
-      for (const [path, value] of Object.entries(updates)) {
-        setByPath(next, path, value);
-      }
-      state = next;
-      notify();
-    },
-
-    getSnapshot(): StateModel {
-      return state;
-    },
-
-    subscribe(listener: () => void): () => void {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-  };
-}
-
-/**
  * Component schema definition using Zod
  */
 export type ComponentSchema = z.ZodType<Record<string, unknown>>;

@@ -13,6 +13,7 @@ import React, {
 import {
   getByPath,
   createStateStore,
+  flattenToPointers,
   type StateModel,
   type StateStore,
 } from "@json-render/core";
@@ -64,14 +65,12 @@ export function StateProvider({
   onStateChange,
   children,
 }: StateProviderProps) {
-  // In uncontrolled mode we create (and retain) an internal store.
   const internalStoreRef = useRef<StateStore | undefined>(
     externalStore ? undefined : createStateStore(initialState),
   );
 
   const store = externalStore ?? internalStoreRef.current!;
 
-  // Warn in dev if the component switches between controlled and uncontrolled.
   const initialModeRef = useRef(externalStore ? "controlled" : "uncontrolled");
   if (process.env.NODE_ENV !== "production") {
     const currentMode = externalStore ? "controlled" : "uncontrolled";
@@ -82,7 +81,6 @@ export function StateProvider({
     }
   }
 
-  // Sync external initialState changes into the internal store (uncontrolled only).
   const prevInitialJsonRef = useRef<string>(JSON.stringify(initialState));
   useEffect(() => {
     if (externalStore) return;
@@ -90,23 +88,17 @@ export function StateProvider({
     if (json !== prevInitialJsonRef.current) {
       prevInitialJsonRef.current = json;
       if (initialState && Object.keys(initialState).length > 0) {
-        store.update(
-          Object.fromEntries(
-            Object.entries(initialState).map(([k, v]) => [`/${k}`, v]),
-          ),
-        );
+        store.update(flattenToPointers(initialState));
       }
     }
   }, [externalStore, initialState, store]);
 
-  // Subscribe to the store (works for both internal and external stores).
   const state = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
     store.getSnapshot,
   );
 
-  // Wrap set/update to fire onStateChange in uncontrolled mode.
   const onStateChangeRef = useRef(onStateChange);
   onStateChangeRef.current = onStateChange;
 
