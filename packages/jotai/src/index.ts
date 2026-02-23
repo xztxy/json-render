@@ -1,6 +1,6 @@
 import {
   getByPath,
-  setByPath,
+  immutableSetByPath,
   type StateModel,
   type StateStore,
 } from "@json-render/core";
@@ -69,20 +69,21 @@ export function jotaiStateStore(options: JotaiStateStoreOptions): StateStore {
     },
 
     set(path: string, value: unknown): void {
-      const next = { ...getSnapshot() };
-      setByPath(next, path, value);
+      const next = immutableSetByPath(getSnapshot(), path, value);
       jStore.set(stateAtom, next);
     },
 
     update(updates: Record<string, unknown>): void {
-      const next = { ...getSnapshot() };
+      let next = getSnapshot();
       for (const [path, value] of Object.entries(updates)) {
-        setByPath(next, path, value);
+        next = immutableSetByPath(next, path, value);
       }
       jStore.set(stateAtom, next);
     },
 
     getSnapshot,
+
+    getServerSnapshot: getSnapshot,
 
     subscribe(listener: () => void): () => void {
       return jStore.sub(stateAtom, listener);

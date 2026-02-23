@@ -10,7 +10,7 @@ import {
  * Only objects along the path are shallow-cloned; untouched branches keep
  * their original references.
  */
-function immutableSetByPath(
+export function immutableSetByPath(
   root: StateModel,
   path: string,
   value: unknown,

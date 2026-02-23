@@ -1,6 +1,6 @@
 import {
   getByPath,
-  setByPath,
+  immutableSetByPath,
   type StateModel,
   type StateStore,
 } from "@json-render/core";
@@ -76,23 +76,31 @@ export function zustandStateStore<S extends StateModel = StateModel>(
     },
 
     set(path: string, value: unknown): void {
-      const next = { ...getSnapshot() };
-      setByPath(next, path, value);
+      const next = immutableSetByPath(getSnapshot(), path, value);
       updater(next, store);
     },
 
     update(updates: Record<string, unknown>): void {
-      const next = { ...getSnapshot() };
+      let next = getSnapshot();
       for (const [path, value] of Object.entries(updates)) {
-        setByPath(next, path, value);
+        next = immutableSetByPath(next, path, value);
       }
       updater(next, store);
     },
 
     getSnapshot,
 
+    getServerSnapshot: getSnapshot,
+
     subscribe(listener: () => void): () => void {
-      return store.subscribe(listener);
+      let prev = getSnapshot();
+      return store.subscribe(() => {
+        const next = getSnapshot();
+        if (next !== prev) {
+          prev = next;
+          listener();
+        }
+      });
     },
   };
 }

@@ -60,7 +60,11 @@ export {
 } from "./types";
 
 // State Store
-export { createStateStore, flattenToPointers } from "./state-store";
+export {
+  createStateStore,
+  flattenToPointers,
+  immutableSetByPath,
+} from "./state-store";
 
 // Visibility
 export type { VisibilityContext } from "./visibility";
