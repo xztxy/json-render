@@ -203,4 +203,28 @@ describe("reduxStateStore", () => {
     store.set("/x", 2);
     expect(store.get("/x")).toBe(2);
   });
+
+  it("defaults selector to identity when omitted", () => {
+    const slice = createSlice({
+      name: "root",
+      initialState: { x: 1 } as Record<string, unknown>,
+      reducers: {
+        replace: (_state, action) => action.payload,
+      },
+    });
+
+    const reduxStore = configureStore({
+      reducer: slice.reducer,
+    });
+
+    const store = reduxStateStore({
+      store: reduxStore,
+      dispatch: (next, s) => s.dispatch(slice.actions.replace(next)),
+    });
+
+    expect(store.get("/x")).toBe(1);
+
+    store.set("/x", 2);
+    expect(store.get("/x")).toBe(2);
+  });
 });

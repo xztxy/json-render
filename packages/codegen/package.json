@@ -44,7 +44,7 @@
     "@json-render/core": "workspace:*"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   }

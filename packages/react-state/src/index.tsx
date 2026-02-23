@@ -85,7 +85,13 @@ export function StateProvider({
   }
 
   const prevInitialStateRef = useRef(initialState);
-  const prevFlatRef = useRef<Record<string, unknown> | null>(null);
+  const prevFlatRef = useRef<Record<string, unknown> | null>(
+    !externalStore && initialState && Object.keys(initialState).length > 0
+      ? flattenToPointers(initialState)
+      : !externalStore
+        ? {}
+        : null,
+  );
   useEffect(() => {
     if (externalStore) return;
     if (initialState === prevInitialStateRef.current) return;

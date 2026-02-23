@@ -5,4 +5,4 @@ export {
   useStateBinding,
   type StateContextValue,
   type StateProviderProps,
-} from "@json-render/react-state";
+} from "@internal/react-state";

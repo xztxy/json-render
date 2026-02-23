@@ -8,17 +8,16 @@ export type { StateStore } from "@json-render/core";
  * Options for {@link reduxStateStore}.
  */
 export interface ReduxStateStoreOptions<
-  S = Record<string, unknown>,
+  S extends StateModel = StateModel,
   A extends Action = UnknownAction,
 > {
   /** The Redux store instance. */
   store: Store<S, A>;
   /**
    * Select the json-render state slice from the Redux state tree.
-   * For a simple store where the entire state is the model, use
-   * `selector: (s) => s`.
+   * Defaults to `(state) => state` (the entire store is the state model).
    */
-  selector: (state: S) => StateModel;
+  selector?: (state: S) => StateModel;
   /**
    * Dispatch a state change back to the Redux store.
    *
@@ -64,10 +63,10 @@ export interface ReduxStateStoreOptions<
  * ```
  */
 export function reduxStateStore<
-  S = Record<string, unknown>,
+  S extends StateModel = StateModel,
   A extends Action = UnknownAction,
 >(options: ReduxStateStoreOptions<S, A>): StateStore {
-  const { store, selector, dispatch } = options;
+  const { store, selector = (s: S) => s as StateModel, dispatch } = options;
 
   return createStoreAdapter({
     getSnapshot: () => selector(store.getState()),

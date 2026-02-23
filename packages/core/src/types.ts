@@ -188,9 +188,17 @@ export type StateModel = Record<string, unknown>;
 export interface StateStore {
   /** Read a value by JSON Pointer path. */
   get: (path: string) => unknown;
-  /** Write a value by JSON Pointer path and notify subscribers. */
+  /**
+   * Write a value by JSON Pointer path and notify subscribers.
+   * Equality is checked by reference (`===`), not deep comparison.
+   * Callers must pass a new object/array reference for changes to be detected.
+   */
   set: (path: string, value: unknown) => void;
-  /** Write multiple values at once and notify subscribers. */
+  /**
+   * Write multiple values at once and notify subscribers (single notification).
+   * Each value is compared by reference (`===`); only paths whose value
+   * actually changed are applied.
+   */
   update: (updates: Record<string, unknown>) => void;
   /** Return the full state object (used by `useSyncExternalStore`). */
   getSnapshot: () => StateModel;

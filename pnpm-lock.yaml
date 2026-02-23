@@ -168,10 +168,10 @@ importers:
         specifier: ^4.0.0
         version: 4.3.5
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@tailwindcss/postcss':
@@ -277,7 +277,7 @@ importers:
         specifier: 4.3.5
         version: 4.3.5
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@tailwindcss/postcss':
@@ -386,7 +386,7 @@ importers:
         specifier: ^4.0.0
         version: 4.3.5
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@tailwindcss/postcss':
@@ -468,7 +468,7 @@ importers:
         specifier: 4.3.5
         version: 4.3.5
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@tailwindcss/postcss':
@@ -611,7 +611,7 @@ importers:
         specifier: 4.3.5
         version: 4.3.5
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@types/node':
@@ -687,7 +687,7 @@ importers:
         specifier: ^4.0.0
         version: 4.3.5
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@tailwindcss/postcss':
@@ -758,7 +758,7 @@ importers:
         specifier: ^4.0.0
         version: 4.3.5
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../../../packages/eslint-config
       '@stripe/ui-extension-tools':
@@ -786,7 +786,7 @@ importers:
         specifier: ^4.0.0
         version: 4.3.5
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../../../packages/eslint-config
       '@stripe/ui-extension-tools':
@@ -802,7 +802,7 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       tsup:
@@ -818,7 +818,7 @@ importers:
         specifier: ^4.0.0
         version: 4.3.5
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       tsup:
@@ -870,7 +870,7 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       jotai:
@@ -885,17 +885,17 @@ importers:
 
   packages/react:
     dependencies:
+      '@internal/react-state':
+        specifier: workspace:*
+        version: link:../react-state
       '@json-render/core':
         specifier: workspace:*
         version: link:../core
-      '@json-render/react-state':
-        specifier: workspace:*
-        version: link:../react-state
       react:
         specifier: ^19.2.3
         version: 19.2.3
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':
@@ -910,17 +910,17 @@ importers:
 
   packages/react-native:
     dependencies:
+      '@internal/react-state':
+        specifier: workspace:*
+        version: link:../react-state
       '@json-render/core':
         specifier: workspace:*
         version: link:../core
-      '@json-render/react-state':
-        specifier: workspace:*
-        version: link:../react-state
       react:
         specifier: ^19.0.0
         version: 19.2.3
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':
@@ -941,12 +941,12 @@ importers:
 
   packages/react-pdf:
     dependencies:
+      '@internal/react-state':
+        specifier: workspace:*
+        version: link:../react-state
       '@json-render/core':
         specifier: workspace:*
         version: link:../core
-      '@json-render/react-state':
-        specifier: workspace:*
-        version: link:../react-state
       '@react-pdf/renderer':
         specifier: ^4.3.2
         version: 4.3.2(react@19.2.4)
@@ -954,7 +954,7 @@ importers:
         specifier: ^19.0.0
         version: 19.2.4
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':
@@ -976,7 +976,7 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@testing-library/react':
@@ -1004,12 +1004,12 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      '@internal/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       '@reduxjs/toolkit':
         specifier: ^2.11.2
         version: 2.11.2(react@19.2.4)
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
       redux:
         specifier: ^5.0.1
         version: 5.0.1
@@ -1029,7 +1029,7 @@ importers:
         specifier: ^19.2.3
         version: 19.2.3
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':
@@ -1087,7 +1087,7 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.3))(@types/react@19.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':
@@ -1114,10 +1114,10 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
     devDependencies:
-      '@repo/eslint-config':
+      '@internal/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
@@ -1142,7 +1142,7 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@repo/typescript-config':
+      '@internal/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       tsup:

@@ -46,7 +46,7 @@
     "jotai": ">=2.0.0"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "jotai": "^2.18.0",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"

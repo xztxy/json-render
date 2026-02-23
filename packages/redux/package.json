@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^2.11.2",
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "redux": "^5.0.1",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"

@@ -21,7 +21,7 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
+    "@internal/eslint-config": "workspace:*",
     "@stripe/ui-extension-tools": "^0.0.1",
     "eslint": "^9.39.0"
   }

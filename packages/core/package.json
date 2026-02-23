@@ -53,7 +53,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   },

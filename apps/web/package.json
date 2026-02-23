@@ -53,8 +53,8 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@internal/eslint-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/mdx": "^2.0.13",
     "@types/node": "^22.15.3",
