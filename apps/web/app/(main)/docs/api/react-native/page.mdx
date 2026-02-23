@@ -63,10 +63,35 @@ React Native renderer with standard components, providers, and hooks.
 ### StateProvider
 
 ```tsx
-<StateProvider initialState={object}>
+<StateProvider initialState={object} onStateChange={fn}>
   {children}
 </StateProvider>
 ```
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `store` | `StateStore` | External store (controlled mode). When provided, `initialState` and `onStateChange` are ignored. |
+| `initialState` | `Record<string, unknown>` | Initial state model (uncontrolled mode). |
+| `onStateChange` | `(path: string, value: unknown) => void` | Callback when state changes (uncontrolled mode). |
+
+#### External Store (Controlled Mode)
+
+Pass a `StateStore` to bypass the internal state and wire json-render to any state management library:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react-native";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>
+  {children}
+</StateProvider>
+
+// Mutate from anywhere — components re-render automatically:
+store.set("/count", 1);
+```
+
+The `store` prop is also available on `JSONUIProvider` and `createRenderer`.
 
 ### ActionProvider
 

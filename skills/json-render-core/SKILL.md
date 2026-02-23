@@ -171,12 +171,33 @@ const schema = defineSchema(builder, {
 
 These appear in prompts as `[built-in]` and don't require handlers in `defineRegistry`.
 
+## StateStore
+
+The `StateStore` interface allows external state management libraries (Redux, Zustand, XState, etc.) to be plugged into json-render renderers. The `createStateStore` factory creates a simple in-memory implementation:
+
+```typescript
+import { createStateStore, type StateStore } from "@json-render/core";
+
+const store = createStateStore({ count: 0 });
+
+store.get("/count");         // 0
+store.set("/count", 1);      // updates and notifies subscribers
+store.update({ "/a": 1, "/b": 2 }); // batch update
+
+store.subscribe(() => {
+  console.log(store.getSnapshot()); // { count: 1 }
+});
+```
+
+The `StateStore` interface: `get(path)`, `set(path, value)`, `update(updates)`, `getSnapshot()`, `subscribe(listener)`.
+
 ## Key Exports
 
 | Export | Purpose |
 |--------|---------|
 | `defineSchema` | Create a new schema |
 | `defineCatalog` | Create a catalog from schema |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
 | `resolvePropValue` | Resolve a single prop expression against data |
 | `resolveElementProps` | Resolve all prop expressions in an element |
 | `buildUserPrompt` | Build user prompts with refinement and state context |
@@ -186,5 +207,6 @@ These appear in prompts as `[built-in]` and don't require handlers in `defineReg
 | `createJsonRenderTransform` | TransformStream separating text from JSONL in mixed streams |
 | `parseSpecStreamLine` | Parse single JSONL line |
 | `applySpecStreamPatch` | Apply patch to object |
+| `StateStore` | Interface for plugging in external state management |
 | `BuiltInAction` | Type for built-in action definitions (`name` + `description`) |
 | `ActionBinding` | Action binding type (includes `preventDefault` field) |

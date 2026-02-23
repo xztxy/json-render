@@ -88,10 +88,27 @@ Use `visible` on elements to show/hide based on state. New syntax: `{ "$state": 
 
 | Provider | Purpose |
 |----------|---------|
-| `StateProvider` | Share state across components (JSON Pointer paths) |
+| `StateProvider` | Share state across components (JSON Pointer paths). Accepts optional `store` prop for controlled mode. |
 | `ActionProvider` | Handle actions dispatched via the event system |
 | `VisibilityProvider` | Enable conditional rendering based on state |
 | `ValidationProvider` | Form field validation |
+
+### External Store (Controlled Mode)
+
+Pass a `StateStore` to `StateProvider` (or `JSONUIProvider` / `createRenderer`) to use external state management (Redux, Zustand, XState, etc.):
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react";
+
+const store = createStateStore({ count: 0 });
+
+<StateProvider store={store}>{children}</StateProvider>
+
+// Mutate from anywhere — React re-renders automatically:
+store.set("/count", 1);
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored.
 
 ## Dynamic Prop Expressions
 
@@ -212,6 +229,8 @@ const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) => (
 | `useActions` | Access actions context |
 | `useAction` | Get a single action dispatch function |
 | `useUIStream` | Stream specs from an API endpoint |
+| `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
+| `StateStore` | Interface for plugging in external state management |
 | `BaseComponentProps` | Catalog-agnostic base type for reusable component libraries |
 | `EventHandle` | Event handle type (`emit`, `shouldPreventDefault`, `bound`) |
 | `ComponentContext` | Typed component context (catalog-aware) |

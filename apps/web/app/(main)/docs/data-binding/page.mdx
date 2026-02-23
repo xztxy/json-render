@@ -259,6 +259,25 @@ The condition uses the same [visibility](/docs/visibility) expression format.
   </table>
 </div>
 
+## External Store (Controlled Mode)
+
+For advanced use cases, you can pass a `StateStore` to `StateProvider` to use your own state management (Redux, Zustand, XState, etc.) instead of the built-in internal store:
+
+```tsx
+import { createStateStore, type StateStore } from "@json-render/react";
+
+const store = createStateStore({ user: { name: "Alice" } });
+
+<StateProvider store={store}>
+  {children}
+</StateProvider>
+
+// Mutate from anywhere — React re-renders automatically:
+store.set("/user/name", "Bob");
+```
+
+When `store` is provided, `initialState` and `onStateChange` are ignored. The store is the single source of truth. See the [React API reference](/docs/api/react#external-store-controlled-mode) for the full `StateStore` interface.
+
 ## Next
 
 - [Visibility](/docs/visibility) — conditionally show or hide elements

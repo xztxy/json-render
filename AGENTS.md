@@ -53,6 +53,7 @@ Do **not** add `--port` flags -- portless handles port assignment automatically.
 - When making user-facing changes (new packages, API changes, new features, renamed exports, changed behavior), update the relevant documentation:
   - Package `README.md` files in `packages/*/README.md`
   - Root `README.md` (if packages table, install commands, or examples are affected)
+  - Web app docs in `apps/web/` (if guides, API references, or examples need updating)
   - Skills in `skills/*/SKILL.md` (if the package has a corresponding skill)
   - `AGENTS.md` (if workflow or conventions change)
 

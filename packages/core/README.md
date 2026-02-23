@@ -221,6 +221,34 @@ Schema options:
 
 The transform splits text blocks around spec data by emitting `text-end`/`text-start` pairs, ensuring the AI SDK creates separate text parts and preserving correct interleaving of prose and UI in `message.parts`.
 
+### State Store
+
+| Export | Purpose |
+|--------|---------|
+| `createStateStore(initialState?)` | Create a framework-agnostic in-memory `StateStore` |
+| `StateStore` | Interface for plugging in external state management (Redux, Zustand, XState, etc.) |
+| `StateModel` | State model type (`Record<string, unknown>`) |
+
+The `StateStore` interface allows renderers to use external state management instead of the built-in internal store:
+
+```typescript
+import { createStateStore, type StateStore } from "@json-render/core";
+
+// Simple in-memory store
+const store = createStateStore({ count: 0 });
+
+store.get("/count");          // 0
+store.set("/count", 1);       // updates and notifies subscribers
+store.getSnapshot();          // { count: 1 }
+
+// Subscribe to changes (compatible with React's useSyncExternalStore)
+const unsubscribe = store.subscribe(() => {
+  console.log("state changed:", store.getSnapshot());
+});
+```
+
+Pass the store to `StateProvider` in any renderer package (`@json-render/react`, `@json-render/react-native`, `@json-render/react-pdf`) for controlled mode.
+
 ### Types
 
 | Export | Purpose |
