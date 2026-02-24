@@ -215,8 +215,12 @@ describe("builtInValidationFunctions", () => {
       expect(builtInValidationFunctions.lessThan(7, { other: 5 })).toBe(false);
     });
 
-    it("fails for mismatched types", () => {
-      expect(builtInValidationFunctions.lessThan("3", { other: 5 })).toBe(
+    it("coerces numeric string vs number", () => {
+      expect(builtInValidationFunctions.lessThan("3", { other: 5 })).toBe(true);
+    });
+
+    it("fails coercion when non-numeric string", () => {
+      expect(builtInValidationFunctions.lessThan("abc", { other: 5 })).toBe(
         false,
       );
     });
@@ -253,6 +257,18 @@ describe("builtInValidationFunctions", () => {
 
     it("fails when value is less than other", () => {
       expect(builtInValidationFunctions.greaterThan(3, { other: 5 })).toBe(
+        false,
+      );
+    });
+
+    it("coerces numeric string vs number", () => {
+      expect(builtInValidationFunctions.greaterThan("7", { other: 5 })).toBe(
+        true,
+      );
+    });
+
+    it("fails coercion when non-numeric string", () => {
+      expect(builtInValidationFunctions.greaterThan("abc", { other: 5 })).toBe(
         false,
       );
     });

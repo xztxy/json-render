@@ -273,29 +273,30 @@ const ElementRenderer = React.memo(function ElementRenderer({
     // Skip the initial mount — only fire on changes
     if (prev === null) return;
 
-    const snapshot = getSnapshot();
-    for (const path of paths) {
-      if (watchedValues[path] !== prev[path]) {
-        const binding = watchConfig[path];
-        if (!binding) continue;
-        const bindings = Array.isArray(binding) ? binding : [binding];
-        for (const b of bindings) {
-          if (!b.params) {
-            execute(b);
-            continue;
+    void (async () => {
+      for (const path of paths) {
+        if (watchedValues[path] !== prev[path]) {
+          const binding = watchConfig[path];
+          if (!binding) continue;
+          const bindings = Array.isArray(binding) ? binding : [binding];
+          for (const b of bindings) {
+            if (!b.params) {
+              await execute(b);
+              continue;
+            }
+            const liveCtx: PropResolutionContext = {
+              ...fullCtx,
+              stateModel: getSnapshot(),
+            };
+            const resolved: Record<string, unknown> = {};
+            for (const [key, val] of Object.entries(b.params)) {
+              resolved[key] = resolveActionParam(val, liveCtx);
+            }
+            await execute({ ...b, params: resolved });
           }
-          const liveCtx: PropResolutionContext = {
-            ...fullCtx,
-            stateModel: snapshot,
-          };
-          const resolved: Record<string, unknown> = {};
-          for (const [key, val] of Object.entries(b.params)) {
-            resolved[key] = resolveActionParam(val, liveCtx);
-          }
-          execute({ ...b, params: resolved });
         }
       }
-    }
+    })();
   }, [watchConfig, watchedValues, execute, fullCtx, getSnapshot]);
 
   // Don't render if not visible

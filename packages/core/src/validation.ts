@@ -64,6 +64,14 @@ export interface ValidationFunctionDefinition {
   description?: string;
 }
 
+const matchesImpl: ValidationFunction = (
+  value: unknown,
+  args?: Record<string, unknown>,
+) => {
+  const other = args?.other;
+  return value === other;
+};
+
 /**
  * Built-in validation functions
  */
@@ -165,22 +173,17 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
   /**
    * Check if value matches another field
    */
-  matches: (value: unknown, args?: Record<string, unknown>) => {
-    const other = args?.other;
-    return value === other;
-  },
+  matches: matchesImpl,
 
   /**
    * Alias for matches with a more descriptive name for cross-field equality
    */
-  equalTo: (value: unknown, args?: Record<string, unknown>) => {
-    const other = args?.other;
-    return value === other;
-  },
+  equalTo: matchesImpl,
 
   /**
    * Check if value is less than another field's value.
-   * Supports numbers and strings (useful for ISO date comparison).
+   * Supports numbers, strings (useful for ISO date comparison), and
+   * cross-type numeric coercion (e.g. string "3" vs number 5).
    */
   lessThan: (value: unknown, args?: Record<string, unknown>) => {
     const other = args?.other;
@@ -188,12 +191,16 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
       return value < other;
     if (typeof value === "string" && typeof other === "string")
       return value < other;
+    const numVal = Number(value);
+    const numOther = Number(other);
+    if (!isNaN(numVal) && !isNaN(numOther)) return numVal < numOther;
     return false;
   },
 
   /**
    * Check if value is greater than another field's value.
-   * Supports numbers and strings (useful for ISO date comparison).
+   * Supports numbers, strings (useful for ISO date comparison), and
+   * cross-type numeric coercion (e.g. string "7" vs number 5).
    */
   greaterThan: (value: unknown, args?: Record<string, unknown>) => {
     const other = args?.other;
@@ -201,6 +208,9 @@ export const builtInValidationFunctions: Record<string, ValidationFunction> = {
       return value > other;
     if (typeof value === "string" && typeof other === "string")
       return value > other;
+    const numVal = Number(value);
+    const numOther = Number(other);
+    if (!isNaN(numVal) && !isNaN(numOther)) return numVal > numOther;
     return false;
   },
 

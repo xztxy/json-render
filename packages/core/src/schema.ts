@@ -904,7 +904,7 @@ Note: state patches appear right after the elements that use them, so the UI fil
     '4. Template: `{ "$template": "Hello, ${/name}!" }` - interpolates `${/path}` references in the string with values from the state model.',
   );
   lines.push(
-    '   Example: `"label": { "$template": "Total: $${/cart/total}" }` renders "Total: $42.00" when /cart/total is 42.00.',
+    '   Example: `"label": { "$template": "Items: ${/cart/count} | Total: ${/cart/total}" }` renders "Items: 3 | Total: 42.00" when /cart/count is 3 and /cart/total is 42.00.',
   );
   lines.push("");
 

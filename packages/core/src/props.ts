@@ -145,7 +145,9 @@ function isTemplateExpression(value: unknown): value is { $template: string } {
 }
 
 // Module-level set to avoid spamming console.warn on every render for the same
-// unknown $computed function name.
+// unknown $computed function name. Capped to prevent unbounded growth in
+// long-lived processes (e.g. SSR).
+const WARNED_COMPUTED_MAX = 100;
 const warnedComputedFns = new Set<string>();
 
 // =============================================================================
@@ -237,6 +239,9 @@ export function resolvePropValue(
     if (!fn) {
       if (!warnedComputedFns.has(value.$computed)) {
         warnedComputedFns.add(value.$computed);
+        if (warnedComputedFns.size > WARNED_COMPUTED_MAX) {
+          warnedComputedFns.clear();
+        }
         console.warn(`Unknown $computed function: "${value.$computed}"`);
       }
       return undefined;
