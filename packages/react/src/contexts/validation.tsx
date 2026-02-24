@@ -140,11 +140,7 @@ export function ValidationProvider({
   validateAllRef,
   children,
 }: ValidationProviderProps) {
-  const { state } = useStateStore();
-  // Keep a ref to the latest state so `validate` doesn't change on every
-  // state update — preventing the entire validation context from churning.
-  const stateRef = useRef(state);
-  stateRef.current = state;
+  const { state, getSnapshot } = useStateStore();
 
   const [fieldStates, setFieldStates] = useState<
     Record<string, FieldValidationState>
@@ -170,8 +166,10 @@ export function ValidationProvider({
 
   const validate = useCallback(
     (path: string, config: ValidationConfig): ValidationResult => {
-      // Walk the nested state object using JSON Pointer segments
-      const currentState = stateRef.current;
+      // Read from the store directly so validation sees values written in the
+      // same synchronous handler (e.g. setValue then validate in onChange).
+      // Using React state would return the stale pre-render snapshot.
+      const currentState = getSnapshot();
       const segments = path.split("/").filter(Boolean);
       let value: unknown = currentState;
       for (const seg of segments) {
@@ -199,7 +197,7 @@ export function ValidationProvider({
 
       return result;
     },
-    [customFunctions],
+    [customFunctions, getSnapshot],
   );
 
   const touch = useCallback((path: string) => {
