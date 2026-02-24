@@ -300,7 +300,7 @@ export function ActionProvider({
         });
       }
     },
-    [handlers, get, set, navigate],
+    [handlers, get, set, getSnapshot, navigate],
   );
 
   const confirm = useCallback(() => {
