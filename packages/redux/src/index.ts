@@ -78,6 +78,8 @@ export function reduxStateStore<
         if (current !== prev) {
           prev = current;
           listener();
+          // Re-read after listener in case it triggered a synchronous dispatch;
+          // absorb that change so it doesn't fire a duplicate notification.
           prev = selector(store.getState());
         }
       });

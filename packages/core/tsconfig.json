@@ -5,6 +5,5 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist"],
-  "files": ["../typescript-config/env.d.ts"]
+  "exclude": ["node_modules", "dist"]
 }
