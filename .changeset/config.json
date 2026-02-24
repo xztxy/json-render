@@ -21,7 +21,7 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "privatePackages": {
-    "version": false,
+    "version": true,
     "tag": false
   }
 }
