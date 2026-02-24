@@ -143,9 +143,10 @@ class ElementErrorBoundary extends React.Component<
 // FunctionsContext – provides $computed functions to the element tree
 // ---------------------------------------------------------------------------
 
-const FunctionsContext = React.createContext<Record<string, ComputedFunction>>(
-  {},
-);
+const EMPTY_FUNCTIONS: Record<string, ComputedFunction> = {};
+
+const FunctionsContext =
+  React.createContext<Record<string, ComputedFunction>>(EMPTY_FUNCTIONS);
 
 function useFunctions(): Record<string, ComputedFunction> {
   return React.useContext(FunctionsContext);
@@ -553,7 +554,7 @@ export function JSONUIProvider({
             customFunctions={validationFunctions}
             validateAllRef={validateAllRef}
           >
-            <FunctionsContext.Provider value={functions ?? {}}>
+            <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
               {children}
               <ConfirmationDialogManager />
             </FunctionsContext.Provider>
@@ -849,7 +850,7 @@ export function createRenderer<
             validateAllRef={validateAllRef}
           >
             <ValidationProvider validateAllRef={validateAllRef}>
-              <FunctionsContext.Provider value={functions ?? {}}>
+              <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
                 <Renderer
                   spec={spec}
                   registry={registry}
