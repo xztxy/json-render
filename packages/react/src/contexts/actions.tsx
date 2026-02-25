@@ -17,7 +17,7 @@ import {
   type ResolvedAction,
 } from "@json-render/core";
 import { useStateStore } from "./state";
-import { type ValidateAllRef } from "./validation";
+import { useOptionalValidation } from "./validation";
 
 /**
  * Generate a unique ID for use with the "$id" token.
@@ -126,8 +126,6 @@ export interface ActionProviderProps {
   handlers?: Record<string, ActionHandler>;
   /** Navigation function */
   navigate?: (path: string) => void;
-  /** Ref bridge to ValidationProvider's validateAll */
-  validateAllRef?: ValidateAllRef;
   children: ReactNode;
 }
 
@@ -137,10 +135,10 @@ export interface ActionProviderProps {
 export function ActionProvider({
   handlers: initialHandlers = {},
   navigate,
-  validateAllRef,
   children,
 }: ActionProviderProps) {
   const { get, set, getSnapshot } = useStateStore();
+  const validation = useOptionalValidation();
 
   const [handlers, setHandlers] =
     useState<Record<string, ActionHandler>>(initialHandlers);
@@ -244,7 +242,7 @@ export function ActionProvider({
       // in a sequential list (e.g. [validateForm, submitForm]) can read the
       // validation result from state without awaiting an extra tick.
       if (resolved.action === "validateForm") {
-        const validateAll = validateAllRef?.current;
+        const validateAll = validation?.validateAll;
         if (!validateAll) {
           console.warn(
             "validateForm action was dispatched but no ValidationProvider is connected. " +
@@ -325,7 +323,7 @@ export function ActionProvider({
         });
       }
     },
-    [handlers, get, set, getSnapshot, navigate, validateAllRef],
+    [handlers, get, set, getSnapshot, navigate, validation],
   );
 
   const confirm = useCallback(() => {

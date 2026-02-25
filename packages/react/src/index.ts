@@ -30,11 +30,11 @@ export {
 export {
   ValidationProvider,
   useValidation,
+  useOptionalValidation,
   useFieldValidation,
   type ValidationContextValue,
   type ValidationProviderProps,
   type FieldValidationState,
-  type ValidateAllRef,
 } from "./contexts/validation";
 
 export {

@@ -6,9 +6,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
-  useRef,
   type ReactNode,
-  type MutableRefObject,
 } from "react";
 import {
   runValidation,
@@ -17,12 +15,6 @@ import {
   type ValidationResult,
 } from "@json-render/core";
 import { useStateStore } from "./state";
-
-/**
- * Ref bridge so the ActionProvider can call validateAll without
- * being a child of ValidationProvider.
- */
-export type ValidateAllRef = MutableRefObject<(() => boolean) | null>;
 
 /**
  * Field validation state
@@ -64,8 +56,6 @@ const ValidationContext = createContext<ValidationContextValue | null>(null);
 export interface ValidationProviderProps {
   /** Custom validation functions from catalog */
   customFunctions?: Record<string, ValidationFunction>;
-  /** Ref bridge so external providers (e.g. ActionProvider) can call validateAll */
-  validateAllRef?: ValidateAllRef;
   children: ReactNode;
 }
 
@@ -137,7 +127,6 @@ function validationConfigEqual(
  */
 export function ValidationProvider({
   customFunctions = {},
-  validateAllRef,
   children,
 }: ValidationProviderProps) {
   const { state, getSnapshot } = useStateStore();
@@ -232,18 +221,6 @@ export function ValidationProvider({
     return allValid;
   }, [fieldConfigs, validate]);
 
-  // Expose validateAll via ref bridge for the ActionProvider
-  React.useEffect(() => {
-    if (validateAllRef) {
-      validateAllRef.current = validateAll;
-    }
-    return () => {
-      if (validateAllRef) {
-        validateAllRef.current = null;
-      }
-    };
-  }, [validateAll, validateAllRef]);
-
   const value = useMemo<ValidationContextValue>(
     () => ({
       customFunctions,
@@ -281,6 +258,14 @@ export function useValidation(): ValidationContextValue {
     throw new Error("useValidation must be used within a ValidationProvider");
   }
   return ctx;
+}
+
+/**
+ * Non-throwing variant of useValidation.
+ * Returns null when no ValidationProvider is present.
+ */
+export function useOptionalValidation(): ValidationContextValue | null {
+  return useContext(ValidationContext);
 }
 
 /**

@@ -536,8 +536,6 @@ export function JSONUIProvider({
   onStateChange,
   children,
 }: JSONUIProviderProps) {
-  const validateAllRef = useRef<(() => boolean) | null>(null);
-
   return (
     <StateProvider
       store={store}
@@ -545,21 +543,14 @@ export function JSONUIProvider({
       onStateChange={onStateChange}
     >
       <VisibilityProvider>
-        <ActionProvider
-          handlers={handlers}
-          navigate={navigate}
-          validateAllRef={validateAllRef}
-        >
-          <ValidationProvider
-            customFunctions={validationFunctions}
-            validateAllRef={validateAllRef}
-          >
+        <ValidationProvider customFunctions={validationFunctions}>
+          <ActionProvider handlers={handlers} navigate={navigate}>
             <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
               {children}
               <ConfirmationDialogManager />
             </FunctionsContext.Provider>
-          </ValidationProvider>
-        </ActionProvider>
+          </ActionProvider>
+        </ValidationProvider>
       </VisibilityProvider>
     </StateProvider>
   );
@@ -819,8 +810,6 @@ export function createRenderer<
     loading,
     fallback,
   }: CreateRendererProps) {
-    const validateAllRef = useRef<(() => boolean) | null>(null);
-
     // Wrap onAction with a Proxy so any action name routes to the callback
     const actionHandlers = onAction
       ? new Proxy(
@@ -845,11 +834,8 @@ export function createRenderer<
         onStateChange={onStateChange}
       >
         <VisibilityProvider>
-          <ActionProvider
-            handlers={actionHandlers}
-            validateAllRef={validateAllRef}
-          >
-            <ValidationProvider validateAllRef={validateAllRef}>
+          <ValidationProvider>
+            <ActionProvider handlers={actionHandlers}>
               <FunctionsContext.Provider value={functions ?? EMPTY_FUNCTIONS}>
                 <Renderer
                   spec={spec}
@@ -859,8 +845,8 @@ export function createRenderer<
                 />
                 <ConfirmationDialogManager />
               </FunctionsContext.Provider>
-            </ValidationProvider>
-          </ActionProvider>
+            </ActionProvider>
+          </ValidationProvider>
         </VisibilityProvider>
       </StateProvider>
     );
