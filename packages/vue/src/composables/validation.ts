@@ -35,7 +35,7 @@ export interface ValidationContextValue {
   validate: (path: string, config: ValidationConfig) => ValidationResult;
   touch: (path: string) => void;
   clear: (path: string) => void;
-  validateAll: () => { valid: boolean; errors: Record<string, string[]> };
+  validateAll: () => boolean;
   registerField: (path: string, config: ValidationConfig) => void;
 }
 
@@ -171,20 +171,15 @@ export const ValidationProvider = defineComponent({
       fieldStates.value = rest;
     };
 
-    const validateAll = (): {
-      valid: boolean;
-      errors: Record<string, string[]>;
-    } => {
+    const validateAll = (): boolean => {
       let allValid = true;
-      const errors: Record<string, string[]> = {};
       for (const [path, config] of Object.entries(fieldConfigs.value)) {
         const result = validate(path, config);
         if (!result.valid) {
           allValid = false;
-          errors[path] = result.errors;
         }
       }
-      return { valid: allValid, errors };
+      return allValid;
     };
 
     provide<ValidationContextValue>(VALIDATION_KEY, {

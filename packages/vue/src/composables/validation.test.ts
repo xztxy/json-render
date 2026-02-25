@@ -155,7 +155,7 @@ describe("useFieldValidation — lifecycle", () => {
     expect(validationCtx.fieldStates["/email"]).toBeUndefined();
   });
 
-  it("validateAll() returns { valid: true } when all registered fields pass", () => {
+  it("validateAll() returns true when all registered fields pass", () => {
     let validationCtx!: ReturnType<typeof useValidation>;
 
     const Child = defineComponent({
@@ -178,10 +178,10 @@ describe("useFieldValidation — lifecycle", () => {
       },
     });
 
-    expect(validationCtx.validateAll()).toEqual({ valid: true, errors: {} });
+    expect(validationCtx.validateAll()).toBe(true);
   });
 
-  it("validateAll() returns { valid: false } when any field fails", () => {
+  it("validateAll() returns false when any field fails", () => {
     let validationCtx!: ReturnType<typeof useValidation>;
 
     const Child = defineComponent({
@@ -204,9 +204,6 @@ describe("useFieldValidation — lifecycle", () => {
       },
     });
 
-    expect(validationCtx.validateAll()).toEqual({
-      valid: false,
-      errors: { "/name": ["Required"] },
-    });
+    expect(validationCtx.validateAll()).toBe(false);
   });
 });

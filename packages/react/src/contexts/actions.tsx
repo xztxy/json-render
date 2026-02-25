@@ -250,7 +250,13 @@ export function ActionProvider({
           );
           return;
         }
-        const { valid, errors } = validateAll();
+        const valid = validateAll();
+        const errors: Record<string, string[]> = {};
+        for (const [path, fs] of Object.entries(validation.fieldStates)) {
+          if (fs.result && !fs.result.valid) {
+            errors[path] = fs.result.errors;
+          }
+        }
         const statePath =
           (resolved.params?.statePath as string) || "/formValidation";
         set(statePath, { valid, errors });
