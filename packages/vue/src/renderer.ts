@@ -8,6 +8,7 @@ import {
   ref,
   watch,
   type Component,
+  type ComputedRef,
   type PropType,
   type VNode,
 } from "vue";
@@ -105,12 +106,12 @@ const FunctionsProvider = defineComponent({
   },
 });
 
-function useFunctions(): Record<string, ComputedFunction> {
+function useFunctions(): ComputedRef<Record<string, ComputedFunction>> {
   const ctx = inject<{ functions?: Record<string, ComputedFunction> }>(
     FUNCTIONS_KEY,
     { functions: EMPTY_FUNCTIONS },
   );
-  return ctx.functions ?? EMPTY_FUNCTIONS;
+  return computed(() => ctx.functions ?? EMPTY_FUNCTIONS);
 }
 
 // ---------------------------------------------------------------------------
@@ -143,6 +144,37 @@ const ElementErrorBoundary = defineComponent({
     };
   },
 });
+
+// ---------------------------------------------------------------------------
+// resolveAndExecuteBindings — shared helper for emitEvent / watch handlers
+// ---------------------------------------------------------------------------
+
+async function resolveAndExecuteBindings(
+  actionBindings: ActionBinding[],
+  ctx: PropResolutionContext,
+  getSnapshot: () => Record<string, unknown>,
+  execute: (binding: ActionBinding) => Promise<void>,
+  cancelled?: () => boolean,
+): Promise<void> {
+  for (const b of actionBindings) {
+    if (cancelled?.()) break;
+    if (!b.params) {
+      await execute(b);
+      if (cancelled?.()) break;
+      continue;
+    }
+    const liveCtx: PropResolutionContext = {
+      ...ctx,
+      stateModel: getSnapshot(),
+    };
+    const resolved: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(b.params)) {
+      resolved[key] = resolveActionParam(val, liveCtx);
+    }
+    await execute({ ...b, params: resolved });
+    if (cancelled?.()) break;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // ElementRenderer — renders a single element from the spec
@@ -197,7 +229,7 @@ const ElementRenderer = defineComponent({
             repeatBasePath: repeatScope.basePath,
           }
         : { ...visibilityCtx.value };
-      base.functions = functions;
+      base.functions = functions.value;
       return base;
     });
 
@@ -206,21 +238,12 @@ const ElementRenderer = defineComponent({
       const binding = props.element.on?.[eventName];
       if (!binding) return;
       const actionBindings = Array.isArray(binding) ? binding : [binding];
-      for (const b of actionBindings) {
-        if (!b.params) {
-          await execute(b);
-          continue;
-        }
-        const liveCtx: PropResolutionContext = {
-          ...fullCtx.value,
-          stateModel: getSnapshot(),
-        };
-        const resolved: Record<string, unknown> = {};
-        for (const [key, val] of Object.entries(b.params)) {
-          resolved[key] = resolveActionParam(val, liveCtx);
-        }
-        await execute({ ...b, params: resolved });
-      }
+      await resolveAndExecuteBindings(
+        actionBindings,
+        fullCtx.value,
+        getSnapshot,
+        execute,
+      );
     };
 
     // Create on() function
@@ -242,7 +265,6 @@ const ElementRenderer = defineComponent({
 
     // Watch effect: fire actions when watched state paths change.
     const watchConfig = props.element.watch;
-    const prevWatchValues = ref<Record<string, unknown> | null>(null);
 
     if (watchConfig) {
       const watchedValues = computed(() => {
@@ -255,16 +277,13 @@ const ElementRenderer = defineComponent({
 
       watch(
         watchedValues,
-        (current, prev) => {
-          if (prevWatchValues.value === null) {
-            prevWatchValues.value = { ...current };
-            return;
-          }
-          prevWatchValues.value = { ...current };
+        (current, prev, onCleanup) => {
+          let cancelled = false;
+          onCleanup(() => {
+            cancelled = true;
+          });
 
           const paths = Object.keys(watchConfig);
-          let cancelled = false;
-
           void (async () => {
             for (const path of paths) {
               if (cancelled) break;
@@ -272,30 +291,15 @@ const ElementRenderer = defineComponent({
               const binding = watchConfig[path];
               if (!binding) continue;
               const bindings = Array.isArray(binding) ? binding : [binding];
-              for (const b of bindings) {
-                if (cancelled) break;
-                if (!b.params) {
-                  await execute(b);
-                  if (cancelled) break;
-                  continue;
-                }
-                const liveCtx: PropResolutionContext = {
-                  ...fullCtx.value,
-                  stateModel: getSnapshot(),
-                };
-                const resolved: Record<string, unknown> = {};
-                for (const [key, val] of Object.entries(b.params)) {
-                  resolved[key] = resolveActionParam(val, liveCtx);
-                }
-                await execute({ ...b, params: resolved });
-                if (cancelled) break;
-              }
+              await resolveAndExecuteBindings(
+                bindings,
+                fullCtx.value,
+                getSnapshot,
+                execute,
+                () => cancelled,
+              );
             }
           })().catch(console.error);
-
-          return () => {
-            cancelled = true;
-          };
         },
         { deep: true },
       );
