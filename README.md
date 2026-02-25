@@ -117,6 +117,7 @@ function Dashboard({ spec }) {
 | `@json-render/redux` | Redux / Redux Toolkit adapter for `StateStore` |
 | `@json-render/zustand` | Zustand adapter for `StateStore` |
 | `@json-render/jotai` | Jotai adapter for `StateStore` |
+| `@json-render/xstate-store` | XState Store (atom) adapter for `StateStore` |
 
 ## Renderers
 

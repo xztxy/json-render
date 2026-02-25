@@ -133,4 +133,16 @@ describe("xstateStoreStateStore", () => {
     expect(store.get("/count")).toBe(99);
     expect(store.getSnapshot().count).toBe(99);
   });
+
+  it("subscribe fires on external atom.set", () => {
+    const atom = createAtom<Record<string, unknown>>({ count: 0 });
+    const store = xstateStoreStateStore({ atom });
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    atom.set({ count: 99 });
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(store.get("/count")).toBe(99);
+  });
 });
