@@ -23,6 +23,8 @@ coverage
 
 # Build Outputs
 .next/
+.nuxt/
+.output/
 out/
 build
 dist

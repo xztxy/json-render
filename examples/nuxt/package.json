@@ -1,0 +1,25 @@
+{
+  "name": "example-nuxt",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "portless nuxt-demo.json-render nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "check-types": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*",
+    "@json-render/vue": "workspace:*",
+    "nuxt": "^4.3.1",
+    "vue": "^3.5.29",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.7.2"
+  }
+}

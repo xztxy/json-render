@@ -1,0 +1,42 @@
+{
+  "name": "@json-render/vue",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "Vue renderer for @json-render/core. JSON becomes Vue components.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js",
+      "require": "./dist/schema.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@json-render/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@internal/typescript-config": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.4.5",
+    "vue": "^3.5.29"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}
