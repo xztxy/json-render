@@ -121,7 +121,7 @@ function Dashboard({ spec }) {
 | `@json-render/redux` | Redux / Redux Toolkit adapter for `StateStore` |
 | `@json-render/zustand` | Zustand adapter for `StateStore` |
 | `@json-render/jotai` | Jotai adapter for `StateStore` |
-| `@json-render/xstate-store` | XState Store (atom) adapter for `StateStore` |
+| `@json-render/xstate` | XState Store (atom) adapter for `StateStore` |
 
 ## Renderers
 
@@ -342,10 +342,12 @@ Any prop value can be data-driven using expressions:
 }
 ```
 
-Two expression forms:
+Expression forms:
 
 - **`{ "$state": "/state/key" }`** - reads a value from the state model
-- **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - evaluates a condition (same syntax as visibility conditions) and picks a branch
+- **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - evaluates a condition and picks a branch
+- **`{ "$template": "Hello, ${/user/name}!" }`** - interpolates state values into strings
+- **`{ "$computed": "fn", "args": { ... } }`** - calls a registered function with resolved args
 
 ### Actions
 
@@ -360,6 +362,22 @@ Components can trigger actions, including the built-in `setState` action:
 ```
 
 The `setState` action updates the state model directly, which re-evaluates visibility conditions and dynamic prop expressions.
+
+### State Watchers
+
+React to state changes by triggering actions:
+
+```json
+{
+  "type": "Select",
+  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada", "UK"] },
+  "watch": {
+    "/form/country": { "action": "loadCities", "params": { "country": { "$state": "/form/country" } } }
+  }
+}
+```
+
+`watch` is a top-level field on elements (sibling of `type`/`props`/`children`). Watchers fire when the watched value changes, not on initial render.
 
 ---
 
@@ -376,6 +394,8 @@ pnpm dev
 - http://dashboard-demo.json-render.localhost:1355 - Example Dashboard
 - http://remotion-demo.json-render.localhost:1355 - Remotion Video Example
 - Chat Example: run `pnpm dev` in `examples/chat`
+- Vue Example: run `pnpm dev` in `examples/vue`
+- Vite Renderers (React + Vue): run `pnpm dev` in `examples/vite-renderers`
 - React Native example: run `npx expo start` in `examples/react-native`
 
 ## How It Works

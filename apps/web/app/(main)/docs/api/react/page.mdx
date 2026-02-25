@@ -109,6 +109,27 @@ const { registry } = defineRegistry(catalog, {
 type Registry = Record<string, React.ComponentType<ComponentRenderProps>>;
 ```
 
+### JSONUIProvider
+
+Convenience wrapper that combines `StateProvider`, `VisibilityProvider`, `ValidationProvider`, and `ActionProvider`. Accepts all their props plus:
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `functions` | `Record<string, ComputedFunction>` | Named functions for `$computed` expressions in props |
+
+```tsx
+<JSONUIProvider
+  spec={spec}
+  catalog={catalog}
+  handlers={{ submit: async () => { /* ... */ } }}
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+  <Renderer spec={spec} registry={registry} />
+</JSONUIProvider>
+```
+
+The `functions` prop is also available on `createRenderer`.
+
 ### Component Props (via defineRegistry)
 
 ```tsx
@@ -236,6 +257,15 @@ const {
 ```
 
 `ValidationConfig` is `{ checks?: ValidationCheck[], validateOn?: 'change' | 'blur' | 'submit' }`.
+
+### useOptionalValidation
+
+Non-throwing variant of `useValidation()`. Returns `null` when no `ValidationProvider` is present, instead of throwing. Useful in components that may or may not be rendered inside a validation context.
+
+```typescript
+const validation = useOptionalValidation();
+// ValidationContextValue | null
+```
 
 ### useBoundProp
 

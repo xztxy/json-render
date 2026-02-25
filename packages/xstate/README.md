@@ -1,11 +1,11 @@
-# @json-render/xstate-store
+# @json-render/xstate
 
 [XState Store](https://stately.ai/docs/xstate-store) adapter for json-render's `StateStore` interface. Wire an `@xstate/store` atom as the state backend for json-render.
 
 ## Installation
 
 ```bash
-npm install @json-render/xstate-store @json-render/core @json-render/react @xstate/store
+npm install @json-render/xstate @json-render/core @json-render/react @xstate/store
 ```
 
 > [!NOTE]
@@ -15,7 +15,7 @@ npm install @json-render/xstate-store @json-render/core @json-render/react @xsta
 
 ```ts
 import { createAtom } from "@xstate/store";
-import { xstateStoreStateStore } from "@json-render/xstate-store";
+import { xstateStoreStateStore } from "@json-render/xstate";
 import { StateProvider } from "@json-render/react";
 
 // 1. Create an atom

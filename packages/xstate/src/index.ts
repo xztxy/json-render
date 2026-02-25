@@ -18,7 +18,7 @@ export interface XstateStoreStateStoreOptions {
  * @example
  * ```ts
  * import { createAtom } from "@xstate/store";
- * import { xstateStoreStateStore } from "@json-render/xstate-store";
+ * import { xstateStoreStateStore } from "@json-render/xstate";
  *
  * const uiAtom = createAtom<Record<string, unknown>>({ count: 0 });
  *
