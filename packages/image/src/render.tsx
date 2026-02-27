@@ -12,10 +12,8 @@ import type { ComponentRegistry } from "./types";
 
 export { standardComponents };
 
-export type RenderComponentRegistry = Record<string, React.ComponentType<any>>;
-
 export interface RenderOptions {
-  registry?: RenderComponentRegistry;
+  registry?: ComponentRegistry;
   includeStandard?: boolean;
   state?: Record<string, unknown>;
   fonts?: SatoriOptions["fonts"];
@@ -30,7 +28,7 @@ const noopEmit = () => {};
 function renderElement(
   elementKey: string,
   spec: Spec,
-  registry: RenderComponentRegistry,
+  registry: ComponentRegistry,
   stateModel: Record<string, unknown>,
   repeatItem?: unknown,
   repeatIndex?: number,
@@ -155,7 +153,7 @@ function buildTree(
     ...state,
   };
 
-  const registry: RenderComponentRegistry = {
+  const registry: ComponentRegistry = {
     ...(includeStandard ? standardComponents : {}),
     ...customRegistry,
   };
