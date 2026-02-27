@@ -6,6 +6,7 @@ export default [
   {
     rules: {
       "react/prop-types": "off",
+      "@next/next/no-img-element": "off",
     },
   },
 ];
