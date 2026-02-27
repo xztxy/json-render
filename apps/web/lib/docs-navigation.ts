@@ -36,6 +36,7 @@ export const docsNavigation: NavSection[] = [
   {
     title: "Rendering",
     items: [
+      { title: "Renderers", href: "/docs/renderers" },
       { title: "Registry", href: "/docs/registry" },
       { title: "Streaming", href: "/docs/streaming" },
       { title: "Generation Modes", href: "/docs/generation-modes" },
@@ -67,6 +68,11 @@ export const docsNavigation: NavSection[] = [
       {
         title: "Remotion",
         href: "https://github.com/vercel-labs/json-render/tree/main/examples/remotion",
+        external: true,
+      },
+      {
+        title: "Image",
+        href: "https://github.com/vercel-labs/json-render/tree/main/examples/image",
         external: true,
       },
       {
@@ -106,6 +112,7 @@ export const docsNavigation: NavSection[] = [
       { title: "@json-render/react-pdf", href: "/docs/api/react-pdf" },
       { title: "@json-render/shadcn", href: "/docs/api/shadcn" },
       { title: "@json-render/react-native", href: "/docs/api/react-native" },
+      { title: "@json-render/image", href: "/docs/api/image" },
       { title: "@json-render/remotion", href: "/docs/api/remotion" },
       { title: "@json-render/vue", href: "/docs/api/vue" },
       { title: "@json-render/codegen", href: "/docs/api/codegen" },

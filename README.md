@@ -118,6 +118,7 @@ function Dashboard({ spec }) {
 | `@json-render/react-native` | React Native renderer with standard mobile components |
 | `@json-render/remotion` | Remotion video renderer, timeline schema |
 | `@json-render/react-pdf` | React PDF renderer for generating PDF documents from specs |
+| `@json-render/image` | Image renderer for SVG/PNG output (OG images, social cards) via Satori |
 | `@json-render/redux` | Redux / Redux Toolkit adapter for `StateStore` |
 | `@json-render/zustand` | Zustand adapter for `StateStore` |
 | `@json-render/jotai` | Jotai adapter for `StateStore` |
@@ -285,6 +286,35 @@ const spec = {
 
 // Render to buffer, stream, or file
 const buffer = await renderToBuffer(spec);
+```
+
+### Image (SVG/PNG)
+
+```typescript
+import { renderToPng } from "@json-render/image/render";
+
+const spec = {
+  root: "frame",
+  elements: {
+    frame: {
+      type: "Frame",
+      props: { width: 1200, height: 630, backgroundColor: "#1a1a2e" },
+      children: ["heading"],
+    },
+    heading: {
+      type: "Heading",
+      props: { text: "Hello World", level: "h1", color: "#ffffff" },
+      children: [],
+    },
+  },
+};
+
+// Render to PNG (requires @resvg/resvg-js)
+const png = await renderToPng(spec, { fonts });
+
+// Or render to SVG string
+import { renderToSvg } from "@json-render/image/render";
+const svg = await renderToSvg(spec, { fonts });
 ```
 
 ## Features
