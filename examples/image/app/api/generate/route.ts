@@ -1,5 +1,4 @@
 import { streamText } from "ai";
-import { gateway } from "@ai-sdk/gateway";
 import { buildUserPrompt, type Spec } from "@json-render/core";
 import { imageCatalog } from "@/lib/catalog";
 
@@ -25,7 +24,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: gateway(process.env.AI_GATEWAY_MODEL ?? DEFAULT_MODEL),
+    model: process.env.AI_GATEWAY_MODEL ?? DEFAULT_MODEL,
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
     temperature: 0.7,

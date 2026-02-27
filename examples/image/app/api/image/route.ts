@@ -1,16 +1,18 @@
-import { renderToSvg, renderToPng } from "@json-render/image/render";
+import { renderToPng } from "@json-render/image/render";
 import { examples } from "@/lib/examples";
 import type { Spec } from "@json-render/core";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 let fontCache: ArrayBuffer | null = null;
 
 async function loadFont(): Promise<ArrayBuffer> {
   if (fontCache) return fontCache;
-  const buffer = await readFile(
-    join(process.cwd(), "public", "Inter-Regular.ttf"),
-  );
+  const fontPath =
+    require.resolve("geist/dist/fonts/geist-sans/Geist-Regular.ttf");
+  const buffer = await readFile(fontPath);
   fontCache = buffer.buffer.slice(
     buffer.byteOffset,
     buffer.byteOffset + buffer.byteLength,
@@ -49,7 +51,7 @@ async function imageResponse(spec: Spec, name: string, download: boolean) {
   const fontData = await loadFont();
   const fonts = [
     {
-      name: "Inter",
+      name: "Geist Sans",
       data: fontData,
       weight: 400 as const,
       style: "normal" as const,
@@ -62,7 +64,7 @@ async function imageResponse(spec: Spec, name: string, download: boolean) {
     ? `attachment; filename="${name}.png"`
     : `inline; filename="${name}.png"`;
 
-  return new Response(png as unknown as ArrayBuffer, {
+  return new Response(Buffer.from(png), {
     headers: {
       "Content-Type": "image/png",
       "Content-Disposition": disposition,
