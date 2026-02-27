@@ -2,16 +2,21 @@ import { renderToPng } from "@json-render/image/render";
 import { examples } from "@/lib/examples";
 import type { Spec } from "@json-render/core";
 import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
+import { join } from "node:path";
 
 let fontCache: ArrayBuffer | null = null;
 
 async function loadFont(): Promise<ArrayBuffer> {
   if (fontCache) return fontCache;
-  const fontPath =
-    require.resolve("geist/dist/fonts/geist-sans/Geist-Regular.ttf");
+  const fontPath = join(
+    process.cwd(),
+    "node_modules",
+    "geist",
+    "dist",
+    "fonts",
+    "geist-sans",
+    "Geist-Regular.ttf",
+  );
   const buffer = await readFile(fontPath);
   fontCache = buffer.buffer.slice(
     buffer.byteOffset,
