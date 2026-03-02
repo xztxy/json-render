@@ -7,6 +7,8 @@ export interface Example {
   spec: Spec;
 }
 
+// Images sourced from the react-email demo; URLs are only used for spec
+// structure validation in tests and are not fetched at runtime.
 const staticUrl = "https://react-email-demo-bdj5iju9r-resend.vercel.app/static";
 
 export const examples: Example[] = [

@@ -7,7 +7,7 @@ export interface Example {
   spec: Spec;
 }
 
-const staticUrl = "https://react-email-demo-bdj5iju9r-resend.vercel.app/static";
+const staticUrl = "/static";
 
 export const examples: Example[] = [
   {

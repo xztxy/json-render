@@ -16,10 +16,8 @@ import {
 } from "@json-render/core";
 import { useStateStore } from "./state";
 
-let idCounter = 0;
 function generateUniqueId(): string {
-  idCounter += 1;
-  return `${Date.now()}-${idCounter}`;
+  return crypto.randomUUID();
 }
 
 function deepResolveValue(

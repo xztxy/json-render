@@ -219,6 +219,7 @@ export default function Page() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ spec }),
     });
+    if (!res.ok) return;
     const html = await res.text();
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);

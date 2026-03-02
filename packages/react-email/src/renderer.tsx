@@ -342,7 +342,6 @@ export function Renderer({
 // =============================================================================
 
 export interface JSONUIProviderProps {
-  registry?: ComponentRegistry;
   initialState?: Record<string, unknown>;
   handlers?: Record<
     string,

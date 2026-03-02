@@ -7,7 +7,7 @@ import type { Spec } from "@json-render/core";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const name = searchParams.get("name") ?? "welcome";
+  const name = searchParams.get("name") ?? "vercel-invite";
   const plain = searchParams.get("plain") === "1";
 
   const example = examples.find((e) => e.name === name);

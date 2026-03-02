@@ -62,16 +62,15 @@ function renderElement(
         | unknown[]
         | undefined) ?? [];
 
+    const repeat = resolvedElement.repeat!;
     const fragments = items.map((item, index) => {
+      const repeatKey = repeat.key;
       const key =
-        resolvedElement.repeat!.key && typeof item === "object" && item !== null
-          ? String(
-              (item as Record<string, unknown>)[resolvedElement.repeat!.key!] ??
-                index,
-            )
+        repeatKey && typeof item === "object" && item !== null
+          ? String((item as Record<string, unknown>)[repeatKey] ?? index)
           : String(index);
 
-      const childPath = `${resolvedElement.repeat!.statePath}/${index}`;
+      const childPath = `${repeat.statePath}/${index}`;
       const children = resolvedElement.children?.map((childKey) =>
         renderElement(
           childKey,
@@ -134,6 +133,11 @@ function buildDocument(
   };
 
   const root = renderElement(spec.root, spec, registry, mergedState);
+  if (!root) {
+    console.warn(
+      `[json-render/react-email] Root element "${spec.root}" not found in spec.elements`,
+    );
+  }
   return root ?? <></>;
 }
 
