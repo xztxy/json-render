@@ -65,7 +65,7 @@
     "@react-email/render": "^1.0.5"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@internal/typescript-config": "workspace:*",
     "@types/react": "19.2.3",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5",

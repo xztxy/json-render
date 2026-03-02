@@ -8,10 +8,6 @@ export default defineConfig({
     alias: {
       react: path.resolve(__dirname, "node_modules/react"),
       "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
-      "@internal/react-state": path.resolve(
-        __dirname,
-        "packages/react-state/src/index.tsx",
-      ),
       vue: path.resolve(__dirname, "packages/vue/node_modules/vue"),
     },
   },
