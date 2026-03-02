@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Spec } from "@json-render/core";
 import { renderToHtml, renderToPlainText } from "./render";
-import { examples } from "../../../examples/react-email/lib/examples";
+import { examples } from "./__fixtures__/examples";
 
 // =============================================================================
 // Helpers
